@@ -7,7 +7,7 @@
 /*
 	Author: Eruyome
 	Tutorial used as template to show PoE UI overlay
-	Overlay resources created by https://www.reddit.com/user/Musti_A, reddit post https://www.reddit.com/r/pathofexile/comments/5x9pgt/i_made_some_poe_twitch_stream_overlays_free/
+	Overlay images created by https://www.reddit.com/user/Musti_A, reddit post https://www.reddit.com/r/pathofexile/comments/5x9pgt/i_made_some_poe_twitch_stream_overlays_free/
 */
 
 if not A_IsAdmin
