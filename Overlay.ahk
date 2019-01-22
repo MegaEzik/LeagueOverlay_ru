@@ -27,21 +27,23 @@ If !pToken := Gdip_Startup()
 	}
 OnExit, Exit
 
-global image1 := "Syndicate.png"
-global image2 := "Incursion.png"
-global image3 := "Map.png"
-global image4 := "Fossil.png"
+global image1 := "images/Syndicate.png"
+global image2 := "images/Incursion.png"
+global image3 := "images/Map.png"
+global image4 := "images/Fossil.png"
+global image5 := "images/Lab.jpg"
 global GuiOn1 := 0
 global GuiOn2 := 0
 global GuiOn3 := 0
 global GuiOn4 := 0
+global GuiOn5 := 0
 
 global poeWindowName = "Path of Exile ahk_class POEWindowClass"
 
 ; Create a layered window (+E0x80000 : must be used for UpdateLayeredWindow to work!) that is always on top (+AlwaysOnTop), has no taskbar entry or caption
 
 
-Loop 4
+Loop 5
 {
     ; Create two layered windows (+E0x80000 : must be used for UpdateLayeredWindow to work!) that is always on top (+AlwaysOnTop), has no taskbar entry or caption
     Gui, %A_Index%: -Caption +E0x80000 +LastFound +AlwaysOnTop +ToolWindow +OwnDialogs
@@ -53,7 +55,7 @@ Loop 4
 
 
 
-Loop 4
+Loop 5
 {
 If (GuiON%A_Index% = 0) {
 	Gosub, CheckWinActivePOE
@@ -75,12 +77,12 @@ Else {
 
 ; Get a bitmap from the image
 
-Loop 4{
+Loop 5{
 pBitmap%A_Index% := Gdip_CreateBitmapFromFile(image%A_Index%)
 
 }
 
-Loop 4{
+Loop 5{
 If !pBitmap%A_Index%
 {
 	MsgBox, 48, File loading error!, Could not load the image specified
@@ -92,7 +94,7 @@ If !pBitmap%A_Index%
 
 ; Get the width and height of the bitmap we have just created from the file
 ; This will be the dimensions that the file is
-Loop 4{
+Loop 5{
 Width%A_Index% := Gdip_GetImageWidth(pBitmap%A_Index%), Height%A_Index% := Gdip_GetImageHeight(pBitmap%A_Index%)
 hbm%A_Index% := CreateDIBSection(Width%A_Index%, Height%A_Index%)
 hdc%A_Index% := CreateCompatibleDC()
@@ -115,7 +117,7 @@ Return
 CheckWinActivePOE:
 	GuiControlGet, focused_control, focus
 	
-Loop 4
+Loop 5
 {
 	If(WinActive(poeWindowName))
 		If (GuiON%A_Index% = 0) {
@@ -179,6 +181,18 @@ GuiON4 := 0
 Else{
 Gui, 4: Show, NA
 GuiON4 := 1
+}
+return
+
+f7::
+If (GuiON5 = 1) {
+Gui, 5: Hide
+GuiON5 := 0
+}
+
+Else{
+Gui, 5: Show, NA
+GuiON5 := 1
 }
 return
 
