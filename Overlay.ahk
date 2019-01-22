@@ -7,7 +7,7 @@
 /*
 	Author: Eruyome
 	Tutorial used as template to show PoE UI overlay
-	Overlay images created by https://www.reddit.com/user/Musti_A, reddit post https://www.reddit.com/r/pathofexile/comments/5x9pgt/i_made_some_poe_twitch_stream_overlays_free/
+	Overlay resources created by https://www.reddit.com/user/Musti_A, reddit post https://www.reddit.com/r/pathofexile/comments/5x9pgt/i_made_some_poe_twitch_stream_overlays_free/
 */
 
 if not A_IsAdmin
@@ -16,6 +16,9 @@ if not A_IsAdmin
 #SingleInstance, Force
 #NoEnv
 SetBatchLines, -1
+
+Menu, Tray, Tip, League Overlay
+Menu, Tray, Icon, resources\Syndicate.ico
 
 ; Uncomment if Gdip.ahk is not in your standard library
 #Include, Gdip_All.ahk
@@ -27,11 +30,11 @@ If !pToken := Gdip_Startup()
 	}
 OnExit, Exit
 
-global image1 := "images/Syndicate.png"
-global image2 := "images/Incursion.png"
-global image3 := "images/Map.png"
-global image4 := "images/Fossil.png"
-global image5 := "images/Lab.jpg"
+global image1 := "resources\Syndicate.png"
+global image2 := "resources\Incursion.png"
+global image3 := "resources\Map.png"
+global image4 := "resources\Fossil.png"
+global image5 := "resources\Lab.jpg"
 global GuiOn1 := 0
 global GuiOn2 := 0
 global GuiOn3 := 0
