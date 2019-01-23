@@ -7,7 +7,7 @@
 /*
 	Author: Eruyome
 	Tutorial used as template to show PoE UI overlay
-	Overlay images created by https://www.reddit.com/user/Musti_A, reddit post https://www.reddit.com/r/pathofexile/comments/5x9pgt/i_made_some_poe_twitch_stream_overlays_free/
+	Overlay resources created by https://www.reddit.com/user/Musti_A, reddit post https://www.reddit.com/r/pathofexile/comments/5x9pgt/i_made_some_poe_twitch_stream_overlays_free/
 */
 
 if not A_IsAdmin
@@ -34,7 +34,7 @@ global image1 := "resources\Syndicate.png"
 global image2 := "resources\Incursion.png"
 global image3 := "resources\Map.png"
 global image4 := "resources\Fossil.png"
-global image5 := "resources\Lab.jpg"
+global image5 := "resources\Labyrinth.jpg"
 global GuiOn1 := 0
 global GuiOn2 := 0
 global GuiOn3 := 0
@@ -139,7 +139,7 @@ Loop 5
 Return
 
 #IfWinActive Path of Exile
-f2::
+!f2::
 If (GuiON1 = 1) {
 Gui, 1: Hide
 GuiON1 := 0
@@ -151,7 +151,7 @@ GuiON1 := 1
 }
 return
 
-f3::
+!f3::
 If (GuiON2 = 1) {
 Gui, 2: Hide
 GuiON2 := 0
@@ -163,7 +163,7 @@ GuiON2 := 1
 }
 return
 
-f4::
+!f4::
 If (GuiON3 = 1) {
 Gui, 3: Hide
 GuiON3 := 0
@@ -175,7 +175,7 @@ GuiON3 := 1
 }
 return
 
-f6::
+!f6::
 If (GuiON4 = 1) {
 Gui, 4: Hide
 GuiON4 := 0
@@ -187,7 +187,7 @@ GuiON4 := 1
 }
 return
 
-f7::
+!f5::
 If (GuiON5 = 1) {
 Gui, 5: Hide
 GuiON5 := 0
