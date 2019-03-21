@@ -11,7 +11,7 @@
 */
 
 if not A_IsAdmin
-	Run *RunAs "%A_ScriptFullPath%"
+	Run *RunAs "%A_AhkPath%" "%A_ScriptFullPath%"
 
 #SingleInstance, Force
 #NoEnv
@@ -33,11 +33,11 @@ If !pToken := Gdip_Startup()
 	}
 OnExit, Exit
 
-global image1 := "resources\Syndicate.png"
-global image2 := "resources\Incursion.png"
-global image3 := "resources\Map.png"
-global image4 := "resources\Fossil.png"
-global image5 := "resources\Labyrinth.jpg"
+global image1 := "resources\images\Syndicate.png"
+global image2 := "resources\images\Incursion.png"
+global image3 := "resources\images\Map.png"
+global image4 := "resources\images\Fossil.png"
+global image5 := "resources\images\Labyrinth.jpg"
 global GuiOn1 := 0
 global GuiOn2 := 0
 global GuiOn3 := 0
