@@ -24,7 +24,20 @@ Menu, Tray, Icon, resources\Syndicate.ico
 #Include, resources\Gdip_All.ahk
 #Include, resources\LoaderLab.ahk
 
-DownloadUberLabyrinthLayout()
+IniRead, hotkeySyndicate, settings.ini, settings, hotkeySyndicate, !f2
+IniRead, hotkeyIncursion, settings.ini, settings, hotkeyIncursion, !f3
+IniRead, hotkeyMaps, settings.ini, settings, hotkeyMaps, !f4
+IniRead, hotkeyFossils, settings.ini, settings, hotkeyFossils, !f6
+IniRead, hotkeyLabyrinth, settings.ini, settings, hotkeyLabyrinth, !f1
+IniRead, lowResolution, settings.ini, settings, lowResolution, 0
+IniRead, lvlLabyrinth, settings.ini, settings, lvlLabyrinth, "uber"
+Hotkey, % hotkeySyndicate, shSyndicate, On
+Hotkey, % hotkeyIncursion, shIncursion, On
+Hotkey, % hotkeyMaps, shMaps, On
+Hotkey, % hotkeyFossils, shFossils, On
+Hotkey, % hotkeyLabyrinth, shLabyrinth, On
+
+DownloadLabyrinthLayout(lvlLabyrinth)
 
 ; Start gdi+
 If !pToken := Gdip_Startup()
@@ -38,6 +51,11 @@ global image2 := "resources\images\Incursion.png"
 global image3 := "resources\images\Map.png"
 global image4 := "resources\images\Fossil.png"
 global image5 := "resources\images\Labyrinth.jpg"
+if lowResolution {
+	global image1 := "resources\images\720p\Syndicate.png"
+	global image2 := "resources\images\720p\Incursion.png"
+}
+
 global GuiOn1 := 0
 global GuiOn2 := 0
 global GuiOn3 := 0
@@ -142,65 +160,60 @@ Loop 5
 Return
 
 #IfWinActive Path of Exile
-!f2::
-If (GuiON1 = 1) {
-Gui, 1: Hide
-GuiON1 := 0
+shSyndicate(){
+	If (GuiON1 = 1) {
+		Gui, 1: Hide
+		GuiON1 := 0
+	}Else{
+		Gui, 1: Show, NA
+		GuiON1 := 1
+	}
+	return
 }
 
-Else{
-Gui, 1: Show, NA
-GuiON1 := 1
-}
-return
-
-!f3::
-If (GuiON2 = 1) {
-Gui, 2: Hide
-GuiON2 := 0
-}
-
-Else{
-Gui, 2: Show, NA
-GuiON2 := 1
-}
-return
-
-!f4::
-If (GuiON3 = 1) {
-Gui, 3: Hide
-GuiON3 := 0
+shIncursion(){
+	If (GuiON2 = 1) {
+		Gui, 2: Hide
+		GuiON2 := 0
+	}Else{
+		Gui, 2: Show, NA
+		GuiON2 := 1
+	}
+	return
 }
 
-Else{
-Gui, 3: Show, NA
-GuiON3 := 1
-}
-return
-
-!f6::
-If (GuiON4 = 1) {
-Gui, 4: Hide
-GuiON4 := 0
-}
-
-Else{
-Gui, 4: Show, NA
-GuiON4 := 1
-}
-return
-
-!f1::
-If (GuiON5 = 1) {
-Gui, 5: Hide
-GuiON5 := 0
+shMaps(){
+	If (GuiON3 = 1) {
+		Gui, 3: Hide
+		GuiON3 := 0
+	}Else{
+		Gui, 3: Show, NA
+		GuiON3 := 1
+	}
+	return
 }
 
-Else{
-Gui, 5: Show, NA
-GuiON5 := 1
+shFossils(){
+	If (GuiON4 = 1) {
+		Gui, 4: Hide
+		GuiON4 := 0
+	}Else{
+		Gui, 4: Show, NA
+		GuiON4 := 1
+	}
+	return
 }
-return
+
+shLabyrinth(){
+	If (GuiON5 = 1) {
+		Gui, 5: Hide
+		GuiON5 := 0
+	}Else{
+		Gui, 5: Show, NA
+		GuiON5 := 1
+	}
+	return
+}
 
 
 Exit:

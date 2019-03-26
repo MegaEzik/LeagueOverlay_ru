@@ -1,12 +1,12 @@
 ﻿
-DownloadUberLabyrinthLayout() {
+DownloadLabyrinthLayout(lvllab) {
 	FileDelete, resources\images\Labyrinth.jpg
 
 	FormatTime, Year, %A_NowUTC%, yyyy
 	FormatTime, Month, %A_NowUTC%, MM
 	FormatTime, Day, %A_NowUTC%, dd
-	UberLabURL:="https://poelab.com/wp-content/uploads/" Year "/" Month "/" Year "-" Month "-" Day "_uber.jpg"
-	UrlDownloadToFile, %UberLabURL%, resources\images\Labyrinth.jpg
+	LabURL:="https://poelab.com/wp-content/uploads/" Year "/" Month "/" Year "-" Month "-" Day "_" lvllab ".jpg"
+	UrlDownloadToFile, %LabURL%, resources\images\Labyrinth.jpg
 
 	FileReadLine, Line, resources\images\Labyrinth.jpg, 1
 
