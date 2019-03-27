@@ -29,6 +29,7 @@ IniRead, hotkeyIncursion, settings.ini, settings, hotkeyIncursion, !f3
 IniRead, hotkeyMaps, settings.ini, settings, hotkeyMaps, !f4
 IniRead, hotkeyFossils, settings.ini, settings, hotkeyFossils, !f6
 IniRead, hotkeyLabyrinth, settings.ini, settings, hotkeyLabyrinth, !f1
+IniRead, hotkeyProphecy, settings.ini, settings, hotkeyProphecy, !f7
 IniRead, lowResolution, settings.ini, settings, lowResolution, 0
 IniRead, lvlLabyrinth, settings.ini, settings, lvlLabyrinth, "uber"
 Hotkey, % hotkeySyndicate, shSyndicate, On
@@ -36,6 +37,7 @@ Hotkey, % hotkeyIncursion, shIncursion, On
 Hotkey, % hotkeyMaps, shMaps, On
 Hotkey, % hotkeyFossils, shFossils, On
 Hotkey, % hotkeyLabyrinth, shLabyrinth, On
+Hotkey, % hotkeyProphecy, shProphecy, On
 
 DownloadLabyrinthLayout(lvlLabyrinth)
 
@@ -51,9 +53,11 @@ global image2 := "resources\images\Incursion.png"
 global image3 := "resources\images\Map.png"
 global image4 := "resources\images\Fossil.png"
 global image5 := "resources\images\Labyrinth.jpg"
+global image6 := "resources\images\Prophecy.png"
 if lowResolution {
 	global image1 := "resources\images\720p\Syndicate.png"
 	global image2 := "resources\images\720p\Incursion.png"
+	global image6 := "resources\images\720p\Prophecy.png"
 }
 
 global GuiOn1 := 0
@@ -61,13 +65,14 @@ global GuiOn2 := 0
 global GuiOn3 := 0
 global GuiOn4 := 0
 global GuiOn5 := 0
+global GuiOn6 := 0
 
 global poeWindowName = "Path of Exile ahk_class POEWindowClass"
 
 ; Create a layered window (+E0x80000 : must be used for UpdateLayeredWindow to work!) that is always on top (+AlwaysOnTop), has no taskbar entry or caption
 
 
-Loop 5
+Loop 6
 {
     ; Create two layered windows (+E0x80000 : must be used for UpdateLayeredWindow to work!) that is always on top (+AlwaysOnTop), has no taskbar entry or caption
     Gui, %A_Index%: -Caption +E0x80000 +LastFound +AlwaysOnTop +ToolWindow +OwnDialogs
@@ -79,7 +84,7 @@ Loop 5
 
 
 
-Loop 5
+Loop 6
 {
 If (GuiON%A_Index% = 0) {
 	Gosub, CheckWinActivePOE
@@ -101,12 +106,12 @@ Else {
 
 ; Get a bitmap from the image
 
-Loop 5{
+Loop 6{
 pBitmap%A_Index% := Gdip_CreateBitmapFromFile(image%A_Index%)
 
 }
 
-Loop 5{
+Loop 6{
 If !pBitmap%A_Index%
 {
 	MsgBox, 48, File loading error!, Could not load the image specified
@@ -118,7 +123,7 @@ If !pBitmap%A_Index%
 
 ; Get the width and height of the bitmap we have just created from the file
 ; This will be the dimensions that the file is
-Loop 5{
+Loop 6{
 Width%A_Index% := Gdip_GetImageWidth(pBitmap%A_Index%), Height%A_Index% := Gdip_GetImageHeight(pBitmap%A_Index%)
 hbm%A_Index% := CreateDIBSection(Width%A_Index%, Height%A_Index%)
 hdc%A_Index% := CreateCompatibleDC()
@@ -141,7 +146,7 @@ Return
 CheckWinActivePOE:
 	GuiControlGet, focused_control, focus
 	
-Loop 5
+Loop 6
 {
 	If(WinActive(poeWindowName))
 		If (GuiON%A_Index% = 0) {
@@ -215,6 +220,16 @@ shLabyrinth(){
 	return
 }
 
+shProphecy(){
+	If (GuiON6 = 1) {
+		Gui, 6: Hide
+		GuiON6 := 0
+	}Else{
+		Gui, 6: Show, NA
+		GuiON6 := 1
+	}
+	return
+}
 
 Exit:
 ; gdi+ may now be shutdown on exiting the program
