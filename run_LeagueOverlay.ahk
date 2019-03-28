@@ -69,11 +69,11 @@ global GuiOn6 := 0
 
 global poeWindowName = "Path of Exile ahk_class POEWindowClass"
 
+
 ; Create a layered window (+E0x80000 : must be used for UpdateLayeredWindow to work!) that is always on top (+AlwaysOnTop), has no taskbar entry or caption
 
 
-Loop 6
-{
+Loop 6{
     ; Create two layered windows (+E0x80000 : must be used for UpdateLayeredWindow to work!) that is always on top (+AlwaysOnTop), has no taskbar entry or caption
     Gui, %A_Index%: -Caption +E0x80000 +LastFound +AlwaysOnTop +ToolWindow +OwnDialogs
     ; Show the window
@@ -83,22 +83,19 @@ Loop 6
 }
 
 
-
-Loop 6
-{
-If (GuiON%A_Index% = 0) {
-	Gosub, CheckWinActivePOE
-	SetTimer, CheckWinActivePOE, 100
-	GuiON%A_Index% = 1
+Loop 6{
+	If (GuiON%A_Index% = 0){
+		Gosub, CheckWinActivePOE
+		SetTimer, CheckWinActivePOE, 100
+		GuiON%A_Index% = 1
 	
-	; Show the window
-	Gui, %A_Index%: Show, NA
-}
-Else {
-	SetTimer, CheckWinActivePOE, Off      
-	Gui, %A_Index%: Hide	
-	GuiON%A_Index% = 0
-}
+		; Show the window
+		Gui, %A_Index%: Show, NA
+	} Else {
+		SetTimer, CheckWinActivePOE, Off      
+		Gui, %A_Index%: Hide	
+		GuiON%A_Index% = 0
+	}
 }
 
 
@@ -107,36 +104,33 @@ Else {
 ; Get a bitmap from the image
 
 Loop 6{
-pBitmap%A_Index% := Gdip_CreateBitmapFromFile(image%A_Index%)
-
+	pBitmap%A_Index% := Gdip_CreateBitmapFromFile(image%A_Index%)
 }
 
 Loop 6{
-If !pBitmap%A_Index%
-{
-	MsgBox, 48, File loading error!, Could not load the image specified
-	ExitApp
-}
-
+	If !pBitmap%A_Index%{
+		MsgBox, 48, File loading error!, Could not load the image specified
+		ExitApp
+	}
 }
 
 
 ; Get the width and height of the bitmap we have just created from the file
 ; This will be the dimensions that the file is
 Loop 6{
-Width%A_Index% := Gdip_GetImageWidth(pBitmap%A_Index%), Height%A_Index% := Gdip_GetImageHeight(pBitmap%A_Index%)
-hbm%A_Index% := CreateDIBSection(Width%A_Index%, Height%A_Index%)
-hdc%A_Index% := CreateCompatibleDC()
-obm%A_Index% := SelectObject(hdc%A_Index%, hbm%A_Index%)
-G%A_Index% := Gdip_GraphicsFromHDC(hdc%A_Index%)
-Gdip_SetInterpolationMode(G%A_Index%, 7)
-Gdip_DrawImage(G%A_Index%, pBitmap%A_Index%, 0, 0, Width%A_Index%, Height%A_Index%, 0, 0, Width%A_Index%, Height%A_Index%)
-UpdateLayeredWindow(hwnd%A_Index%, hdc%A_Index%, A_ScreenWidth/2-(Width%A_Index%/2), 25, Width%A_Index%, Height%A_Index%)
-SelectObject(hdc%A_Index%, obm%A_Index%)
-DeleteObject(hbm%A_Index%)
-DeleteDC(hdc%A_Index%)
-Gdip_DeleteGraphics(G%A_Index%)
-Gdip_DisposeImage(pBitmap%A_Index%)
+	Width%A_Index% := Gdip_GetImageWidth(pBitmap%A_Index%), Height%A_Index% := Gdip_GetImageHeight(pBitmap%A_Index%)
+	hbm%A_Index% := CreateDIBSection(Width%A_Index%, Height%A_Index%)
+	hdc%A_Index% := CreateCompatibleDC()
+	obm%A_Index% := SelectObject(hdc%A_Index%, hbm%A_Index%)
+	G%A_Index% := Gdip_GraphicsFromHDC(hdc%A_Index%)
+	Gdip_SetInterpolationMode(G%A_Index%, 7)
+	Gdip_DrawImage(G%A_Index%, pBitmap%A_Index%, 0, 0, Width%A_Index%, Height%A_Index%, 0, 0, Width%A_Index%, Height%A_Index%)
+	UpdateLayeredWindow(hwnd%A_Index%, hdc%A_Index%, A_ScreenWidth/2-(Width%A_Index%/2), 25, Width%A_Index%, Height%A_Index%)
+	SelectObject(hdc%A_Index%, obm%A_Index%)
+	DeleteObject(hbm%A_Index%)
+	DeleteDC(hdc%A_Index%)
+	Gdip_DeleteGraphics(G%A_Index%)
+	Gdip_DisposeImage(pBitmap%A_Index%)
 }
 
 
@@ -146,95 +140,57 @@ Return
 CheckWinActivePOE:
 	GuiControlGet, focused_control, focus
 	
-Loop 6
-{
+Loop 6{
 	If(WinActive(poeWindowName))
-		If (GuiON%A_Index% = 0) {
-			
+		If (GuiON%A_Index% = 0){			
 			GuiON%A_Index% := 0
-			
 		}
 	If(!WinActive(poeWindowName))
-		If (GuiON%A_Index% = 1)
-		{
+		If (GuiON%A_Index% = 1){
 			Gui, %A_Index%: Hide
 			GuiON%A_Index% := 0
-		}
-		
+		}		
 }
 Return
 
 #IfWinActive Path of Exile
-shSyndicate(){
-	If (GuiON1 = 1) {
-		Gui, 1: Hide
-		GuiON1 := 0
+shOverlay(i){
+	If (GuiON%i% = 1){
+		Gui, %i%: Hide
+		GuiON%i% := 0
 	}Else{
-		Gui, 1: Show, NA
-		GuiON1 := 1
+		Gui, %i%: Show, NA
+		GuiON%i% := 1
 	}
-	return
+}
+
+shSyndicate(){
+	shOverlay(1)
 }
 
 shIncursion(){
-	If (GuiON2 = 1) {
-		Gui, 2: Hide
-		GuiON2 := 0
-	}Else{
-		Gui, 2: Show, NA
-		GuiON2 := 1
-	}
-	return
+	shOverlay(2)
 }
 
 shMaps(){
-	If (GuiON3 = 1) {
-		Gui, 3: Hide
-		GuiON3 := 0
-	}Else{
-		Gui, 3: Show, NA
-		GuiON3 := 1
-	}
-	return
+	shOverlay(3)
 }
 
 shFossils(){
-	If (GuiON4 = 1) {
-		Gui, 4: Hide
-		GuiON4 := 0
-	}Else{
-		Gui, 4: Show, NA
-		GuiON4 := 1
-	}
-	return
+	shOverlay(4)
 }
 
 shLabyrinth(){
-	If (GuiON5 = 1) {
-		Gui, 5: Hide
-		GuiON5 := 0
-	}Else{
-		Gui, 5: Show, NA
-		GuiON5 := 1
-	}
-	return
+	shOverlay(5)
 }
 
 shProphecy(){
-	If (GuiON6 = 1) {
-		Gui, 6: Hide
-		GuiON6 := 0
-	}Else{
-		Gui, 6: Show, NA
-		GuiON6 := 1
-	}
-	return
+	shOverlay(6)
 }
 
 Exit:
 ; gdi+ may now be shutdown on exiting the program
-Gdip_Shutdown(pToken)
-ExitApp
-
+	Gdip_Shutdown(pToken)
+	ExitApp
 
 Return
