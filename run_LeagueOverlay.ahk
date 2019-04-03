@@ -32,6 +32,7 @@ IniRead, hotkeyLabyrinth, settings.ini, settings, hotkeyLabyrinth, !f1
 IniRead, hotkeyProphecy, settings.ini, settings, hotkeyProphecy, !f7
 IniRead, lowResolution, settings.ini, settings, lowResolution, 0
 IniRead, lvlLabyrinth, settings.ini, settings, lvlLabyrinth, "uber"
+lvlLabyrinth:=(lvlLabyrinth="normal" || lvlLabyrinth="cruel" || lvlLabyrinth="merciless" || lvlLabyrinth="uber")?lvlLabyrinth:"uber"
 Hotkey, % hotkeySyndicate, shSyndicate, On
 Hotkey, % hotkeyIncursion, shIncursion, On
 Hotkey, % hotkeyMaps, shMaps, On
