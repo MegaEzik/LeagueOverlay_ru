@@ -24,21 +24,23 @@ Menu, Tray, Icon, resources\Syndicate.ico
 #Include, resources\Gdip_All.ahk
 #Include, resources\LoaderLab.ahk
 
-IniRead, hotkeySyndicate, settings.ini, settings, hotkeySyndicate, !f2
-IniRead, hotkeyIncursion, settings.ini, settings, hotkeyIncursion, !f3
-IniRead, hotkeyMaps, settings.ini, settings, hotkeyMaps, !f4
-IniRead, hotkeyFossils, settings.ini, settings, hotkeyFossils, !f6
-IniRead, hotkeyLabyrinth, settings.ini, settings, hotkeyLabyrinth, !f1
-IniRead, hotkeyProphecy, settings.ini, settings, hotkeyProphecy, !f7
-IniRead, lowResolution, settings.ini, settings, lowResolution, 0
-IniRead, lvlLabyrinth, settings.ini, settings, lvlLabyrinth, "uber"
-lvlLabyrinth:=(lvlLabyrinth="normal" || lvlLabyrinth="cruel" || lvlLabyrinth="merciless" || lvlLabyrinth="uber")?lvlLabyrinth:"uber"
+IniRead, hotkeySyndicate, settings.ini, hotkeys, hotkeySyndicate, !f2
+IniRead, hotkeyIncursion, settings.ini, hotkeys, hotkeyIncursion, !f3
+IniRead, hotkeyMaps, settings.ini, hotkeys, hotkeyMaps, !f4
+IniRead, hotkeyFossils, settings.ini, hotkeys, hotkeyFossils, !f6
+IniRead, hotkeyLabyrinth, settings.ini, hotkeys, hotkeyLabyrinth, !f1
+IniRead, hotkeyProphecy, settings.ini, hotkeys, hotkeyProphecy, !f7
 Hotkey, % hotkeySyndicate, shSyndicate, On
 Hotkey, % hotkeyIncursion, shIncursion, On
 Hotkey, % hotkeyMaps, shMaps, On
 Hotkey, % hotkeyFossils, shFossils, On
 Hotkey, % hotkeyLabyrinth, shLabyrinth, On
 Hotkey, % hotkeyProphecy, shProphecy, On
+
+IniRead, lvlLabyrinth, settings.ini, settings, lvlLabyrinth, "uber"
+lvlLabyrinth:=(lvlLabyrinth="normal" || lvlLabyrinth="cruel" || lvlLabyrinth="merciless" || lvlLabyrinth="uber")?lvlLabyrinth:"uber"
+IniRead, resolutionMultiplier, settings.ini, settings, resolutionMultiplier, 1
+resolutionMultiplier:=(resolutionMultiplier>1 || resolutionMultiplier<=0)?1:resolutionMultiplier
 
 DownloadLabyrinthLayout(lvlLabyrinth)
 
@@ -55,11 +57,6 @@ global image3 := "resources\images\Map.png"
 global image4 := "resources\images\Fossil.png"
 global image5 := "resources\images\Labyrinth.jpg"
 global image6 := "resources\images\Prophecy.png"
-if lowResolution {
-	global image1 := "resources\images\720p\Syndicate.png"
-	global image2 := "resources\images\720p\Incursion.png"
-	global image6 := "resources\images\720p\Prophecy.png"
-}
 
 global GuiOn1 := 0
 global GuiOn2 := 0
@@ -119,14 +116,15 @@ Loop 6{
 ; Get the width and height of the bitmap we have just created from the file
 ; This will be the dimensions that the file is
 Loop 6{
-	Width%A_Index% := Gdip_GetImageWidth(pBitmap%A_Index%), Height%A_Index% := Gdip_GetImageHeight(pBitmap%A_Index%)
+	Width%A_Index% := Gdip_GetImageWidth(pBitmap%A_Index%)
+	Height%A_Index% := Gdip_GetImageHeight(pBitmap%A_Index%)
 	hbm%A_Index% := CreateDIBSection(Width%A_Index%, Height%A_Index%)
 	hdc%A_Index% := CreateCompatibleDC()
 	obm%A_Index% := SelectObject(hdc%A_Index%, hbm%A_Index%)
 	G%A_Index% := Gdip_GraphicsFromHDC(hdc%A_Index%)
 	Gdip_SetInterpolationMode(G%A_Index%, 7)
-	Gdip_DrawImage(G%A_Index%, pBitmap%A_Index%, 0, 0, Width%A_Index%, Height%A_Index%, 0, 0, Width%A_Index%, Height%A_Index%)
-	UpdateLayeredWindow(hwnd%A_Index%, hdc%A_Index%, A_ScreenWidth/2-(Width%A_Index%/2), 25, Width%A_Index%, Height%A_Index%)
+	Gdip_DrawImage(G%A_Index%, pBitmap%A_Index%, 0, 0, round(Width%A_Index%*resolutionMultiplier), round(Height%A_Index%*resolutionMultiplier), 0, 0, Width%A_Index%, Height%A_Index%)
+	UpdateLayeredWindow(hwnd%A_Index%, hdc%A_Index%, round(A_ScreenWidth/2)-round(Width%A_Index%*resolutionMultiplier/2), 25, round(Width%A_Index%*resolutionMultiplier), round(Height%A_Index%*resolutionMultiplier))
 	SelectObject(hdc%A_Index%, obm%A_Index%)
 	DeleteObject(hbm%A_Index%)
 	DeleteDC(hdc%A_Index%)
