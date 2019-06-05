@@ -17,32 +17,41 @@ if not A_IsAdmin
 #NoEnv
 SetBatchLines, -1
 
-Menu, Tray, Tip, League Overlay
-Menu, Tray, Icon, resources\Syndicate.ico
-
 ; Uncomment if Gdip.ahk is not in your standard library
 #Include, resources\Gdip_All.ahk
-#Include, resources\LoaderLab.ahk
 
-IniRead, hotkeySyndicate, settings.ini, hotkeys, hotkeySyndicate, !f2
-IniRead, hotkeyIncursion, settings.ini, hotkeys, hotkeyIncursion, !f3
-IniRead, hotkeyMaps, settings.ini, hotkeys, hotkeyMaps, !f4
-IniRead, hotkeyFossils, settings.ini, hotkeys, hotkeyFossils, !f6
-IniRead, hotkeyLabyrinth, settings.ini, hotkeys, hotkeyLabyrinth, !f1
-IniRead, hotkeyProphecy, settings.ini, hotkeys, hotkeyProphecy, !f7
+global configFile:="settings.ini"
+global verScript
+FileRead, verScript, resources\Version.txt
+
+Menu, Tray, Tip, League Overlay ru v%verScript%
+Menu, Tray, Icon, resources\Syndicate.ico
+
+Menu, Tray, NoStandard
+
+Menu, Tray, Add, Open on GitHub, openGitHub
+Menu, Tray, Add
+
+#Include, resources\ResolutionMultiplier.ahk
+resolutionMultiplierInit()
+
+#Include, resources\LoaderLab.ahk
+initLabyrinth()
+
+Menu, Tray, Standard
+
+IniRead, hotkeySyndicate, %configFile%, hotkeys, hotkeySyndicate, !f2
+IniRead, hotkeyIncursion, %configFile%, hotkeys, hotkeyIncursion, !f3
+IniRead, hotkeyMaps, %configFile%, hotkeys, hotkeyMaps, !f4
+IniRead, hotkeyFossils, %configFile%, hotkeys, hotkeyFossils, !f6
+IniRead, hotkeyLabyrinth, %configFile%, hotkeys, hotkeyLabyrinth, !f1
+IniRead, hotkeyProphecy, %configFile%, hotkeys, hotkeyProphecy, !f7
 Hotkey, % hotkeySyndicate, shSyndicate, On
 Hotkey, % hotkeyIncursion, shIncursion, On
 Hotkey, % hotkeyMaps, shMaps, On
 Hotkey, % hotkeyFossils, shFossils, On
 Hotkey, % hotkeyLabyrinth, shLabyrinth, On
 Hotkey, % hotkeyProphecy, shProphecy, On
-
-IniRead, lvlLabyrinth, settings.ini, settings, lvlLabyrinth, "uber"
-lvlLabyrinth:=(lvlLabyrinth="normal" || lvlLabyrinth="cruel" || lvlLabyrinth="merciless" || lvlLabyrinth="uber")?lvlLabyrinth:"uber"
-IniRead, resolutionMultiplier, settings.ini, settings, resolutionMultiplier, 1
-resolutionMultiplier:=(resolutionMultiplier>1 || resolutionMultiplier<=0)?1:resolutionMultiplier
-
-DownloadLabyrinthLayout(lvlLabyrinth)
 
 ; Start gdi+
 If !pToken := Gdip_Startup()
@@ -94,6 +103,8 @@ Loop 6{
 		Gui, %A_Index%: Hide	
 		GuiON%A_Index% = 0
 	}
+	Gui, %A_Index%: Hide	
+	GuiON%A_Index% = 0
 }
 
 
@@ -185,6 +196,10 @@ shLabyrinth(){
 
 shProphecy(){
 	shOverlay(6)
+}
+
+openGitHub(){
+	Run "https://github.com/MegaEzik/LeagueOverlay_ru/releases"
 }
 
 Exit:
