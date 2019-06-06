@@ -40,12 +40,13 @@ initLabyrinth()
 
 Menu, Tray, Standard
 
-IniRead, hotkeySyndicate, %configFile%, hotkeys, hotkeySyndicate, !f2
-IniRead, hotkeyIncursion, %configFile%, hotkeys, hotkeyIncursion, !f3
-IniRead, hotkeyMaps, %configFile%, hotkeys, hotkeyMaps, !f4
-IniRead, hotkeyFossils, %configFile%, hotkeys, hotkeyFossils, !f6
 IniRead, hotkeyLabyrinth, %configFile%, hotkeys, hotkeyLabyrinth, !f1
-IniRead, hotkeyProphecy, %configFile%, hotkeys, hotkeyProphecy, !f7
+
+IniRead, hotkeySyndicate, %configFile%, hotkeys, hotkeySyndicate, !f5
+IniRead, hotkeyIncursion, %configFile%, hotkeys, hotkeyIncursion, !f6
+IniRead, hotkeyMaps, %configFile%, hotkeys, hotkeyMaps, !f7
+IniRead, hotkeyFossils, %configFile%, hotkeys, hotkeyFossils, !f8
+IniRead, hotkeyProphecy, %configFile%, hotkeys, hotkeyProphecy, !f9
 Hotkey, % hotkeySyndicate, shSyndicate, On
 Hotkey, % hotkeyIncursion, shIncursion, On
 Hotkey, % hotkeyMaps, shMaps, On
