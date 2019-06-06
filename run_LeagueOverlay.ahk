@@ -40,19 +40,17 @@ initLabyrinth()
 
 Menu, Tray, Standard
 
-IniRead, hotkeyLabyrinth, %configFile%, hotkeys, hotkeyLabyrinth, !f1
+Menu, mainMenu, Add, Syndicate, shSyndicate
+Menu, mainMenu, Add, Incursion, shIncursion
+Menu, mainMenu, Add, Maps, shMaps
+Menu, mainMenu, Add, Fossils, shFossils
+Menu, mainMenu, Add, Prophecies, shProphecy
 
-IniRead, hotkeySyndicate, %configFile%, hotkeys, hotkeySyndicate, !f5
-IniRead, hotkeyIncursion, %configFile%, hotkeys, hotkeyIncursion, !f6
-IniRead, hotkeyMaps, %configFile%, hotkeys, hotkeyMaps, !f7
-IniRead, hotkeyFossils, %configFile%, hotkeys, hotkeyFossils, !f8
-IniRead, hotkeyProphecy, %configFile%, hotkeys, hotkeyProphecy, !f9
-Hotkey, % hotkeySyndicate, shSyndicate, On
-Hotkey, % hotkeyIncursion, shIncursion, On
-Hotkey, % hotkeyMaps, shMaps, On
-Hotkey, % hotkeyFossils, shFossils, On
+IniRead, hotkeyLabyrinth, %configFile%, hotkeys, hotkeyLabyrinth, !f1
 Hotkey, % hotkeyLabyrinth, shLabyrinth, On
-Hotkey, % hotkeyProphecy, shProphecy, On
+
+IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
+Hotkey, % hotkeyMainMenu, shMainMenu, On
 
 ; Start gdi+
 If !pToken := Gdip_Startup()
@@ -201,6 +199,14 @@ shProphecy(){
 
 openGitHub(){
 	Run "https://github.com/MegaEzik/LeagueOverlay_ru/releases"
+}
+
+shMainMenu(){
+	Loop 6{
+		Gui, %A_Index%: Hide
+		GuiON%A_Index% := 0
+	}
+	Menu, mainMenu, Show
 }
 
 Exit:
