@@ -1,4 +1,4 @@
-; gdi+ ahk tutorial 3 written by tic (Tariq Porter)
+﻿; gdi+ ahk tutorial 3 written by tic (Tariq Porter)
 ; Requires Gdip.ahk either in your Lib folder as standard library or using #Include
 ;
 ; Tutorial to take make a gui from an existing image on disk
@@ -16,15 +16,32 @@ if not A_IsAdmin
 #SingleInstance, Force
 #NoEnv
 SetBatchLines, -1
+SetWorkingDir %A_ScriptDir%
 
 ; Uncomment if Gdip.ahk is not in your standard library
 #Include, resources\Gdip_All.ahk
 
-global configFile:="settings.ini"
+#Include, resources\JSON.ahk
+
+global prjName:="LeagueOverlay_ru"
+global githubUser:="MegaEzik"
+global configFile:=A_MyDocuments "\" prjName "\settings.ini"
 global verScript
 FileRead, verScript, resources\Version.txt
 
-Menu, Tray, Tip, League Overlay ru v%verScript%
+#Include, resources\Updater.ahk
+SetTimer, CheckUpdate, 60000
+
+IfNotExist %configFile%
+{
+	FileCreateDir, %A_MyDocuments%\%prjName%
+	IniWrite, !f1, %configFile%, hotkeys, hotkeyLabyrinth
+	IniWrite, !f2, %configFile%, hotkeys, hotkeyMainMenu
+	IniWrite, uber, %configFile%, settings, lvlLabyrinth
+	IniWrite, 1.00, %configFile%, settings, resolutionMultiplier
+}
+
+Menu, Tray, Tip, %prjName% v%verScript%
 Menu, Tray, Icon, resources\Syndicate.ico
 
 Menu, Tray, NoStandard
