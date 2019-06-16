@@ -20,17 +20,21 @@ SetWorkingDir %A_ScriptDir%
 
 ; Uncomment if Gdip.ahk is not in your standard library
 #Include, resources\Gdip_All.ahk
-
 #Include, resources\JSON.ahk
+#Include, resources\ResolutionMultiplier.ahk
+#Include, resources\LoaderLab.ahk
+#Include, resources\Updater.ahk
 
 global prjName:="LeagueOverlay_ru"
 global githubUser:="MegaEzik"
 global configFile:=A_MyDocuments "\" prjName "\settings.ini"
 global verScript
-FileRead, verScript, resources\Version.txt
+FileReadLine, verScript, resources\Updates.txt, 4
 
-#Include, resources\Updater.ahk
-SetTimer, CheckUpdate, 60000
+SplashTextOn, 270, 20, %prjName%, Подготовка макроса к работе...
+
+CheckUpdate()
+SetTimer, CheckUpdate, 10800000
 
 IfNotExist %configFile%
 {
@@ -46,28 +50,34 @@ Menu, Tray, Icon, resources\Syndicate.ico
 
 Menu, Tray, NoStandard
 
-Menu, Tray, Add, Open on GitHub, openGitHub
+Menu, Tray, Add, Поддержать, openDonateURL
+Menu, Tray, Add, Открыть на GitHub, openGitHub
 Menu, Tray, Add
 
-#Include, resources\ResolutionMultiplier.ahk
-resolutionMultiplierInit()
+initCheckUpdate()
 
-#Include, resources\LoaderLab.ahk
 initLabyrinth()
+
+resolutionMultiplierInit()
 
 Menu, Tray, Standard
 
-Menu, mainMenu, Add, Syndicate, shSyndicate
-Menu, mainMenu, Add, Incursion, shIncursion
-Menu, mainMenu, Add, Maps, shMaps
-Menu, mainMenu, Add, Fossils, shFossils
-Menu, mainMenu, Add, Prophecies, shProphecy
+Menu, mainMenu, Add, Синдикат, shSyndicate
+Menu, mainMenu, Add, Вмешательство, shIncursion
+Menu, mainMenu, Add, Прогрессия карт, shMaps
+Menu, mainMenu, Add, Ископаемые, shFossils
+Menu, mainMenu, Add, Пророчества, shProphecy
+Menu, mainMenu, Add
+Menu, mainMenu, Add, Изменить уровень лабиринта, :labMenu
+
 
 IniRead, hotkeyLabyrinth, %configFile%, hotkeys, hotkeyLabyrinth, !f1
 Hotkey, % hotkeyLabyrinth, shLabyrinth, On
 
 IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
 Hotkey, % hotkeyMainMenu, shMainMenu, On
+
+SplashTextOff
 
 ; Start gdi+
 If !pToken := Gdip_Startup()
@@ -76,11 +86,11 @@ If !pToken := Gdip_Startup()
 	}
 OnExit, Exit
 
-global image1 := "resources\images\Syndicate.png"
+global image1 := "resources\images\Labyrinth.jpg"
 global image2 := "resources\images\Incursion.png"
 global image3 := "resources\images\Map.png"
 global image4 := "resources\images\Fossil.png"
-global image5 := "resources\images\Labyrinth.jpg"
+global image5 := "resources\images\Syndicate.png"
 global image6 := "resources\images\Prophecy.png"
 
 global GuiOn1 := 0
@@ -190,7 +200,7 @@ shOverlay(i){
 	}
 }
 
-shSyndicate(){
+shLabyrinth(){
 	shOverlay(1)
 }
 
@@ -206,7 +216,7 @@ shFossils(){
 	shOverlay(4)
 }
 
-shLabyrinth(){
+shSyndicate(){
 	shOverlay(5)
 }
 
@@ -215,7 +225,13 @@ shProphecy(){
 }
 
 openGitHub(){
-	Run "https://github.com/MegaEzik/LeagueOverlay_ru/releases"
+	URL:="https://github.com/" githubUser "/" prjName "/releases/latest"
+	Run, %URL%
+}
+
+openDonateURL(){
+	URL:="https://money.yandex.ru/to/410018859988844"
+	Run, %URL%
 }
 
 shMainMenu(){

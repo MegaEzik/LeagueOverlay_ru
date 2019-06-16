@@ -10,34 +10,34 @@ downloadLabyrinthLayout(lvllab) {
 
 	FileReadLine, Line, resources\images\Labyrinth.jpg, 1
 
-	if (Line=""||Line="<!DOCTYPE html>") {
+	if (Line="" || (InStr(Line, "<") && InStr(Line, ">"))) {
 		FileDelete, resources\images\Labyrinth.jpg
-		MsgBox Не удалось получить файл с раскладкой лабиринта,`nвозможно еще нет информации на текущую дату!`n`nПопробуйте перезапустить скрипт позднее!
+		MsgBox, 0x1040, %prjName%, Не удалось получить файл с раскладкой лабиринта,`nвозможно еще нет информации на текущую дату!`n`nПопробуйте перезапустить скрипт позднее!
 		FileCopy, resources\images\LabyrinthError.jpg, resources\images\Labyrinth.jpg
 	}
 }
 
 initLabyrinth(){
 	IniRead, lvlLabyrinth, %configFile%, settings, lvlLabyrinth, "uber"
-	lvlLabyrinth:=(lvlLabyrinth="merc")?"merciless":lvlLabyrinth
 	lvlLabyrinth:=(lvlLabyrinth="normal" || lvlLabyrinth="cruel" || lvlLabyrinth="merciless" || lvlLabyrinth="uber")?lvlLabyrinth:"uber"
 	
 	downloadLabyrinthLayout(lvlLabyrinth)
 	
-	Menu, Tray, Add, Normal, selectNormalLab
-	Menu, Tray, Add, Cruel, selectCruelLab
-	Menu, Tray, Add, Merciless, selectMercilessLab
-	Menu, Tray, Add, Eternal, selectUberLab
+	Menu, labMenu, Add, Лабиринт, selectNormalLab
+	Menu, labMenu, Add, Жестокий Лабиринт, selectCruelLab
+	Menu, labMenu, Add, Безжалостный Лабиринт, selectMercilessLab
+	Menu, labMenu, Add, Лабиринт Вечных, selectUberLab
+	Menu, Tray, Add, Изменить уровень лабиринта, :labMenu
 	Menu, Tray, Add
 	
 	if (lvlLabyrinth="normal")
-	Menu, Tray, Check, Normal
+	Menu, labMenu, Check, Лабиринт
 	if (lvlLabyrinth="cruel")
-	Menu, Tray, Check, Cruel
+	Menu, labMenu, Check, Жестокий Лабиринт
 	if (lvlLabyrinth="merciless")
-	Menu, Tray, Check, Merciless
+	Menu, labMenu, Check, Безжалостный Лабиринт
 	if (lvlLabyrinth="uber")
-	Menu, Tray, Check, Eternal
+	Menu, labMenu, Check, Лабиринт Вечных
 }
 
 setLvlLabyrinth(lvl){
@@ -55,7 +55,7 @@ selectCruelLab(){
 }
 
 selectMercilessLab(){
-	setLvlLabyrinth("merc")
+	setLvlLabyrinth("merciless")
 }
 
 selectUberLab(){
