@@ -1,13 +1,19 @@
-﻿; gdi+ ahk tutorial 3 written by tic (Tariq Porter)
-; Requires Gdip.ahk either in your Lib folder as standard library or using #Include
-;
-; Tutorial to take make a gui from an existing image on disk
-; For the example we will use png as it can handle transparencies. The image will also be halved in size
-
+﻿
 /*
-	Author: Eruyome
-	Tutorial used as template to show PoE UI overlay
-	Overlay resources created by https://www.reddit.com/user/Musti_A, reddit post https://www.reddit.com/r/pathofexile/comments/5x9pgt/i_made_some_poe_twitch_stream_overlays_free/
+	Данный скрипт основан на https://github.com/heokor/League-Overlay
+	Данная версия модифицирована MegaEzik
+	
+	Назначение дополнительных библиотек:
+		*Gdip_All.ahk - Библиотека отвечающая за отрисовку оверлея, авторство https://github.com/PoE-TradeMacro/PoE-CustomUIOverlay
+		*JSON.ahk - Разбор данных от api, авторство https://github.com/cocobelgica/AutoHotkey-JSON
+		*Labyrinth.ahk - Загрузка лабиринта с poelab.com и формирование меню по управлению
+		*Updater.ahk - Проверка и установка обновлений
+	
+	Управление:
+		Alt+F1 - Раскладка лабиринта
+		Alt+F2 - Меню с остальными изображениями
+		
+		Вы можете переназначить клавиши для управления в конфигурационном файле %USERPROFILE%\Documents\LeagueOverlay_ru\settings.ini
 */
 
 if not A_IsAdmin
@@ -18,13 +24,13 @@ if not A_IsAdmin
 SetBatchLines, -1
 SetWorkingDir %A_ScriptDir%
 
-; Uncomment if Gdip.ahk is not in your standard library
+;Подключение библиотек
 #Include, resources\Gdip_All.ahk
 #Include, resources\JSON.ahk
-#Include, resources\ResolutionMultiplier.ahk
-#Include, resources\LoaderLab.ahk
+#Include, resources\Labyrinth.ahk
 #Include, resources\Updater.ahk
 
+;Объявление и загрузка основных переменных
 global prjName:="LeagueOverlay_ru"
 global githubUser:="MegaEzik"
 global configFile:=A_MyDocuments "\" prjName "\settings.ini"
@@ -33,6 +39,7 @@ FileReadLine, verScript, resources\Updates.txt, 4
 
 SplashTextOn, 270, 20, %prjName%, Подготовка макроса к работе...
 
+;Проверка обновлений, загрузка лабиринта и формирование меню
 CheckUpdate()
 SetTimer, CheckUpdate, 10800000
 
@@ -42,7 +49,7 @@ IfNotExist %configFile%
 	IniWrite, !f1, %configFile%, hotkeys, hotkeyLabyrinth
 	IniWrite, !f2, %configFile%, hotkeys, hotkeyMainMenu
 	IniWrite, uber, %configFile%, settings, lvlLabyrinth
-	IniWrite, 1.00, %configFile%, settings, resolutionMultiplier
+	helpDialog()
 }
 
 Menu, Tray, Tip, %prjName% v%verScript%
@@ -51,14 +58,14 @@ Menu, Tray, Icon, resources\Syndicate.ico
 Menu, Tray, NoStandard
 
 Menu, Tray, Add, Поддержать, openDonateURL
+Menu, Tray, Add, Помощь, helpDialog
+Menu, Tray, Default, Помощь
 Menu, Tray, Add, Открыть на GitHub, openGitHub
 Menu, Tray, Add
 
 initCheckUpdate()
 
 initLabyrinth()
-
-resolutionMultiplierInit()
 
 Menu, Tray, Standard
 
@@ -71,13 +78,12 @@ Menu, mainMenu, Add
 Menu, mainMenu, Add, Изменить уровень лабиринта, :labMenu
 
 
+;Назначение горячих клавиш
 IniRead, hotkeyLabyrinth, %configFile%, hotkeys, hotkeyLabyrinth, !f1
 Hotkey, % hotkeyLabyrinth, shLabyrinth, On
 
 IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
 Hotkey, % hotkeyMainMenu, shMainMenu, On
-
-SplashTextOff
 
 ; Start gdi+
 If !pToken := Gdip_Startup()
@@ -155,13 +161,14 @@ Loop 6{
 Loop 6{
 	Width%A_Index% := Gdip_GetImageWidth(pBitmap%A_Index%)
 	Height%A_Index% := Gdip_GetImageHeight(pBitmap%A_Index%)
+	Mult%A_Index%:=calcMult(Width%A_Index%, Height%A_Index%, A_ScreenWidth, A_ScreenHeight-65)
 	hbm%A_Index% := CreateDIBSection(Width%A_Index%, Height%A_Index%)
 	hdc%A_Index% := CreateCompatibleDC()
 	obm%A_Index% := SelectObject(hdc%A_Index%, hbm%A_Index%)
 	G%A_Index% := Gdip_GraphicsFromHDC(hdc%A_Index%)
 	Gdip_SetInterpolationMode(G%A_Index%, 7)
-	Gdip_DrawImage(G%A_Index%, pBitmap%A_Index%, 0, 0, round(Width%A_Index%*resolutionMultiplier), round(Height%A_Index%*resolutionMultiplier), 0, 0, Width%A_Index%, Height%A_Index%)
-	UpdateLayeredWindow(hwnd%A_Index%, hdc%A_Index%, round(A_ScreenWidth/2)-round(Width%A_Index%*resolutionMultiplier/2), 25, round(Width%A_Index%*resolutionMultiplier), round(Height%A_Index%*resolutionMultiplier))
+	Gdip_DrawImage(G%A_Index%, pBitmap%A_Index%, 0, 0, round(Width%A_Index%*Mult%A_Index%), round(Height%A_Index%*Mult%A_Index%), 0, 0, Width%A_Index%, Height%A_Index%)
+	UpdateLayeredWindow(hwnd%A_Index%, hdc%A_Index%, round(A_ScreenWidth/2)-round(Width%A_Index%*Mult%A_Index%/2), 25, round(Width%A_Index%*Mult%A_Index%), round(Height%A_Index%*Mult%A_Index%))
 	SelectObject(hdc%A_Index%, obm%A_Index%)
 	DeleteObject(hbm%A_Index%)
 	DeleteDC(hdc%A_Index%)
@@ -169,6 +176,7 @@ Loop 6{
 	Gdip_DisposeImage(pBitmap%A_Index%)
 }
 
+SplashTextOff
 
 Return
 ;#######################################################################
@@ -234,12 +242,32 @@ openDonateURL(){
 	Run, %URL%
 }
 
+helpDialog(){
+	helpMsg:=prjName " - Макрос предоставляющий вам информацию в виде изображений наложенных поверх окна игры Path of Exile.`n`n"
+	helpMsg.="Управление(по умолчанию):`n"
+	helpMsg.="     Alt+F1 - Раскладка лабиринта`n"
+	helpMsg.="     Alt+F2 - Меню с остальными изображениями`n"
+	helpMsg.="`nВы можете переназначить клавиши для управления в конфигурационном файле:`n" configFile "`n"
+	msgbox, 0x1040, %prjName%, %helpMsg%
+}
+
 shMainMenu(){
 	Loop 6{
 		Gui, %A_Index%: Hide
 		GuiON%A_Index% := 0
 	}
 	Menu, mainMenu, Show
+}
+
+;Рассчитываем коэффициент для уменьшения изображения
+calcMult(ImageWidth, ImageHeight, ScreenWidth, ScreenHeight){
+	MWidth:=ScreenWidth/ImageWidth
+	MHeight:=ScreenHeight/ImageHeight
+	M:=(MWidth<MHeight)?MWidth:MHeight
+	M:=Round(M-0.0005, 3)
+	M:=(M>1)?1:M
+	M:=(M<0.1)?0.1:M
+	return M
 }
 
 Exit:

@@ -1,4 +1,5 @@
 ﻿
+;Загрузка изображения с раскладкой лабиринта соответствующего уровня
 downloadLabyrinthLayout(lvllab) {
 	FileDelete, resources\images\Labyrinth.jpg
 
@@ -17,6 +18,7 @@ downloadLabyrinthLayout(lvllab) {
 	}
 }
 
+;Инициализация в теле скрипта - добавление пунктов меню
 initLabyrinth(){
 	IniRead, lvlLabyrinth, %configFile%, settings, lvlLabyrinth, "uber"
 	lvlLabyrinth:=(lvlLabyrinth="normal" || lvlLabyrinth="cruel" || lvlLabyrinth="merciless" || lvlLabyrinth="uber")?lvlLabyrinth:"uber"
@@ -40,24 +42,29 @@ initLabyrinth(){
 	Menu, labMenu, Check, Лабиринт Вечных
 }
 
+;Запись уровня лабиринта в файл конфигурации
 setLvlLabyrinth(lvl){
 	IniWrite, %lvl%, %configFile%, settings, lvlLabyrinth
 	sleep 50
 	Reload
 }
 
+;Применение настроек - Лабиринт
 selectNormalLab(){
 	setLvlLabyrinth("normal")
 }
 
+;Применение настроек - Жестокий Лабиринт
 selectCruelLab(){
 	setLvlLabyrinth("cruel")
 }
 
+;Применение настроек - Безжалостный Лабиринт
 selectMercilessLab(){
 	setLvlLabyrinth("merciless")
 }
 
+;Применение настроек - Лабиринт Вечных
 selectUberLab(){
 	setLvlLabyrinth("uber")
 }

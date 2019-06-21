@@ -1,8 +1,9 @@
 ﻿
+;Проверка обновлений
 CheckUpdate() {
 	releaseinfo:=DownloadToVar("https://api.github.com/repos/" githubUser "/" prjName "/releases/latest")
 	parsedJSON:=JSON.Load(releaseinfo)
-	verRelease:=parsedJSON.tag_name	
+	verRelease:=parsedJSON.tag_name
 	if (verRelease!="" && verScript!="" && verRelease>verScript) {
 		TrayTip, %prjName%, Доступно обновление!
 		return verRelease
@@ -11,23 +12,26 @@ CheckUpdate() {
 	}
 }
 
+;Инициализация в теле скрипта - добавляет пункты меню
 initCheckUpdate() {
 	Menu, Tray, Add, Выполнить обновление, CheckUpdateFromMenu
 	Menu, Tray, Add
 }
 
+;Функция проверки из меню
 CheckUpdateFromMenu(){
 	statusUpdate:=CheckUpdate()
 	if (statusUpdate="noupdate") {
-		MsgBox, 0x40, %prjName%, Нет доступных обновлений!
+		MsgBox, 0x1040, %prjName%, Нет доступных обновлений!
 	}
 	else if (statusUpdate!="noupdate" && statusUpdate!="") {
-		MsgBox, 0x24, %prjName%, Доступно обновление %statusUpdate%!`nВыполнить обновление до этой версии?
+		MsgBox, 0x1024, %prjName%, Доступно обновление %statusUpdate%!`nВыполнить обновление до этой версии?
 		IfMsgBox Yes
 			StartUpdate(statusUpdate)
 	}
 }
 
+;Запуск процесса обновления
 StartUpdate(verRelease) {
 	SplashTextOn, 250, 20, %prjName%, Выполняется обновление...
 	zipArchive:=A_Temp "\" prjName ".zip"
@@ -49,6 +53,7 @@ StartUpdate(verRelease) {
 	SplashTextOff
 }
 
+;Получение данных от api в переменную
 DownloadToVar(URL) {
 	HTTP := ComObjCreate("WinHttp.WinHttpRequest.5.1")	; https://msdn.microsoft.com/en-us/library/windows/desktop/aa384106(v=vs.85).aspx
 	HTTP.Open("GET", URL)
@@ -57,6 +62,7 @@ DownloadToVar(URL) {
 	Return HTTP.ResponseText
 }
 
+;Распаковать указанный архив в указанную папку
 unZipArchive(ArcPath, OutPath) {
 	IfNotExist %OutPath%
 	{
