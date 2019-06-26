@@ -41,7 +41,7 @@ SplashTextOn, 270, 20, %prjName%, Подготовка макроса к раб�
 
 ;Проверка обновлений, загрузка лабиринта и формирование меню
 CheckUpdate()
-SetTimer, CheckUpdate, 10800000
+;SetTimer, CheckUpdate, 10800000
 
 IfNotExist %configFile%
 {
