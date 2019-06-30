@@ -6,7 +6,8 @@ downloadLabyrinthLayout(lvllab) {
 	FormatTime, Year, %A_NowUTC%, yyyy
 	FormatTime, Month, %A_NowUTC%, MM
 	FormatTime, Day, %A_NowUTC%, dd
-	LabURL:="https://poelab.com/wp-content/uploads/" Year "/" Month "/" Year "-" Month "-" Day "_" lvllab ".jpg"
+	;LabURL:="https://poelab.com/wp-content/uploads/" Year "/" Month "/" Year "-" Month "-" Day "_" lvllab ".jpg"
+	LabURL:="https://poelab.com/wp-content/labfiles/" Year "-" Month "-" Day "_" lvllab ".jpg"
 	UrlDownloadToFile, %LabURL%, resources\images\Labyrinth.jpg
 
 	FileReadLine, Line, resources\images\Labyrinth.jpg, 1
