@@ -39,18 +39,27 @@ FileReadLine, verScript, resources\Updates.txt, 4
 
 SplashTextOn, 270, 20, %prjName%, Подготовка макроса к работе...
 
-;Проверка обновлений, загрузка лабиринта и формирование меню
-CheckUpdate()
-;SetTimer, CheckUpdate, 10800000
-
+;Создание файла конфигурации, если он отсутствует
 IfNotExist %configFile%
 {
 	FileCreateDir, %A_MyDocuments%\%prjName%
 	IniWrite, !f1, %configFile%, hotkeys, hotkeyLabyrinth
 	IniWrite, !f2, %configFile%, hotkeys, hotkeyMainMenu
 	IniWrite, uber, %configFile%, settings, lvlLabyrinth
+	IniWrite, 0, %configFile%, settings, useOldHotkeys
 	helpDialog()
 }
+
+;Копирование модифицированных изображений
+IfExist %A_MyDocuments%\%prjName%\images
+{
+	FileCopyDir, %A_MyDocuments%\%prjName%\images, %A_ScriptDir%\resources\images\, 1
+	sleep 500
+}
+
+;Проверка обновлений, загрузка лабиринта и формирование меню
+CheckUpdate()
+;SetTimer, CheckUpdate, 10800000
 
 Menu, Tray, Tip, %prjName% v%verScript%
 Menu, Tray, Icon, resources\Syndicate.ico
@@ -65,18 +74,19 @@ Menu, Tray, Add
 
 initCheckUpdate()
 
+Menu, Tray, Add, Редактировать файл конфигурации, editConfigFile
+
 initLabyrinth()
 
 Menu, Tray, Standard
 
-Menu, mainMenu, Add, Синдикат, shSyndicate
 Menu, mainMenu, Add, Вмешательство, shIncursion
-Menu, mainMenu, Add, Прогрессия карт, shMaps
 Menu, mainMenu, Add, Ископаемые, shFossils
+Menu, mainMenu, Add, Прогрессия карт, shMaps
 Menu, mainMenu, Add, Пророчества, shProphecy
+Menu, mainMenu, Add, Синдикат, shSyndicate
 Menu, mainMenu, Add
 Menu, mainMenu, Add, Изменить уровень лабиринта, :labMenu
-
 
 ;Назначение горячих клавиш
 IniRead, hotkeyLabyrinth, %configFile%, hotkeys, hotkeyLabyrinth, !f1
@@ -84,6 +94,16 @@ Hotkey, % hotkeyLabyrinth, shLabyrinth, On
 
 IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
 Hotkey, % hotkeyMainMenu, shMainMenu, On
+
+;Поддержка устаревшей раскладки
+IniRead, useOldHotkeys, %configFile%, settings, useOldHotkeys, 0
+If useOldHotkeys {
+	Hotkey, !f2, shSyndicate, On
+	Hotkey, !f3, shIncursion, On
+	Hotkey, !f4, shMaps, On
+	Hotkey, !f6, shFossils, On
+	Hotkey, !f7, shProphecy, On
+}
 
 ; Start gdi+
 If !pToken := Gdip_Startup()
@@ -247,8 +267,14 @@ helpDialog(){
 	helpMsg.="Управление(по умолчанию):`n"
 	helpMsg.="     Alt+F1 - Раскладка лабиринта`n"
 	helpMsg.="     Alt+F2 - Меню с остальными изображениями`n"
-	helpMsg.="`nВы можете переназначить клавиши для управления в конфигурационном файле:`n" configFile "`n"
+	helpMsg.="`nРасширенные настройки можно изменить`nв файле конфигурации.`n"
 	msgbox, 0x1040, %prjName%, %helpMsg%
+}
+
+editConfigFile(){
+	RunWait, %configFile%
+	sleep 250
+	Reload
 }
 
 shMainMenu(){
