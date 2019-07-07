@@ -1,17 +1,22 @@
 ﻿
 ;Загрузка изображения с раскладкой лабиринта соответствующего уровня
 downloadLabyrinthLayout(lvllab) {
-	FileDelete, resources\images\Labyrinth.jpg
-
 	FormatTime, Year, %A_NowUTC%, yyyy
 	FormatTime, Month, %A_NowUTC%, MM
 	FormatTime, Day, %A_NowUTC%, dd
-	;LabURL:="https://poelab.com/wp-content/uploads/" Year "/" Month "/" Year "-" Month "-" Day "_" lvllab ".jpg"
-	LabURL:="https://poelab.com/wp-content/labfiles/" Year "-" Month "-" Day "_" lvllab ".jpg"
+	
+	FileDelete, resources\images\Labyrinth.jpg
+	LabURL:="https://poelab.com/wp-content/uploads/" Year "/" Month "/" Year "-" Month "-" Day "_" lvllab ".jpg"
 	UrlDownloadToFile, %LabURL%, resources\images\Labyrinth.jpg
 
 	FileReadLine, Line, resources\images\Labyrinth.jpg, 1
-
+	if (Line="" || (InStr(Line, "<") && InStr(Line, ">"))) {
+		FileDelete, resources\images\Labyrinth.jpg
+		LabURL:="https://poelab.com/wp-content/labfiles/" Year "-" Month "-" Day "_" lvllab ".jpg"
+		UrlDownloadToFile, %LabURL%, resources\images\Labyrinth.jpg
+	}
+	
+	FileReadLine, Line, resources\images\Labyrinth.jpg, 1
 	if (Line="" || (InStr(Line, "<") && InStr(Line, ">"))) {
 		FileDelete, resources\images\Labyrinth.jpg
 		MsgBox, 0x1040, %prjName%, Не удалось получить файл с раскладкой лабиринта,`nвозможно еще нет информации на текущую дату!`n`nПопробуйте перезапустить скрипт позднее!
