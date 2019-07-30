@@ -16,8 +16,10 @@
 		Вы можете переназначить клавиши для управления в конфигурационном файле %USERPROFILE%\Documents\LeagueOverlay_ru\settings.ini
 */
 
-if not A_IsAdmin
+if (!A_IsAdmin) {
 	Run *RunAs "%A_AhkPath%" "%A_ScriptFullPath%"
+	ExitApp
+}
 
 #SingleInstance, Force
 #NoEnv
@@ -32,6 +34,7 @@ SetWorkingDir %A_ScriptDir%
 
 ;Объявление и загрузка основных переменных
 global prjName:="LeagueOverlay_ru"
+global githubRepo:="LeagueOverlay_ru"
 global githubUser:="MegaEzik"
 global configFile:=A_MyDocuments "\" prjName "\settings.ini"
 global verScript
@@ -50,16 +53,9 @@ IfNotExist %configFile%
 	helpDialog()
 }
 
-;Копирование модифицированных изображений
-IfExist %A_MyDocuments%\%prjName%\images
-{
-	FileCopyDir, %A_MyDocuments%\%prjName%\images, %A_ScriptDir%\resources\images\, 1
-	sleep 500
-}
-
 ;Проверка обновлений, загрузка лабиринта и формирование меню
 CheckUpdate()
-;SetTimer, CheckUpdate, 10800000
+SetTimer, CheckUpdate, 10800000
 
 Menu, Tray, Tip, %prjName% v%verScript%
 Menu, Tray, Icon, resources\Syndicate.ico
@@ -105,28 +101,43 @@ If useOldHotkeys {
 	Hotkey, !f7, shProphecy, On
 }
 
-; Start gdi+
-If !pToken := Gdip_Startup()
+;Запуск gdi+
+If !pToken:=Gdip_Startup()
 	{
-	   MsgBox, 48, gdiplus error!, Gdiplus failed to start. Please ensure you have gdiplus on your system
+	   ;MsgBox, 48, gdiplus error!, Gdiplus failed to start. Please ensure you have gdiplus on your system
+	   MsgBox, 48, Ошибка gdi+!, Не удалось запустить gdi+. Пожалуйста, убедитесь, что  вашей системе он есть
 	}
 OnExit, Exit
 
-global image1 := "resources\images\Labyrinth.jpg"
-global image2 := "resources\images\Incursion.png"
-global image3 := "resources\images\Map.png"
-global image4 := "resources\images\Fossil.png"
-global image5 := "resources\images\Syndicate.png"
-global image6 := "resources\images\Prophecy.png"
+;Пути к изображениям
+global image1:="resources\images\Labyrinth.jpg"
+global image2:="resources\images\Incursion.png"
+global image3:="resources\images\Map.png"
+global image4:="resources\images\Fossil.png"
+global image5:="resources\images\Syndicate.png"
+global image6:="resources\images\Prophecy.png"
 
-global GuiOn1 := 0
-global GuiOn2 := 0
-global GuiOn3 := 0
-global GuiOn4 := 0
-global GuiOn5 := 0
-global GuiOn6 := 0
+;Назначим новые пути изображений, если их аналоги есть в папке с настройками
+If FileExist(A_MyDocuments "\" prjName "\images\Incursion.png")
+	image2:=A_MyDocuments "\" prjName "\images\Incursion.png"
+If FileExist(A_MyDocuments "\" prjName "\images\Map.png")
+	image3:=A_MyDocuments "\" prjName "\images\Map.png"
+If FileExist(A_MyDocuments "\" prjName "\images\Fossil.png")
+	image4:=A_MyDocuments "\" prjName "\images\Fossil.png"
+If FileExist(A_MyDocuments "\" prjName "\images\Syndicate.png")
+	image5:=A_MyDocuments "\" prjName "\images\Syndicate.png"
+If FileExist(A_MyDocuments "\" prjName "\images\Prophecy.png")
+	image6:=A_MyDocuments "\" prjName "\images\Prophecy.png"
 
-global poeWindowName = "Path of Exile ahk_class POEWindowClass"
+;Переменные для статуса отображения изображения
+global GuiOn1:=0
+global GuiOn2:=0
+global GuiOn3:=0
+global GuiOn4:=0
+global GuiOn5:=0
+global GuiOn6:=0
+
+global poeWindowName="Path of Exile ahk_class POEWindowClass"
 
 
 ; Create a layered window (+E0x80000 : must be used for UpdateLayeredWindow to work!) that is always on top (+AlwaysOnTop), has no taskbar entry or caption
@@ -138,25 +149,25 @@ Loop 6{
     ; Show the window
  
     ; Get a handle to this window we have created in order to update it later
-    hwnd%A_Index% := WinExist()
+    hwnd%A_Index%:=WinExist()
 }
 
 
 Loop 6{
-	If (GuiON%A_Index% = 0){
+	If (GuiON%A_Index%=0){
 		Gosub, CheckWinActivePOE
 		SetTimer, CheckWinActivePOE, 100
-		GuiON%A_Index% = 1
+		GuiON%A_Index%=1
 	
 		; Show the window
 		Gui, %A_Index%: Show, NA
 	} Else {
 		SetTimer, CheckWinActivePOE, Off      
 		Gui, %A_Index%: Hide	
-		GuiON%A_Index% = 0
+		GuiON%A_Index%=0
 	}
 	Gui, %A_Index%: Hide	
-	GuiON%A_Index% = 0
+	GuiON%A_Index%=0
 }
 
 
@@ -165,7 +176,7 @@ Loop 6{
 ; Get a bitmap from the image
 
 Loop 6{
-	pBitmap%A_Index% := Gdip_CreateBitmapFromFile(image%A_Index%)
+	pBitmap%A_Index%:=Gdip_CreateBitmapFromFile(image%A_Index%)
 }
 
 Loop 6{
@@ -179,13 +190,13 @@ Loop 6{
 ; Get the width and height of the bitmap we have just created from the file
 ; This will be the dimensions that the file is
 Loop 6{
-	Width%A_Index% := Gdip_GetImageWidth(pBitmap%A_Index%)
-	Height%A_Index% := Gdip_GetImageHeight(pBitmap%A_Index%)
+	Width%A_Index%:=Gdip_GetImageWidth(pBitmap%A_Index%)
+	Height%A_Index%:=Gdip_GetImageHeight(pBitmap%A_Index%)
 	Mult%A_Index%:=calcMult(Width%A_Index%, Height%A_Index%, A_ScreenWidth, A_ScreenHeight-65)
-	hbm%A_Index% := CreateDIBSection(Width%A_Index%, Height%A_Index%)
-	hdc%A_Index% := CreateCompatibleDC()
-	obm%A_Index% := SelectObject(hdc%A_Index%, hbm%A_Index%)
-	G%A_Index% := Gdip_GraphicsFromHDC(hdc%A_Index%)
+	hbm%A_Index%:=CreateDIBSection(Width%A_Index%, Height%A_Index%)
+	hdc%A_Index%:=CreateCompatibleDC()
+	obm%A_Index%:=SelectObject(hdc%A_Index%, hbm%A_Index%)
+	G%A_Index%:=Gdip_GraphicsFromHDC(hdc%A_Index%)
 	Gdip_SetInterpolationMode(G%A_Index%, 7)
 	Gdip_DrawImage(G%A_Index%, pBitmap%A_Index%, 0, 0, round(Width%A_Index%*Mult%A_Index%), round(Height%A_Index%*Mult%A_Index%), 0, 0, Width%A_Index%, Height%A_Index%)
 	UpdateLayeredWindow(hwnd%A_Index%, hdc%A_Index%, round(A_ScreenWidth/2)-round(Width%A_Index%*Mult%A_Index%/2), 25, round(Width%A_Index%*Mult%A_Index%), round(Height%A_Index%*Mult%A_Index%))
@@ -206,25 +217,25 @@ CheckWinActivePOE:
 	
 Loop 6{
 	If(WinActive(poeWindowName))
-		If (GuiON%A_Index% = 0){			
-			GuiON%A_Index% := 0
+		If (GuiON%A_Index%=0){			
+			GuiON%A_Index%:=0
 		}
 	If(!WinActive(poeWindowName))
-		If (GuiON%A_Index% = 1){
+		If (GuiON%A_Index%=1){
 			Gui, %A_Index%: Hide
-			GuiON%A_Index% := 0
+			GuiON%A_Index%:=0
 		}		
 }
 Return
 
 #IfWinActive Path of Exile
 shOverlay(i){
-	If (GuiON%i% = 1){
+	If (GuiON%i%=1){
 		Gui, %i%: Hide
-		GuiON%i% := 0
+		GuiON%i%:=0
 	}Else{
 		Gui, %i%: Show, NA
-		GuiON%i% := 1
+		GuiON%i%:=1
 	}
 }
 
@@ -253,7 +264,7 @@ shProphecy(){
 }
 
 openGitHub(){
-	URL:="https://github.com/" githubUser "/" prjName "/releases/latest"
+	URL:="https://github.com/" githubUser "/" githubRepo "/releases"
 	Run, %URL%
 }
 
@@ -272,15 +283,17 @@ helpDialog(){
 }
 
 editConfigFile(){
-	RunWait, %configFile%
-	sleep 250
-	Reload
+	If FileExist(A_ProgramFiles "\Notepad++\notepad++.exe") {
+		Run, "%A_ProgramFiles%\Notepad++\notepad++.exe" "%configFile%"
+	} else {
+		Run, "%configFile%"
+	}
 }
 
 shMainMenu(){
 	Loop 6{
 		Gui, %A_Index%: Hide
-		GuiON%A_Index% := 0
+		GuiON%A_Index%:=0
 	}
 	Menu, mainMenu, Show
 }

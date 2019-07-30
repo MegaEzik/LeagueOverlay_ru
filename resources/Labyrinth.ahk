@@ -6,18 +6,18 @@ downloadLabyrinthLayout(lvllab) {
 	FormatTime, Day, %A_NowUTC%, dd
 	
 	FileDelete, resources\images\Labyrinth.jpg
-	LabURL:="https://poelab.com/wp-content/uploads/" Year "/" Month "/" Year "-" Month "-" Day "_" lvllab ".jpg"
+	LabURL:="https://poelab.com/wp-content/labfiles/" Year "-" Month "-" Day "_" lvllab ".jpg"
 	UrlDownloadToFile, %LabURL%, resources\images\Labyrinth.jpg
 
 	FileReadLine, Line, resources\images\Labyrinth.jpg, 1
-	if (Line="" || (InStr(Line, "<") && InStr(Line, ">"))) {
+	if (Line="" || (InStr(Line, "<") && InStr(Line, ">")) || InStr(Line, "ban") || InStr(Line, "error")) {
 		FileDelete, resources\images\Labyrinth.jpg
-		LabURL:="https://poelab.com/wp-content/labfiles/" Year "-" Month "-" Day "_" lvllab ".jpg"
+		LabURL:="https://poelab.com/wp-content/uploads/" Year "/" Month "/" Year "-" Month "-" Day "_" lvllab ".jpg"
 		UrlDownloadToFile, %LabURL%, resources\images\Labyrinth.jpg
 	}
 	
 	FileReadLine, Line, resources\images\Labyrinth.jpg, 1
-	if (Line="" || (InStr(Line, "<") && InStr(Line, ">"))) {
+	if (Line="" || (InStr(Line, "<") && InStr(Line, ">")) || InStr(Line, "ban") || InStr(Line, "error")) {
 		FileDelete, resources\images\Labyrinth.jpg
 		MsgBox, 0x1040, %prjName%, Не удалось получить файл с раскладкой лабиринта,`nвозможно еще нет информации на текущую дату!`n`nПопробуйте перезапустить скрипт позднее!
 		FileCopy, resources\images\LabyrinthError.jpg, resources\images\Labyrinth.jpg

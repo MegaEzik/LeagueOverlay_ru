@@ -1,7 +1,7 @@
 ﻿
 ;Проверка обновлений
 CheckUpdate() {
-	releaseinfo:=DownloadToVar("https://api.github.com/repos/" githubUser "/" prjName "/releases/latest")
+	releaseinfo:=DownloadToVar("https://api.github.com/repos/" githubUser "/" githubRepo "/releases/latest")
 	parsedJSON:=JSON.Load(releaseinfo)
 	verRelease:=parsedJSON.tag_name
 	if (verRelease!="" && verScript!="" && verRelease>verScript) {
@@ -37,7 +37,7 @@ StartUpdate(verRelease) {
 	zipArchive:=A_Temp "\" prjName ".zip"
 	FileDelete, %zipArchive%
 	sleep 50
-	newVersionURL:="https://github.com/" githubUser "/" prjName "/releases/download/" verRelease "/" prjName ".zip"
+	newVersionURL:="https://github.com/" githubUser "/" githubRepo "/releases/download/" verRelease "/" prjName ".zip"
 	UrlDownloadToFile, %newVersionURL%, %A_Temp%\%prjName%.zip
 	sleep 50	
 	IfExist %zipArchive%
@@ -55,11 +55,14 @@ StartUpdate(verRelease) {
 
 ;Получение данных от api в переменную
 DownloadToVar(URL) {
-	HTTP := ComObjCreate("WinHttp.WinHttpRequest.5.1")	; https://msdn.microsoft.com/en-us/library/windows/desktop/aa384106(v=vs.85).aspx
-	HTTP.Open("GET", URL)
-	HTTP.Send()
-	HTTP.WaitForResponse()
-	Return HTTP.ResponseText
+	FilePath:=A_Temp "\" prjName "-JSONData.json"
+	UrlDownloadToFile, %URL%, %FilePath%
+	sleep 35
+	FileRead, Result, %FilePath%
+	sleep 35
+	FileDelete, %FilePath%
+	sleep 35
+	return Result
 }
 
 ;Распаковать указанный архив в указанную папку
