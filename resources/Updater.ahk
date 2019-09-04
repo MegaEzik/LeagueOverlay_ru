@@ -1,7 +1,7 @@
 ﻿
 ;Проверка обновлений
 CheckUpdate() {
-	releaseinfo:=DownloadToVar("https://api.github.com/repos/" githubUser "/" githubRepo "/releases/latest")
+	releaseinfo:=DownloadToVar("https://api.github.com/repos/" githubUser "/" prjName "/releases/latest")
 	parsedJSON:=JSON.Load(releaseinfo)
 	verRelease:=parsedJSON.tag_name
 	if (verRelease!="" && verScript!="" && verRelease>verScript) {
@@ -10,12 +10,6 @@ CheckUpdate() {
 	} else {
 		return "noupdate"
 	}
-}
-
-;Инициализация в теле скрипта - добавляет пункты меню
-initCheckUpdate() {
-	Menu, Tray, Add, Выполнить обновление, CheckUpdateFromMenu
-	Menu, Tray, Add
 }
 
 ;Функция проверки из меню
@@ -37,7 +31,7 @@ StartUpdate(verRelease) {
 	zipArchive:=A_Temp "\" prjName ".zip"
 	FileDelete, %zipArchive%
 	sleep 50
-	newVersionURL:="https://github.com/" githubUser "/" githubRepo "/releases/download/" verRelease "/" prjName ".zip"
+	newVersionURL:="https://github.com/" githubUser "/" prjName "/releases/download/" verRelease "/" prjName ".zip"
 	UrlDownloadToFile, %newVersionURL%, %A_Temp%\%prjName%.zip
 	sleep 50	
 	IfExist %zipArchive%

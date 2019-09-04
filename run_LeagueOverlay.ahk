@@ -8,12 +8,13 @@
 		*JSON.ahk - Разбор данных от api, авторство https://github.com/cocobelgica/AutoHotkey-JSON
 		*Labyrinth.ahk - Загрузка лабиринта с poelab.com и формирование меню по управлению
 		*Updater.ahk - Проверка и установка обновлений
+		*MigrateSupport.ahk - Проверка и исправление конфигурационного файла
 	
 	Управление:
-		Alt+F1 - Раскладка лабиринта
-		Alt+F2 - Меню с остальными изображениями
+		[Alt+F1] - Последнее изображение
+		[Alt+F2] - Меню с изображениями
 		
-		Вы можете переназначить клавиши для управления в конфигурационном файле %USERPROFILE%\Documents\LeagueOverlay_ru\settings.ini
+		Эти сочетания клавиш и другие настройки вы можете изменить вручную в файле конфигурации %USERPROFILE%\Documents\LeagueOverlay_ru\settings.ini
 */
 
 if (!A_IsAdmin) {
@@ -31,69 +32,42 @@ SetWorkingDir %A_ScriptDir%
 #Include, resources\JSON.ahk
 #Include, resources\Labyrinth.ahk
 #Include, resources\Updater.ahk
+#Include, resources\MigrateSupport.ahk
 
 ;Объявление и загрузка основных переменных
 global prjName:="LeagueOverlay_ru"
-global githubRepo:="LeagueOverlay_ru"
 global githubUser:="MegaEzik"
-global configFile:=A_MyDocuments "\" prjName "\settings.ini"
+global configFolder:=A_MyDocuments "\" prjName
+global configFile:=configFolder "\settings.ini"
 global verScript
 FileReadLine, verScript, resources\Updates.txt, 4
 
 SplashTextOn, 270, 20, %prjName%, Подготовка макроса к работе...
 
-;Создание файла конфигурации, если он отсутствует
-IfNotExist %configFile%
-{
-	FileCreateDir, %A_MyDocuments%\%prjName%
-	IniWrite, !f1, %configFile%, hotkeys, hotkeyLabyrinth
-	IniWrite, !f2, %configFile%, hotkeys, hotkeyMainMenu
-	IniWrite, uber, %configFile%, settings, lvlLabyrinth
-	IniWrite, 0, %configFile%, settings, useOldHotkeys
-	helpDialog()
-}
+Menu, Tray, Tip, Path of Exile - %prjName% v%verScript%
+Menu, Tray, Icon, resources\Syndicate.ico
 
-;Проверка обновлений, загрузка лабиринта и формирование меню
+;Проверим файл конфигурации
+verifyConfig()
+
+;Проверка обновлений
 CheckUpdate()
 SetTimer, CheckUpdate, 10800000
 
-Menu, Tray, Tip, %prjName% v%verScript%
-Menu, Tray, Icon, resources\Syndicate.ico
-
-Menu, Tray, NoStandard
-
-Menu, Tray, Add, Поддержать, openDonateURL
-Menu, Tray, Add, Помощь, helpDialog
-Menu, Tray, Default, Помощь
-Menu, Tray, Add, Открыть на GitHub, openGitHub
-Menu, Tray, Add
-
-initCheckUpdate()
-
-Menu, Tray, Add, Редактировать файл конфигурации, editConfigFile
-
-initLabyrinth()
-
-Menu, Tray, Standard
-
-Menu, mainMenu, Add, Вмешательство, shIncursion
-Menu, mainMenu, Add, Ископаемые, shFossils
-Menu, mainMenu, Add, Прогрессия карт, shMaps
-Menu, mainMenu, Add, Пророчества, shProphecy
-Menu, mainMenu, Add, Синдикат, shSyndicate
-Menu, mainMenu, Add
-Menu, mainMenu, Add, Изменить уровень лабиринта, :labMenu
+;Создаем главное меню и меню в области уведомлений
+menuCreate()
 
 ;Назначение горячих клавиш
-IniRead, hotkeyLabyrinth, %configFile%, hotkeys, hotkeyLabyrinth, !f1
-Hotkey, % hotkeyLabyrinth, shLabyrinth, On
-
+IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
+Hotkey, % hotkeyLastImg, shLastImage, On
 IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
 Hotkey, % hotkeyMainMenu, shMainMenu, On
 
 ;Поддержка устаревшей раскладки
-IniRead, useOldHotkeys, %configFile%, settings, useOldHotkeys, 0
-If useOldHotkeys {
+IniRead, legacyHotkeys, %configFile%, settings, legacyHotkeys, 0
+If legacyHotkeys {
+	Menu, Tray, Check, Использовать устаревшую раскладку
+	Hotkey, !f1, shLabyrinth, On
 	Hotkey, !f2, shSyndicate, On
 	Hotkey, !f3, shIncursion, On
 	Hotkey, !f4, shMaps, On
@@ -110,24 +84,33 @@ If !pToken:=Gdip_Startup()
 OnExit, Exit
 
 ;Пути к изображениям
-global image1:="resources\images\Labyrinth.jpg"
+global image1:="resources\images\ImgError.png"
 global image2:="resources\images\Incursion.png"
 global image3:="resources\images\Map.png"
 global image4:="resources\images\Fossil.png"
 global image5:="resources\images\Syndicate.png"
 global image6:="resources\images\Prophecy.png"
 
+;Загружаем раскладку лабиринта, и если изображение получено, то устанавливаем его
+downloadLabLayout()
+If FileExist(configFolder "\Lab.jpg")
+	image1:=configFolder "\Lab.jpg"
+
 ;Назначим новые пути изображений, если их аналоги есть в папке с настройками
-If FileExist(A_MyDocuments "\" prjName "\images\Incursion.png")
-	image2:=A_MyDocuments "\" prjName "\images\Incursion.png"
-If FileExist(A_MyDocuments "\" prjName "\images\Map.png")
-	image3:=A_MyDocuments "\" prjName "\images\Map.png"
-If FileExist(A_MyDocuments "\" prjName "\images\Fossil.png")
-	image4:=A_MyDocuments "\" prjName "\images\Fossil.png"
-If FileExist(A_MyDocuments "\" prjName "\images\Syndicate.png")
-	image5:=A_MyDocuments "\" prjName "\images\Syndicate.png"
-If FileExist(A_MyDocuments "\" prjName "\images\Prophecy.png")
-	image6:=A_MyDocuments "\" prjName "\images\Prophecy.png"
+If FileExist(configFolder "\images\Incursion.png")
+	image2:=configFolder "\images\Incursion.png"
+If FileExist(configFolder "\images\Map.png")
+	image3:=configFolder "\images\Map.png"
+If FileExist(configFolder "\images\Fossil.png")
+	image4:=configFolder "\images\Fossil.png"
+If FileExist(configFolder "\images\Syndicate.png")
+	image5:=configFolder "\images\Syndicate.png"
+If FileExist(configFolder "\images\Prophecy.png")
+	image6:=configFolder "\images\Prophecy.png"
+
+;Глобальные переменные для количества изображений и номера последнего
+global NumImg:=6
+global LastImg:=1
 
 ;Переменные для статуса отображения изображения
 global GuiOn1:=0
@@ -143,7 +126,7 @@ global poeWindowName="Path of Exile ahk_class POEWindowClass"
 ; Create a layered window (+E0x80000 : must be used for UpdateLayeredWindow to work!) that is always on top (+AlwaysOnTop), has no taskbar entry or caption
 
 
-Loop 6{
+Loop %NumImg%{
     ; Create two layered windows (+E0x80000 : must be used for UpdateLayeredWindow to work!) that is always on top (+AlwaysOnTop), has no taskbar entry or caption
     Gui, %A_Index%: -Caption +E0x80000 +LastFound +AlwaysOnTop +ToolWindow +OwnDialogs
     ; Show the window
@@ -153,7 +136,7 @@ Loop 6{
 }
 
 
-Loop 6{
+Loop %NumImg%{
 	If (GuiON%A_Index%=0){
 		Gosub, CheckWinActivePOE
 		SetTimer, CheckWinActivePOE, 100
@@ -175,11 +158,11 @@ Loop 6{
 
 ; Get a bitmap from the image
 
-Loop 6{
+Loop %NumImg%{
 	pBitmap%A_Index%:=Gdip_CreateBitmapFromFile(image%A_Index%)
 }
 
-Loop 6{
+Loop %NumImg%{
 	If !pBitmap%A_Index%{
 		MsgBox, 48, File loading error!, Could not load the image specified
 		ExitApp
@@ -189,7 +172,7 @@ Loop 6{
 
 ; Get the width and height of the bitmap we have just created from the file
 ; This will be the dimensions that the file is
-Loop 6{
+Loop %NumImg%{
 	Width%A_Index%:=Gdip_GetImageWidth(pBitmap%A_Index%)
 	Height%A_Index%:=Gdip_GetImageHeight(pBitmap%A_Index%)
 	Mult%A_Index%:=calcMult(Width%A_Index%, Height%A_Index%, A_ScreenWidth, A_ScreenHeight-65)
@@ -199,7 +182,7 @@ Loop 6{
 	G%A_Index%:=Gdip_GraphicsFromHDC(hdc%A_Index%)
 	Gdip_SetInterpolationMode(G%A_Index%, 7)
 	Gdip_DrawImage(G%A_Index%, pBitmap%A_Index%, 0, 0, round(Width%A_Index%*Mult%A_Index%), round(Height%A_Index%*Mult%A_Index%), 0, 0, Width%A_Index%, Height%A_Index%)
-	UpdateLayeredWindow(hwnd%A_Index%, hdc%A_Index%, round(A_ScreenWidth/2)-round(Width%A_Index%*Mult%A_Index%/2), 25, round(Width%A_Index%*Mult%A_Index%), round(Height%A_Index%*Mult%A_Index%))
+	UpdateLayeredWindow(hwnd%A_Index%, hdc%A_Index%, round(A_ScreenWidth/2)-round(Width%A_Index%*Mult%A_Index%/2), 25+round((A_ScreenHeight-65)/2)-round(Height%A_Index%*Mult%A_Index%/2), round(Width%A_Index%*Mult%A_Index%), round(Height%A_Index%*Mult%A_Index%))
 	SelectObject(hdc%A_Index%, obm%A_Index%)
 	DeleteObject(hbm%A_Index%)
 	DeleteDC(hdc%A_Index%)
@@ -215,7 +198,7 @@ Return
 CheckWinActivePOE:
 	GuiControlGet, focused_control, focus
 	
-Loop 6{
+Loop %NumImg%{
 	If(WinActive(poeWindowName))
 		If (GuiON%A_Index%=0){			
 			GuiON%A_Index%:=0
@@ -236,7 +219,20 @@ shOverlay(i){
 	}Else{
 		Gui, %i%: Show, NA
 		GuiON%i%:=1
+		LastImg:=i
 	}
+}
+
+shLastImage(){
+	shOverlay(LastImg)
+}
+
+shMainMenu(){
+	Loop %NumImg%{
+		Gui, %A_Index%: Hide
+		GuiON%A_Index%:=0
+	}
+	Menu, mainMenu, Show
 }
 
 shLabyrinth(){
@@ -263,39 +259,71 @@ shProphecy(){
 	shOverlay(6)
 }
 
-openGitHub(){
-	URL:="https://github.com/" githubUser "/" githubRepo "/releases"
-	Run, %URL%
+menuCreate(){
+	Menu, Tray, NoStandard
+
+	Menu, Tray, Add, Поддержать, openDonateURL
+	Menu, Tray, Add, О %prjName%..., helpDialog
+	Menu, Tray, Default, О %prjName%...
+	Menu, Tray, Add
+	Menu, Tray, Add, Выполнить обновление, CheckUpdateFromMenu
+	Menu, Tray, Add
+	Menu, Tray, Add, Открыть папку настроек, goConfigFolder
+	Menu, Tray, Add, Использовать устаревшую раскладку, setLegacyHotkeys
+
+	menuLabCreate()
+
+	Menu, Tray, Standard
+
+	Menu, mainMenu, Add, Раскладка лабиринта, shLabyrinth
+	Menu, mainMenu, Add
+	Menu, mainMenu, Add, Альва - Комнаты храма Ацоатль, shIncursion
+	Menu, mainMenu, Add, Джун - Награды бессмертного Синдиката, shSyndicate
+	Menu, mainMenu, Add, Зана - Прогрессия карт, shMaps
+	Menu, mainMenu, Add, Навали - Пророчества, shProphecy
+	Menu, mainMenu, Add, Нико - Ископаемые, shFossils
+	Menu, mainMenu, Add
+	Menu, mainMenu, Add, Изменить уровень лабиринта, :labMenu
 }
 
 openDonateURL(){
-	URL:="https://money.yandex.ru/to/410018859988844"
-	Run, %URL%
+	Run, https://money.yandex.ru/to/410018859988844
+}
+
+goConfigFolder(){
+	Run, explorer "%configFolder%"
 }
 
 helpDialog(){
-	helpMsg:=prjName " - Макрос предоставляющий вам информацию в виде изображений наложенных поверх окна игры Path of Exile.`n`n"
-	helpMsg.="Управление(по умолчанию):`n"
-	helpMsg.="     Alt+F1 - Раскладка лабиринта`n"
-	helpMsg.="     Alt+F2 - Меню с остальными изображениями`n"
-	helpMsg.="`nРасширенные настройки можно изменить`nв файле конфигурации.`n"
-	msgbox, 0x1040, %prjName%, %helpMsg%
+	msgText:=prjName " - Макрос предоставляющий вам информацию в виде изображений наложенных поверх окна игры Path of Exile.`n`n"
+	msgText.="Управление(по умолчанию):`n"
+	msgText.="     [Alt+F1] - Последнее изображение`n"
+	msgText.="     [Alt+F2] - Меню с изображениями`n`n"
+	msgText.="Эти сочетания клавиш и другие настройки вы можете изменить вручную в файле конфигурации:`n" configFile
+	msgbox, 0x1044, %prjName%, %msgText%
 }
 
-editConfigFile(){
-	If FileExist(A_ProgramFiles "\Notepad++\notepad++.exe") {
-		Run, "%A_ProgramFiles%\Notepad++\notepad++.exe" "%configFile%"
-	} else {
-		Run, "%configFile%"
+setLegacyHotkeys(){
+	IniRead, legacyHotkeys, %configFile%, settings, legacyHotkeys, 0
+	If legacyHotkeys {
+		IniWrite, 0, %configFile%, settings, legacyHotkeys
+	} Else {
+		msgText:="Устаревшая раскладка имеет следующее управление:`n"
+		msgText.="     [Alt+F1] - Лабиринт`n"
+		msgText.="     [Alt+F2] - Синдикат`n"
+		msgText.="     [Alt+F3] - Вмешательство`n"
+		msgText.="     [Alt+F4] - Карты`n"
+		msgText.="     [Alt+F6] - Ископаемые`n"
+		msgText.="     [Alt+F7] - Пророчества`n`n"
+		msgText.="Использовать 'Устаревшую раскладку' не рекомендуется, ведь она заменяет сочетание клавиш [Alt+F4], и вы не сможете использовать этот способ для выхода из игры!`n`n"
+		msgText.="Вы уверены, что хотите переключиться на данный режим управления?"
+		MsgBox, 0x1024, %prjName%,  %msgText%
+		IfMsgBox No
+			return
+		IniWrite, 1, %configFile%, settings, legacyHotkeys
 	}
-}
-
-shMainMenu(){
-	Loop 6{
-		Gui, %A_Index%: Hide
-		GuiON%A_Index%:=0
-	}
-	Menu, mainMenu, Show
+	Sleep 25
+	Reload
 }
 
 ;Рассчитываем коэффициент для уменьшения изображения

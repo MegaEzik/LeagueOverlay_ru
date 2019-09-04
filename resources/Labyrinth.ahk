@@ -1,36 +1,32 @@
 ﻿
 ;Загрузка изображения с раскладкой лабиринта соответствующего уровня
-downloadLabyrinthLayout(lvllab) {
+downloadLabLayout() {
 	FormatTime, Year, %A_NowUTC%, yyyy
 	FormatTime, Month, %A_NowUTC%, MM
 	FormatTime, Day, %A_NowUTC%, dd
 	
-	FileDelete, resources\images\Labyrinth.jpg
-	LabURL:="https://poelab.com/wp-content/labfiles/" Year "-" Month "-" Day "_" lvllab ".jpg"
-	UrlDownloadToFile, %LabURL%, resources\images\Labyrinth.jpg
+	IniRead, lvlLab, %configFile%, settings, lvlLab, uber
+	
+	FileDelete, %configFolder%\Lab.jpg
+	LabURL:="https://poelab.com/wp-content/labfiles/" Year "-" Month "-" Day "_" lvlLab ".jpg"
+	UrlDownloadToFile, %LabURL%, %configFolder%\Lab.jpg
 
-	FileReadLine, Line, resources\images\Labyrinth.jpg, 1
+	FileReadLine, Line, %configFolder%\Lab.jpg, 1
 	if (Line="" || (InStr(Line, "<") && InStr(Line, ">")) || InStr(Line, "ban") || InStr(Line, "error")) {
-		FileDelete, resources\images\Labyrinth.jpg
-		LabURL:="https://poelab.com/wp-content/uploads/" Year "/" Month "/" Year "-" Month "-" Day "_" lvllab ".jpg"
-		UrlDownloadToFile, %LabURL%, resources\images\Labyrinth.jpg
+		FileDelete, %configFolder%\Lab.jpg
+		LabURL:="https://poelab.com/wp-content/uploads/" Year "/" Month "/" Year "-" Month "-" Day "_" lvlLab ".jpg"
+		UrlDownloadToFile, %LabURL%, %configFolder%\Lab.jpg
 	}
 	
-	FileReadLine, Line, resources\images\Labyrinth.jpg, 1
+	FileReadLine, Line, %configFolder%\Lab.jpg, 1
 	if (Line="" || (InStr(Line, "<") && InStr(Line, ">")) || InStr(Line, "ban") || InStr(Line, "error")) {
-		FileDelete, resources\images\Labyrinth.jpg
+		FileDelete, %configFolder%\Lab.jpg
 		MsgBox, 0x1040, %prjName%, Не удалось получить файл с раскладкой лабиринта,`nвозможно еще нет информации на текущую дату!`n`nПопробуйте перезапустить скрипт позднее!
-		FileCopy, resources\images\LabyrinthError.jpg, resources\images\Labyrinth.jpg
 	}
 }
 
-;Инициализация в теле скрипта - добавление пунктов меню
-initLabyrinth(){
-	IniRead, lvlLabyrinth, %configFile%, settings, lvlLabyrinth, "uber"
-	lvlLabyrinth:=(lvlLabyrinth="normal" || lvlLabyrinth="cruel" || lvlLabyrinth="merciless" || lvlLabyrinth="uber")?lvlLabyrinth:"uber"
-	
-	downloadLabyrinthLayout(lvlLabyrinth)
-	
+;Меню
+menuLabCreate(){
 	Menu, labMenu, Add, Лабиринт, selectNormalLab
 	Menu, labMenu, Add, Жестокий Лабиринт, selectCruelLab
 	Menu, labMenu, Add, Безжалостный Лабиринт, selectMercilessLab
@@ -38,39 +34,41 @@ initLabyrinth(){
 	Menu, Tray, Add, Изменить уровень лабиринта, :labMenu
 	Menu, Tray, Add
 	
-	if (lvlLabyrinth="normal")
+	IniRead, lvlLab, %configFile%, settings, lvlLab, uber
+	if (lvlLab="normal")
 	Menu, labMenu, Check, Лабиринт
-	if (lvlLabyrinth="cruel")
+	if (lvlLab="cruel")
 	Menu, labMenu, Check, Жестокий Лабиринт
-	if (lvlLabyrinth="merciless")
+	if (lvlLab="merciless")
 	Menu, labMenu, Check, Безжалостный Лабиринт
-	if (lvlLabyrinth="uber")
+	if (lvlLab="uber")
 	Menu, labMenu, Check, Лабиринт Вечных
 }
 
 ;Запись уровня лабиринта в файл конфигурации
-setLvlLabyrinth(lvl){
-	IniWrite, %lvl%, %configFile%, settings, lvlLabyrinth
-	sleep 50
+setLvlLab(lvl){
+	IniWrite, %lvl%, %configFile%, settings, lvlLab
+	Run, https://www.poelab.com/
+	Sleep 50
 	Reload
 }
 
 ;Применение настроек - Лабиринт
 selectNormalLab(){
-	setLvlLabyrinth("normal")
+	setLvlLab("normal")
 }
 
 ;Применение настроек - Жестокий Лабиринт
 selectCruelLab(){
-	setLvlLabyrinth("cruel")
+	setLvlLab("cruel")
 }
 
 ;Применение настроек - Безжалостный Лабиринт
 selectMercilessLab(){
-	setLvlLabyrinth("merciless")
+	setLvlLab("merciless")
 }
 
 ;Применение настроек - Лабиринт Вечных
 selectUberLab(){
-	setLvlLabyrinth("uber")
+	setLvlLab("uber")
 }
