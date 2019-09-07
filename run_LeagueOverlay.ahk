@@ -111,6 +111,7 @@ If FileExist(configFolder "\images\Prophecy.png")
 ;Глобальные переменные для количества изображений и номера последнего
 global NumImg:=6
 global LastImg:=1
+IniRead, LastImg, %configFile%, settings, lastImg, %LastImg%
 
 ;Переменные для статуса отображения изображения
 global GuiOn1:=0
@@ -220,6 +221,7 @@ shOverlay(i){
 		Gui, %i%: Show, NA
 		GuiON%i%:=1
 		LastImg:=i
+		IniWrite, %LastImg%, %configFile%, settings, lastImg
 	}
 }
 
@@ -262,10 +264,8 @@ shProphecy(){
 menuCreate(){
 	Menu, Tray, NoStandard
 
-	Menu, Tray, Add, Поддержать, openDonateURL
 	Menu, Tray, Add, О %prjName%..., helpDialog
 	Menu, Tray, Default, О %prjName%...
-	Menu, Tray, Add
 	Menu, Tray, Add, Выполнить обновление, CheckUpdateFromMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Открыть папку настроек, goConfigFolder
@@ -286,10 +286,6 @@ menuCreate(){
 	Menu, mainMenu, Add, Изменить уровень лабиринта, :labMenu
 }
 
-openDonateURL(){
-	Run, https://money.yandex.ru/to/410018859988844
-}
-
 goConfigFolder(){
 	Run, explorer "%configFolder%"
 }
@@ -300,7 +296,10 @@ helpDialog(){
 	msgText.="     [Alt+F1] - Последнее изображение`n"
 	msgText.="     [Alt+F2] - Меню с изображениями`n`n"
 	msgText.="Эти сочетания клавиш и другие настройки вы можете изменить вручную в файле конфигурации:`n" configFile
+	msgText.="`n`nХотите открыть веб страницу, чтоб поддержать " prjName "?"
 	msgbox, 0x1044, %prjName%, %msgText%
+	IfMsgBox Yes
+		Run, https://money.yandex.ru/to/410018859988844
 }
 
 setLegacyHotkeys(){

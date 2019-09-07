@@ -28,11 +28,11 @@ CheckUpdateFromMenu(){
 ;Запуск процесса обновления
 StartUpdate(verRelease) {
 	SplashTextOn, 250, 20, %prjName%, Выполняется обновление...
-	zipArchive:=A_Temp "\" prjName ".zip"
+	zipArchive:=A_Temp "\" prjName "-Update.zip"
 	FileDelete, %zipArchive%
 	sleep 50
 	newVersionURL:="https://github.com/" githubUser "/" prjName "/releases/download/" verRelease "/" prjName ".zip"
-	UrlDownloadToFile, %newVersionURL%, %A_Temp%\%prjName%.zip
+	UrlDownloadToFile, %newVersionURL%, %zipArchive%
 	sleep 50	
 	IfExist %zipArchive%
 	{
@@ -40,8 +40,9 @@ StartUpdate(verRelease) {
 		sleep 3000
 		FileCreateDir, %A_ScriptDir%
 		sleep 50
-		unZipArchive(A_Temp "\" prjName ".zip", A_ScriptDir "\")
+		unZipArchive(zipArchive, A_ScriptDir "\")
 		sleep 2000
+		FileDelete, %zipArchive%
 		Reload
 	}
 	SplashTextOff
