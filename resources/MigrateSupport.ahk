@@ -21,6 +21,7 @@ updateConfig() {
 	;Выполним импорт уровня лабиринта
 	IniRead, lvlLab, %configFile%, settings, lvlLabyrinth, uber
 	IniRead, lvlLab, %configFile%, settings, lvlLab, %lvlLab%
+	lvlLab:=(lvlLab="normal" || lvlLab="cruel" || lvlLab="merciless" || lvlLab="uber")?lvlLab:"uber"
 	
 	;Выполним импорт остальных настроек
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
