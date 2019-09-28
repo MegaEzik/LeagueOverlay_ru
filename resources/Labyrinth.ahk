@@ -48,7 +48,6 @@ menuLabCreate(){
 ;Запись уровня лабиринта в файл конфигурации
 setLvlLab(lvl){
 	IniWrite, %lvl%, %configFile%, settings, lvlLab
-	IniWrite, 1, %configFile%, settings, lastImg
 	Run, https://www.poelab.com/
 	Sleep 50
 	Reload

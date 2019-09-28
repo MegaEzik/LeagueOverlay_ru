@@ -2,7 +2,7 @@
 ;Проверяет версию файла конфигурации, если не соответствует, то будет выполнена попытка восстановления
 verifyConfig(){
 	IniRead, verConfig, %configFile%, settings, verConfig, ""
-	If (verConfig!=3) {
+	If (verConfig!=4) {
 		MsgBox, 0x1040, %prjName%, Файл конфигурации устарел, поврежден или отсутствует!`nПричиной может быть новая установка, недавнее обновление или ошибка при записи на диск.`n`nСейчас будет выполнена попытка его восстановления.
 		updateConfig()
 	}
@@ -25,7 +25,6 @@ updateConfig() {
 	
 	;Выполним импорт остальных настроек
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
-	IniRead, lastImg, %configFile%, settings, lastImg, 1
 	
 	;Удаляем файл
 	FileDelete, %configFile%
@@ -38,10 +37,9 @@ updateConfig() {
 	IniWrite, %hotkeyMainMenu%, %configFile%, hotkeys, hotkeyMainMenu
 	IniWrite, %lvlLab%, %configFile%, settings, lvlLab
 	IniWrite, %legacyHotkeys%, %configFile%, settings, legacyHotkeys
-	IniWrite, %lastImg%, %configFile%, settings, lastImg
 	
 	;Назначим версию файла конфигурации
-	IniWrite, 3, %configFile%, settings, verConfig
+	IniWrite, 4, %configFile%, settings, verConfig
 	Sleep 25
 	Reload
 }

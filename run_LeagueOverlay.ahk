@@ -111,7 +111,6 @@ If FileExist(configFolder "\images\Prophecy.png")
 ;Глобальные переменные для количества изображений и номера последнего
 global NumImg:=6
 global LastImg:=1
-IniRead, LastImg, %configFile%, settings, lastImg, %LastImg%
 
 ;Переменные для статуса отображения изображения
 global GuiOn1:=0
@@ -221,7 +220,6 @@ shOverlay(i){
 		Gui, %i%: Show, NA
 		GuiON%i%:=1
 		LastImg:=i
-		IniWrite, %LastImg%, %configFile%, settings, lastImg
 	}
 }
 
