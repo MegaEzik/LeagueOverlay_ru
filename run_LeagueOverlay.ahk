@@ -297,7 +297,7 @@ helpDialog(){
 	msgText.="`n`nХотите открыть веб страницу, чтоб поддержать " prjName "?"
 	msgbox, 0x1044, %prjName%, %msgText%
 	IfMsgBox Yes
-		Run, https://money.yandex.ru/to/410018859988844
+		Run, https://qiwi.me/megaezik
 }
 
 setLegacyHotkeys(){
