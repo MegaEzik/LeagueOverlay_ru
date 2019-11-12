@@ -65,6 +65,17 @@ initOverlay(){
 	}
 }
 
+;Рассчитываем коэффициент для уменьшения изображения
+calcMult(ImageWidth, ImageHeight, ScreenWidth, ScreenHeight){
+	MWidth:=ScreenWidth/ImageWidth
+	MHeight:=ScreenHeight/ImageHeight
+	M:=(MWidth<MHeight)?MWidth:MHeight
+	M:=Round(M-0.0005, 3)
+	M:=(M>1)?1:M
+	M:=(M<0.1)?0.1:M
+	return M
+}
+
 shOverlay(i){
 	If (GuiON%i%=1){
 		Gui, %i%: Hide

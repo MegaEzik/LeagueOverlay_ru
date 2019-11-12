@@ -25,31 +25,11 @@ downloadLabLayout() {
 	}
 }
 
-;Меню
-menuLabCreate(){
-	Menu, labMenu, Add, Лабиринт, selectNormalLab
-	Menu, labMenu, Add, Жестокий Лабиринт, selectCruelLab
-	Menu, labMenu, Add, Безжалостный Лабиринт, selectMercilessLab
-	Menu, labMenu, Add, Лабиринт Вечных, selectUberLab
-	Menu, Tray, Add, Изменить уровень лабиринта, :labMenu
-	Menu, Tray, Add
-	
-	IniRead, lvlLab, %configFile%, settings, lvlLab, uber
-	if (lvlLab="normal")
-	Menu, labMenu, Check, Лабиринт
-	if (lvlLab="cruel")
-	Menu, labMenu, Check, Жестокий Лабиринт
-	if (lvlLab="merciless")
-	Menu, labMenu, Check, Безжалостный Лабиринт
-	if (lvlLab="uber")
-	Menu, labMenu, Check, Лабиринт Вечных
-}
-
 ;Запись уровня лабиринта в файл конфигурации
 setLvlLab(lvl){
 	IniWrite, %lvl%, %configFile%, settings, lvlLab
 	Run, https://www.poelab.com/
-	Sleep 50
+	Sleep 35
 	Reload
 }
 
