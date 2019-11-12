@@ -65,8 +65,6 @@ if autoUpdate {
 ;Создаем главное меню и меню в области уведомлений
 menuCreate()
 
-global legacyHotkeys
-
 ;Назначим управление в зависимости от включенной настройки 'Использования устаревших клавиш'
 IniRead, legacyHotkeys, %configFile%, settings, legacyHotkeys, 0
 If !legacyHotkeys {
