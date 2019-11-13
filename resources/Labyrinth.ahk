@@ -24,31 +24,3 @@ downloadLabLayout() {
 		MsgBox, 0x1040, %prjName%, Не удалось получить файл с раскладкой лабиринта,`nвозможно еще нет информации на текущую дату!`n`nПопробуйте перезапустить скрипт позднее!
 	}
 }
-
-;Запись уровня лабиринта в файл конфигурации
-setLvlLab(lvl){
-	IniWrite, %lvl%, %configFile%, settings, lvlLab
-	Run, https://www.poelab.com/
-	Sleep 35
-	Reload
-}
-
-;Применение настроек - Лабиринт
-selectNormalLab(){
-	setLvlLab("normal")
-}
-
-;Применение настроек - Жестокий Лабиринт
-selectCruelLab(){
-	setLvlLab("cruel")
-}
-
-;Применение настроек - Безжалостный Лабиринт
-selectMercilessLab(){
-	setLvlLab("merciless")
-}
-
-;Применение настроек - Лабиринт Вечных
-selectUberLab(){
-	setLvlLab("uber")
-}
