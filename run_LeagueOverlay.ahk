@@ -48,10 +48,18 @@ Menu, Tray, Tip, PoE - %prjName%
 Menu, Tray, Icon, resources\Syndicate.ico
 
 ;Проверим файл конфигурации
-if !FileExist(configFile) {
-	FileCreateDir, %configFolder%\images
+IniRead, verConfig, %configFile%, settings, verConfig, ""
+if (verConfig!=verScript) {
+	If FileExist(A_MyDocuments "\LeagueOverlay_ru\") {
+		FileCopyDir, %A_MyDocuments%\LeagueOverlay_ru\, %configFolder%, 0
+		FileRemoveDir, %A_MyDocuments%\LeagueOverlay_ru\, 1
+	}
+	sleep 35
 	showSettings()
-	sleep 100
+	FileDelete, %configFile%
+	sleep 35
+	FileCreateDir, %configFolder%\images
+	IniWrite, %verScript%, %configFile%, settings, verConfig
 	saveSettings()
 }
 
@@ -73,7 +81,6 @@ If !legacyHotkeys {
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
 	Hotkey, % hotkeyMainMenu, shMainMenu, On
 } Else {
-	Menu, Tray, Check, Использовать устаревшую раскладку
 	Hotkey, !f1, shLabyrinth, On
 	Hotkey, !f2, shSyndicate, On
 	Hotkey, !f3, shIncursion, On
@@ -222,7 +229,6 @@ showSettings() {
 	Gui, Settings:Destroy
 	
 	IniRead, autoUpdateS, %configFile%, settings, autoUpdate, 1
-	IniRead, fastChangeLabS, %configFile%, settings, fastChangeLab, 0
 	IniRead, legacyHotkeysS, %configFile%, settings, legacyHotkeys, 0
 	IniRead, lvlLabS, %configFile%, settings, lvlLab, uber
 	IniRead, skipLoadLabS, %configFile%, settings, skipLoadLab, 0
@@ -246,7 +252,7 @@ showSettings() {
 	Gui, Settings:Add, Text, x10 yp+5 h20, Файл конфигурации:`n %configFile%
 	*/
 
-	Gui, Settings:Add, GroupBox, x10 y+5 w530 h190, Основные настройки
+	Gui, Settings:Add, GroupBox, x10 y+5 w530 h170, Основные настройки
 	
 	Gui, Settings:Add, Checkbox, vautoUpdateS x25 yp+17 w450 h20 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
 	
@@ -256,7 +262,7 @@ showSettings() {
 	Gui, Settings:Add, Text, x25 yp+27 w150, Меню изображений:
 	Gui, Settings:Add, Hotkey, vhotkeyMainMenuS x+24 yp-3 w150 h20 , %hotkeyMainMenuS%
 	
-	Gui, Settings:Add, Checkbox, vlegacyHotkeysS x25 yp+22 w450 h20 cRed Checked%legacyHotkeysS%, Использовать устаревшую раскладку (не рекомендуется)
+	Gui, Settings:Add, Checkbox, vlegacyHotkeysS x25 yp+22 w450 h20 Checked%legacyHotkeysS%, Устаревшая раскладка клавиш(использовать не рекомендуется)
 	
 	Gui, Settings:Add, Text, x25 yp+32 w150, Уровень лабиринта:
 	Gui, Settings:Add, DropDownList, vlvlLabS x+24 yp-3 w150, normal|cruel|merciless|uber
@@ -264,7 +270,6 @@ showSettings() {
 	Gui, Settings:Add, Link, x+10 yp+3 w165, <a href="https://www.poelab.com/">c использованием POELab.com</a>
 	
 	Gui, Settings:Add, Checkbox, vskipLoadLabS x25 yp+19 w450 h20 Checked%skipLoadLabS%, Не загружать изображение раскладки лабиринта
-	Gui, Settings:Add, Checkbox, vfastChangeLabS x25 yp+19 w450 h20 Checked%fastChangeLabS%, Добавить возможность Изменения уровня лабиринта из Меню изображений
 	
 	Gui, Settings:Add, GroupBox, x10 y+15 w530 h50, Замена изображений
 	Gui, Settings:Add, Button, xp10 yp+17 w253 greplacerImages, Указать изображение для создания замены
@@ -273,14 +278,13 @@ showSettings() {
 	Gui, Settings:Add, Button, x10 y+22 gdelConfigFolder, Сбросить
 	Gui, Settings:Add, Button, x+4 yp+0 gopenConfigFolder, Открыть папку настроек
 	Gui, Settings:Add, Button, x370 yp+0 w170 gsaveSettings, Применить и перезапустить
-	Gui, Settings:Show, w550, %prjName% - Информация и Настройка(beta)
+	Gui, Settings:Show, w550, %prjName% - Информация и настройки
 }
 
 saveSettings() {
 	global
 	Gui, Settings:Submit
 	IniWrite, %autoUpdateS%, %configFile%, settings, autoUpdate
-	IniWrite, %fastChangeLabS%, %configFile%, settings, fastChangeLab
 	IniWrite, %legacyHotkeysS%, %configFile%, settings, legacyHotkeys
 	IniWrite, %lvlLabS%, %configFile%, settings, lvlLab
 	IniWrite, %skipLoadLabS%, %configFile%, settings, skipLoadLab
@@ -309,8 +313,8 @@ delConfigFolder() {
 
 menuCreate(){
 	Menu, Tray, NoStandard
-	Menu, Tray, Add, Информация и Настройка, showSettings
-	Menu, Tray, Default, Информация и Настройка
+	Menu, Tray, Add, Информация и настройки, showSettings
+	Menu, Tray, Default, Информация и настройки
 	Menu, Tray, Add, Выполнить обновление,CheckUpdateFromMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить, ReStart
@@ -327,16 +331,6 @@ menuCreate(){
 	Menu, mainMenu, Add, Навали - Пророчества, shProphecy
 	Menu, mainMenu, Add, Нико - Ископаемые, shFossils
 	Menu, mainMenu, Add	
-	IniRead, fastChangeLab, %configFile%, settings, fastChangeLab, 0
-	If fastChangeLab {
-		IniRead, lvlLab, %configFile%, settings, lvlLab, uber
-		Menu, labMenu, Add, normal, selectNormalLab
-		Menu, labMenu, Add, cruel, selectCruelLab
-		Menu, labMenu, Add, merciless, selectMercilessLab
-		Menu, labMenu, Add, uber, selectUberLab
-		Menu, labMenu, Check, %lvlLab%
-		Menu, mainMenu, Add, Изменить уровень лабиринта, :labMenu
-	}
 	Menu, mainMenu, Add, Меню области уведомлений, :Tray
 }
 

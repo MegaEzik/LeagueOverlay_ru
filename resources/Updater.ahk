@@ -4,7 +4,7 @@ CheckUpdate() {
 	releaseinfo:=DownloadToVar("https://api.github.com/repos/" githubUser "/" prjName "/releases/latest")
 	parsedJSON:=JSON.Load(releaseinfo)
 	verRelease:=parsedJSON.tag_name
-	if (verRelease!="" && verScript!="" && verRelease!=verScript) {
+	if (verRelease!="" && verScript!="" && verRelease>verScript) {
 		TrayTip, %prjName%, Доступна новая версия!
 		return verRelease
 	} else {
