@@ -237,7 +237,7 @@ showSettings() {
 	
 	Gui, Settings:Add, Picture, x405 y10 w107 h-1, resources\qiwi-logo.png
 	Gui, Settings:Add, Link, x385 y+10, <a href="https://qiwi.me/megaezik">Поддержать %prjName%</a>
-	Gui, Settings:Add, Link, x10 yp+0 w365, <a href="https://ru.pathofexile.com/forum/view-post/21681060">Пост на форуме</a>  |  <a href="https://raw.githubusercontent.com/MegaEzik/PoE-TradeMacro_ru/master/resources/UpdatesRu.txt">История изменений</a>  |  <a href="https://github.com/MegaEzik/LeagueOverlay_ru/releases">Страница на GitHub</a>
+	Gui, Settings:Add, Link, x10 yp+0 w365, <a href="https://ru.pathofexile.com/forum/view-post/21681060">Пост на форуме</a>  |  <a href="https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/Updates.txt">История изменений</a>  |  <a href="https://github.com/MegaEzik/LeagueOverlay_ru/releases">Страница на GitHub</a>
 	
 	Gui, Settings:Add, Text, x10 yp-22 w180, Установлена версия: %verScript%
 	Gui, Settings:Add, Button, x+23 yp-5 w135 gCheckUpdateFromMenu, Выполнить обновление
