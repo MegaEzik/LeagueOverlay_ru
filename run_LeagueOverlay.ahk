@@ -194,7 +194,7 @@ shProphecy(){
 }
 
 replacerImages() {
-	FileSelectFile, FilePath, , , Укажите путь к новому совместимому файлу для создания замены, Совместимые файлы (Fossil.png; Incursion.png; Map.png; Prophecy.png; Syndicate.png; Custom.png; *.zip)
+	FileSelectFile, FilePath, , , Укажите путь к новому совместимому файлу для создания замены, Совместимые файлы (Fossil.png; Incursion.png; Map.png; Prophecy.png; Syndicate.png; Custom.png; ImagePack.zip)
 	if !FileExist(FilePath) {
 		if (FilePath!="") {
 			msgbox, 0x1040,%prjName% , Указанный файл не найден!
@@ -204,10 +204,9 @@ replacerImages() {
 	if RegExMatch(FilePath, ".png$") {
 		FileCopy, %FilePath%, %configFolder%\images\, true
 	}
-	if RegExMatch(FilePath, ".zip$") {
+	if RegExMatch(FilePath, "ImagePack.zip$") {
 		unZipArchive(FilePath, configFolder "\images\")
 	}
-	ReStart()
 }
 
 delReplacedImages() {
@@ -221,7 +220,6 @@ delReplacedImages() {
 	if inStr(FilePath, configFolder "\images\") {
 		FileDelete, %FilePath%
 	}
-	ReStart()
 }
 
 showSettings() {
@@ -235,14 +233,16 @@ showSettings() {
 	IniRead, hotkeyLastImgS, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenuS, %configFile%, hotkeys, hotkeyMainMenu, !f2
 	
-	Gui, Settings:Add, Text, x10 y12 w350 h30 cGreen, %prjName% - Макрос предоставляющий вам информацию в виде изображений наложенных поверх окна игры.
+	Gui, Settings:Add, Text, x10 y5 w365 h28 cGreen, %prjName% - Макрос предоставляющий вам информацию в виде изображений наложенных поверх окна игры.
 	
-	Gui, Settings:Add, Picture, x390 y10 w107 h-1, resources\qiwi-logo.png
-	Gui, Settings:Add, Link, x370 yp+45 cBlue, <a href="https://qiwi.me/megaezik">Поддержать %prjName%</a>
-	Gui, Settings:Add, Text, x10 yp+0 w185, Установлена версия: %verScript%
-	Gui, Settings:Add, Button, x+4 yp-5 w150 gCheckUpdateFromMenu, Выполнить обновление
+	Gui, Settings:Add, Picture, x405 y10 w107 h-1, resources\qiwi-logo.png
+	Gui, Settings:Add, Link, x385 y+10, <a href="https://qiwi.me/megaezik">Поддержать %prjName%</a>
+	Gui, Settings:Add, Link, x10 yp+0 w365, <a href="https://ru.pathofexile.com/forum/view-post/21681060">Пост на форуме</a>  |  <a href="https://raw.githubusercontent.com/MegaEzik/PoE-TradeMacro_ru/master/resources/UpdatesRu.txt">История изменений</a>  |  <a href="https://github.com/MegaEzik/LeagueOverlay_ru/releases">Страница на GitHub</a>
 	
-	Gui, Settings:Add, Text, x0 y+5 w555 h2 0x10
+	Gui, Settings:Add, Text, x10 yp-22 w180, Установлена версия: %verScript%
+	Gui, Settings:Add, Button, x+23 yp-5 w135 gCheckUpdateFromMenu, Выполнить обновление
+	
+	Gui, Settings:Add, Text, x0 y85 w555 h2 0x10
 	
 	/*
 	FileRead, updateNotes, resources\Updates.txt
@@ -256,18 +256,18 @@ showSettings() {
 	
 	Gui, Settings:Add, Checkbox, vautoUpdateS x25 yp+17 w450 h20 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
 	
-	Gui, Settings:Add, Text, x25 yp+32 w150, Последнее изображение:
-	Gui, Settings:Add, Hotkey, vhotkeyLastImgS x+24 yp-3 w150 h20 , %hotkeyLastImgS%
+	Gui, Settings:Add, Text, x25 yp+32 w165, Последнее изображение:
+	Gui, Settings:Add, Hotkey, vhotkeyLastImgS x+24 yp-3 w135 h20 , %hotkeyLastImgS%
 	
-	Gui, Settings:Add, Text, x25 yp+27 w150, Меню изображений:
-	Gui, Settings:Add, Hotkey, vhotkeyMainMenuS x+24 yp-3 w150 h20 , %hotkeyMainMenuS%
+	Gui, Settings:Add, Text, x25 yp+27 w165, Меню изображений:
+	Gui, Settings:Add, Hotkey, vhotkeyMainMenuS x+24 yp-3 w135 h20 , %hotkeyMainMenuS%
 	
 	Gui, Settings:Add, Checkbox, vlegacyHotkeysS x25 yp+22 w450 h20 Checked%legacyHotkeysS%, Устаревшая раскладка клавиш(использовать не рекомендуется)
 	
-	Gui, Settings:Add, Text, x25 yp+32 w150, Уровень лабиринта:
-	Gui, Settings:Add, DropDownList, vlvlLabS x+24 yp-3 w150, normal|cruel|merciless|uber
+	Gui, Settings:Add, Text, x25 yp+32 w165, Уровень лабиринта:
+	Gui, Settings:Add, DropDownList, vlvlLabS x+24 yp-3 w135, normal|cruel|merciless|uber
 	GuiControl,Settings:ChooseString, lvlLabS, %lvlLabS%
-	Gui, Settings:Add, Link, x+10 yp+3 w165, <a href="https://www.poelab.com/">c использованием POELab.com</a>
+	Gui, Settings:Add, Link, x+15 yp+3 w165, <a href="https://www.poelab.com/">c использованием POELab.com</a>
 	
 	Gui, Settings:Add, Checkbox, vskipLoadLabS x25 yp+19 w450 h20 Checked%skipLoadLabS%, Не загружать изображение раскладки лабиринта
 	
