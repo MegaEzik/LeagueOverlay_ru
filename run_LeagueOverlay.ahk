@@ -194,30 +194,30 @@ shProphecy(){
 }
 
 replacerImages() {
-	FileSelectFile, FilePath, , , Укажите путь к новому совместимому файлу для создания замены, Совместимые файлы (Fossil.png; Incursion.png; Map.png; Prophecy.png; Syndicate.png; Custom.png; ImagePack.zip)
-	if !FileExist(FilePath) {
-		if (FilePath!="") {
-			msgbox, 0x1040,%prjName% , Указанный файл не найден!
-		}
+	FileSelectFile, FilePath, , , Укажите путь к новому файлу для создания замены, Изображения (*.png)
+	if (FilePath="" || !FileExist(FilePath) || !RegExMatch(FilePath, "i).(png|zip)$")) {
+		msgbox, 0x1040, %prjName%, Файл не найден или не соответствует файлам макроса!
 		return
 	}
-	if RegExMatch(FilePath, ".png$") {
-		FileCopy, %FilePath%, %configFolder%\images\, true
+	if RegExMatch(FilePath, "i).png$") {
+		if RegExMatch(FilePath, "i)(Fossil|Incursion|Map|Prophecy|Syndicate).png$", replaceImgName) {
+			FileCopy, %FilePath%, %configFolder%\images\%replaceImgName%, true
+		} else {
+			Msgbox, 0x1040, %prjName%, Не удалось определить тип изображения!`n`n`Указанный файл будет установлен в качестве 'Пользовательского изображения'!
+			FileCopy, %FilePath%, %configFolder%\images\Custom.png, true
+		}
 	}
-	if RegExMatch(FilePath, "ImagePack.zip$") {
+	if RegExMatch(FilePath, "i).zip$") {
 		unZipArchive(FilePath, configFolder "\images\")
 	}
 }
 
 delReplacedImages() {
 	FileSelectFile, FilePath, , %configFolder%\images\, Выберите изображение в этой папке для удаления замены, Изображения (*.png)
-	if !FileExist(FilePath) {
-		if (FilePath!="") {
-			msgbox, 0x1040,%prjName% , Указанный файл не найден!
-		}
+	if (FilePath="" || !FileExist(FilePath) || !RegExMatch(FilePath, "i).png$") || !inStr(FilePath, configFolder "\images\")) {
+		msgbox, 0x1040, %prjName%, Файл не найден или изображение указано не верно!
 		return
-	}
-	if inStr(FilePath, configFolder "\images\") {
+	} else {
 		FileDelete, %FilePath%
 	}
 }
@@ -232,6 +232,10 @@ showSettings() {
 	IniRead, skipLoadLabS, %configFile%, settings, skipLoadLab, 0
 	IniRead, hotkeyLastImgS, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenuS, %configFile%, hotkeys, hotkeyMainMenu, !f2
+	
+	
+	legacyHotkeysOldPosition:=legacyHotkeysS
+	lvlLabOldPosition:=lvlLabS
 	
 	Gui, Settings:Add, Text, x10 y5 w365 h28 cGreen, %prjName% - Макрос предоставляющий вам информацию в виде изображений наложенных поверх окна игры.
 	
@@ -252,30 +256,33 @@ showSettings() {
 	Gui, Settings:Add, Text, x10 yp+5 h20, Файл конфигурации:`n %configFile%
 	*/
 
-	Gui, Settings:Add, GroupBox, x10 y+5 w530 h170, Основные настройки
+	Gui, Settings:Add, GroupBox, x10 y+5 w530 h185, Основные настройки
 	
-	Gui, Settings:Add, Checkbox, vautoUpdateS x25 yp+17 w450 h20 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
+	Gui, Settings:Add, Checkbox, vautoUpdateS x25 yp+17 w360 h20 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
 	
-	Gui, Settings:Add, Text, x25 yp+32 w165, Последнее изображение:
+	Gui, Settings:Add, Text, x25 y+5 w505 h2 0x10
+	
+	Gui, Settings:Add, Checkbox, vlegacyHotkeysS x25 yp+7 w360 h20 Checked%legacyHotkeysS%, Устаревшая раскладка клавиш(использовать не рекомендуется)
+	
+	Gui, Settings:Add, Text, x25 yp+27 w165, Последнее изображение:
 	Gui, Settings:Add, Hotkey, vhotkeyLastImgS x+24 yp-3 w135 h20 , %hotkeyLastImgS%
 	
-	Gui, Settings:Add, Text, x25 yp+27 w165, Меню изображений:
+	Gui, Settings:Add, Text, x25 yp+27 w165, Меню быстрого доступа:
 	Gui, Settings:Add, Hotkey, vhotkeyMainMenuS x+24 yp-3 w135 h20 , %hotkeyMainMenuS%
 	
-	Gui, Settings:Add, Checkbox, vlegacyHotkeysS x25 yp+22 w450 h20 Checked%legacyHotkeysS%, Устаревшая раскладка клавиш(использовать не рекомендуется)
+	Gui, Settings:Add, Text, x25 y+7 w505 h2 0x10	
 	
-	Gui, Settings:Add, Text, x25 yp+32 w165, Уровень лабиринта:
+	Gui, Settings:Add, Checkbox, vskipLoadLabS x25 yp+7 w360 h20 Checked%skipLoadLabS%, Не загружать изображение раскладки лабиринта
+	Gui, Settings:Add, Text, x25 yp+27 w165, Уровень лабиринта:
 	Gui, Settings:Add, DropDownList, vlvlLabS x+24 yp-3 w135, normal|cruel|merciless|uber
 	GuiControl,Settings:ChooseString, lvlLabS, %lvlLabS%
 	Gui, Settings:Add, Link, x+15 yp+3 w165, <a href="https://www.poelab.com/">c использованием POELab.com</a>
 	
-	Gui, Settings:Add, Checkbox, vskipLoadLabS x25 yp+19 w450 h20 Checked%skipLoadLabS%, Не загружать изображение раскладки лабиринта
-	
-	Gui, Settings:Add, GroupBox, x10 y+15 w530 h50, Замена изображений
+	Gui, Settings:Add, GroupBox, x10 y+20 w530 h50, Замена изображений
 	Gui, Settings:Add, Button, xp10 yp+17 w253 greplacerImages, Указать изображение для создания замены
 	Gui, Settings:Add, Button, x+4 yp+0 w253 gdelReplacedImages, Удалить замену указав на изображение
 	
-	Gui, Settings:Add, Button, x10 y+22 gdelConfigFolder, Сбросить
+	Gui, Settings:Add, Button, x10 y+25 gdelConfigFolder, Сбросить
 	Gui, Settings:Add, Button, x+4 yp+0 gopenConfigFolder, Открыть папку настроек
 	Gui, Settings:Add, Button, x370 yp+0 w170 gsaveSettings, Применить и перезапустить
 	Gui, Settings:Show, w550, %prjName% - Информация и настройки
@@ -284,6 +291,7 @@ showSettings() {
 saveSettings() {
 	global
 	Gui, Settings:Submit
+	
 	IniWrite, %autoUpdateS%, %configFile%, settings, autoUpdate
 	IniWrite, %legacyHotkeysS%, %configFile%, settings, legacyHotkeys
 	IniWrite, %lvlLabS%, %configFile%, settings, lvlLab
@@ -291,7 +299,11 @@ saveSettings() {
 	IniWrite, %hotkeyLastImgS%, %configFile%, hotkeys, hotkeyLastImg
 	IniWrite, %hotkeyMainMenuS%, %configFile%, hotkeys, hotkeyMainMenu
 	
-	if legacyHotkeysS {
+	if (lvlLabS!=lvlLabOldPosition) {
+		Run, https://www.poelab.com/
+	}
+	
+	if (legacyHotkeysS>legacyHotkeysOldPosition) {
 		msgText:="Устаревшая раскладка имеет следующее управление:`n"
 		msgText.="     [Alt+F1] - Лабиринт`n"
 		msgText.="     [Alt+F2] - Синдикат`n"
@@ -299,8 +311,11 @@ saveSettings() {
 		msgText.="     [Alt+F4] - Карты`n"
 		msgText.="     [Alt+F6] - Ископаемые`n"
 		msgText.="     [Alt+F7] - Пророчества`n`n"
-		msgText.="Использовать 'Устаревшую раскладку' не рекомендуется, ведь она заменяет сочетание клавиш [Alt+F4], и вы не сможете использовать этот способ для выхода из игры!"
-		MsgBox, 0x1040, %prjName%,  %msgText%
+		msgText.="Использовать 'Устаревшую раскладку' не рекомендуется, ведь она заменяет сочетание клавиш [Alt+F4], и вы не сможете использовать этот способ для выхода из игры!`n`n"
+		msgText.="Вы уверены, что хотите переключиться на данный режим управления?"
+		MsgBox, 0x1024, %prjName%,  %msgText%
+		IfMsgBox No
+			IniWrite, 0, %configFile%, settings, legacyHotkeys
 	}
 	ReStart()
 }
@@ -316,6 +331,8 @@ menuCreate(){
 	Menu, Tray, Add, Информация и настройки, showSettings
 	Menu, Tray, Default, Информация и настройки
 	Menu, Tray, Add, Выполнить обновление,CheckUpdateFromMenu
+	Menu, Tray, Add
+	Menu, Tray, Add, Отметить испытания лабиринта, showLabTrials
 	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить, ReStart
 	Menu, Tray, Add, Завершить работу макроса, Exit
