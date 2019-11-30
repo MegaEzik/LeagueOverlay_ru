@@ -28,11 +28,11 @@ SetBatchLines, -1
 SetWorkingDir %A_ScriptDir%
 
 ;Подключение библиотек
-#Include, resources\Gdip_All.ahk
-#Include, resources\JSON.ahk
-#Include, resources\Overlay.ahk
-#Include, resources\Labyrinth.ahk
-#Include, resources\Updater.ahk
+#Include, %A_ScriptDir%\resources\Gdip_All.ahk
+#Include, %A_ScriptDir%\resources\JSON.ahk
+#Include, %A_ScriptDir%\resources\Overlay.ahk
+#Include, %A_ScriptDir%\resources\Labyrinth.ahk
+#Include, %A_ScriptDir%\resources\Updater.ahk
 
 ;Объявление и загрузка основных переменных
 global prjName:="LeagueOverlay_ru"
