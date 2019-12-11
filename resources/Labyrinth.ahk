@@ -31,6 +31,9 @@ showLabTrials() {
 	Gui, LabTrials:Destroy
 	trialsFile:=configFolder "\trials.ini"
 	
+	Menu, ltMenuBar, Add, Сохранить `tCtrl+S, saveLabTrials
+	Gui, LabTrials:Menu, ltMenuBar
+	
 	IniRead, trialAS, %trialsFile%, LabTrials, trialA, 0
 	IniRead, trialBS, %trialsFile%, LabTrials, trialB, 0
 	IniRead, trialCS, %trialsFile%, LabTrials, trialC, 0
@@ -38,13 +41,12 @@ showLabTrials() {
 	IniRead, trialES, %trialsFile%, LabTrials, trialE, 0
 	IniRead, trialFS, %trialsFile%, LabTrials, trialF, 0
 	
-	Gui, LabTrials:Add, Checkbox, vtrialAS x15 y10 w145 h28 Checked%trialAS%, Пронзающей истинной`nPiercing Truth
-	Gui, LabTrials:Add, Checkbox, vtrialBS xp+0 y+10 w145 h28 Checked%trialBS%, Крутящимся страхом`nSwirling Fear
-	Gui, LabTrials:Add, Checkbox, vtrialCS xp+0 y+10 w145 h28 Checked%trialCS%, Калечащей печалью`nCrippling Grief
-	Gui, LabTrials:Add, Checkbox, vtrialDS xp+155 y10 w145 h28 Checked%trialDS%, Пылающей яростью`nBurning Rage
-	Gui, LabTrials:Add, Checkbox, vtrialES xp+0 y+10 w145 h28 Checked%trialES%, Постоянной болью`nLingering Pain
-	Gui, LabTrials:Add, Checkbox, vtrialFS xp+0 y+10 w145 h28 Checked%trialFS%, Жгучим сомнением`nStinging Doubt
-	Gui, LabTrials:Add, Button, x15 y+10 w290 gsaveLabTrials, Сохранить
+	Gui, LabTrials:Add, Checkbox, vtrialAS x15 y5 w145 h28 Checked%trialAS%, Пронзающей истинной`nPiercing Truth
+	Gui, LabTrials:Add, Checkbox, vtrialBS xp+0 y+5 w145 h28 Checked%trialBS%, Крутящимся страхом`nSwirling Fear
+	Gui, LabTrials:Add, Checkbox, vtrialCS xp+0 y+5 w145 h28 Checked%trialCS%, Калечащей печалью`nCrippling Grief
+	Gui, LabTrials:Add, Checkbox, vtrialDS xp+155 y5 w145 h28 Checked%trialDS%, Пылающей яростью`nBurning Rage
+	Gui, LabTrials:Add, Checkbox, vtrialES xp+0 y+5 w145 h28 Checked%trialES%, Постоянной болью`nLingering Pain
+	Gui, LabTrials:Add, Checkbox, vtrialFS xp+0 y+5 w145 h28 Checked%trialFS%, Жгучим сомнением`nStinging Doubt
 	Gui, LabTrials:Show, w320, Испытания лабиринта
 }
 

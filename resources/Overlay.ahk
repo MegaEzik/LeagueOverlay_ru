@@ -12,8 +12,8 @@ initOverlay(){
 
 	Loop %NumImg%{
 		If (GuiON%A_Index%=0){
-			Gosub, CheckWinActivePOE
-			SetTimer, CheckWinActivePOE, 100
+			CheckWinActivePOE()
+			SetTimer, CheckWinActivePOE, 200
 			GuiON%A_Index%=1
 		
 			; Show the window
@@ -62,6 +62,22 @@ initOverlay(){
 		DeleteDC(hdc%A_Index%)
 		Gdip_DeleteGraphics(G%A_Index%)
 		Gdip_DisposeImage(pBitmap%A_Index%)
+	}
+}
+
+CheckWinActivePOE(){
+	GuiControlGet, focused_control, focus
+	
+	Loop %NumImg%{
+		If(WinActive(poeWindowName))
+			If (GuiON%A_Index%=0){			
+				GuiON%A_Index%:=0
+			}
+		If(!WinActive(poeWindowName ))
+			If (GuiON%A_Index%=1){
+				Gui, %A_Index%: Hide
+				GuiON%A_Index%:=0
+			}
 	}
 }
 

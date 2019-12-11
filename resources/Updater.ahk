@@ -5,7 +5,7 @@ CheckUpdate() {
 	parsedJSON:=JSON.Load(releaseinfo)
 	verRelease:=parsedJSON.tag_name
 	if (verRelease!="" && verScript!="" && verRelease>verScript) {
-		TrayTip, %prjName%, Доступна новая версия!
+		TrayTip, %prjName%, Доступна версия %verRelease%!
 		return verRelease
 	} else {
 		return "noupdate"
@@ -19,7 +19,7 @@ CheckUpdateFromMenu(PressedBtn=""){
 		MsgBox, 0x1040, %prjName%, Новых версий %prjName% не найдено!
 	}
 	else if (statusUpdate!="noupdate" && statusUpdate!="") {
-		MsgBox, 0x1024, %prjName%, Установленная версия не совпадает с тэгом на GitHub!`n`nУстановлена версия: %verScript%`nВерсия на GitHub: %statusUpdate%`n`nУстановить последнюю версию с GitHub?
+		MsgBox, 0x1024, %prjName%, Установлена версия: %verScript%`nДоступна версия: %statusUpdate%`n`nХотите выполнить обновление до версии %statusUpdate%?
 		IfMsgBox Yes
 			StartUpdate(statusUpdate)
 	}
@@ -27,7 +27,7 @@ CheckUpdateFromMenu(PressedBtn=""){
 
 ;Запуск процесса обновления
 StartUpdate(verRelease) {
-	SplashTextOn, 250, 20, %prjName%, Выполняется обновление...
+	SplashTextOn, 300, 20, %prjName%, Выполняется обновление...
 	zipArchive:=A_Temp "\" prjName "-Update.zip"
 	FileDelete, %zipArchive%
 	sleep 35

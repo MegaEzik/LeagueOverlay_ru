@@ -22,9 +22,8 @@ if (!A_IsAdmin) {
 	ExitApp
 }
 
-#SingleInstance, Force
 #NoEnv
-SetBatchLines, -1
+#SingleInstance Force
 SetWorkingDir %A_ScriptDir%
 
 ;Подключение библиотек
@@ -39,54 +38,41 @@ global prjName:="LeagueOverlay_ru"
 global githubUser:="MegaEzik"
 global configFolder:=A_MyDocuments "\AutoHotKey\" prjName
 global configFile:=configFolder "\settings.ini"
-global verScript
+global trayMsg, verScript
 FileReadLine, verScript, resources\Updates.txt, 4
 
-SplashTextOn, 270, 20, %prjName%, Подготовка макроса к работе...
-
-Menu, Tray, Tip, PoE - %prjName%
+;Подсказка в области уведомлений и сообщение при запуске
+trayUpdate("PoE-" prjName " v" verScript)
 Menu, Tray, Icon, resources\Syndicate.ico
-
-;Проверим файл конфигурации
-IniRead, verConfig, %configFile%, settings, verConfig, ""
-if (verConfig!=verScript) {
-	If FileExist(A_MyDocuments "\LeagueOverlay_ru\") {
-		FileCopyDir, %A_MyDocuments%\LeagueOverlay_ru\, %configFolder%, 0
-		FileRemoveDir, %A_MyDocuments%\LeagueOverlay_ru\, 1
-	}
-	sleep 35
-	showSettings()
-	FileDelete, %configFile%
-	sleep 35
-	FileCreateDir, %configFolder%\images
-	IniWrite, %verScript%, %configFile%, settings, verConfig
-	saveSettings()
-}
+initMsgs := ["Подготовка макроса к работе)"
+			,"Поприветствуем Кассию)"
+			,"Поддержи LeagueOverlay_ru)"
+			,"https://qiwi.me/megaezik"]
+Random, randomNum, 1, initMsgs.MaxIndex()
+initMsg:=initMsgs[randomNum]
+SplashTextOn, 300, 20, %prjName%, %initMsg%
 
 ;Проверка обновлений
 IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
 if autoUpdate {
 	CheckUpdateFromMenu("onStart")
-	SetTimer, CheckUpdate, 3600000
+	SetTimer, CheckUpdate, 10800000
 }
 
-;Создаем главное меню и меню в области уведомлений
-menuCreate()
-
-;Назначим управление в зависимости от включенной настройки 'Использования устаревших клавиш'
-IniRead, legacyHotkeys, %configFile%, settings, legacyHotkeys, 0
-If !legacyHotkeys {
-	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
-	Hotkey, % hotkeyLastImg, shLastImage, On
-	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
-	Hotkey, % hotkeyMainMenu, shMainMenu, On
-} Else {
-	Hotkey, !f1, shLabyrinth, On
-	Hotkey, !f2, shSyndicate, On
-	Hotkey, !f3, shIncursion, On
-	Hotkey, !f4, shMaps, On
-	Hotkey, !f6, shFossils, On
-	Hotkey, !f7, shProphecy, On
+;Проверим файл конфигурации
+IniRead, verConfig, %configFile%, info, verConfig, ""
+if (verConfig!=verScript) {
+	If FileExist(A_MyDocuments "\LeagueOverlay_ru\") {
+		FileCopyDir, %A_MyDocuments%\LeagueOverlay_ru\, %configFolder%, 0
+		FileRemoveDir, %A_MyDocuments%\LeagueOverlay_ru\, 1
+		sleep 35
+	}
+	showSettings()
+	FileDelete, %configFile%
+	sleep 35
+	FileCreateDir, %configFolder%\images
+	IniWrite, %verScript%, %configFile%, info, verConfig
+	saveSettings()
 }
 
 ;Запуск gdi+
@@ -97,52 +83,62 @@ If !pToken:=Gdip_Startup()
 	}
 OnExit, Exit
 
-;Пути к изображениям
-global image1:="resources\images\ImgError.png"
-global image2:="resources\images\ImgError.png"
-global image3:="resources\images\Incursion.png"
-global image4:="resources\images\Map.png"
-global image5:="resources\images\Fossil.png"
-global image6:="resources\images\Syndicate.png"
-global image7:="resources\images\Prophecy.png"
+;Глобальные переменные для количества изображений, самих изображений, их статуса и номера последнего
+global NumImg:=9
+global LastImg:=1
+global GuiOn1, GuiOn2, GuiOn3, GuiOn4, GuiOn5, GuiOn6, GuiOn7, GuiOn8, GuiOn9
+global image1, image2, image3, image4, image5, image6, image7, image8, image9
+Loop %NumImg%{
+	GuiOn%A_Index%:=0
+	image%A_Index%:="resources\images\ImgError.png"
+}
 
+;Пути к изображениям
+image4:="resources\images\Incursion.png"
+image5:="resources\images\Map.jpg"
+image6:="resources\images\Fossil.png"
+image7:="resources\images\Syndicate.png"
+image8:="resources\images\Prophecy.png"
+image9:="resources\images\Oils.png"
+
+;Назначим новые пути изображений, если их аналоги есть в папке с настройками
+If FileExist(configFolder "\images\Custom.png")
+	image3:=configFolder "\images\Custom.png"
+If FileExist(configFolder "\images\Incursion.png")
+	image4:=configFolder "\images\Incursion.png"
+If FileExist(configFolder "\images\Map.png")
+	image5:=configFolder "\images\Map.png"
+If FileExist(configFolder "\images\Fossil.png")
+	image6:=configFolder "\images\Fossil.png"
+If FileExist(configFolder "\images\Syndicate.png")
+	image7:=configFolder "\images\Syndicate.png"
+If FileExist(configFolder "\images\Prophecy.png")
+	image8:=configFolder "\images\Prophecy.png"
+If FileExist(configFolder "\images\Oils.png")
+	image9:=configFolder "\images\Oils.png"
+	
 ;Загружаем раскладку лабиринта, и если изображение получено, то устанавливаем его
 IniRead, skipLoadLab, %configFile%, settings, skipLoadLab, 0
 if !skipLoadLab {
 	downloadLabLayout()
-	If FileExist(configFolder "\Lab.jpg")
+	If FileExist(configFolder "\Lab.jpg") {
 		image1:=configFolder "\Lab.jpg"
+		IniRead, lvlLab, %configFile%, settings, lvlLab, uber
+		FormatTime, dateLab, %A_NowUTC%, dd.MM
+		trayUpdate("`nЛабиринт(POELab.com): " lvlLab " " dateLab)
+		Menu, mainMenu, Add, POELab.com - Раскладка лабиринта(%lvlLab% %dateLab%), shLabyrinth
+	}
+} else {
+	FileDelete, %configFolder%\Lab.jpg
+	sleep 35
 }
+	
+;Назначим управление и создадим меню
+setHotkeys()
+menuCreate()
 
-;Назначим новые пути изображений, если их аналоги есть в папке с настройками
-If FileExist(configFolder "\images\Custom.png")
-	image2:=configFolder "\images\Custom.png"
-If FileExist(configFolder "\images\Incursion.png")
-	image3:=configFolder "\images\Incursion.png"
-If FileExist(configFolder "\images\Map.png")
-	image4:=configFolder "\images\Map.png"
-If FileExist(configFolder "\images\Fossil.png")
-	image5:=configFolder "\images\Fossil.png"
-If FileExist(configFolder "\images\Syndicate.png")
-	image6:=configFolder "\images\Syndicate.png"
-If FileExist(configFolder "\images\Prophecy.png")
-	image7:=configFolder "\images\Prophecy.png"
-
-;Глобальные переменные для количества изображений и номера последнего
-global NumImg:=7
-global LastImg:=1
-
-;Переменные для статуса отображения изображения
-global GuiOn1:=0
-global GuiOn2:=0
-global GuiOn3:=0
-global GuiOn4:=0
-global GuiOn5:=0
-global GuiOn6:=0
-global GuiOn7:=0
-
+;Инициализируем оверлей
 global poeWindowName="Path of Exile ahk_class POEWindowClass"
-
 initOverlay()
 
 SplashTextOff
@@ -170,59 +166,108 @@ shLabyrinth(){
 }
 
 shCustom(){
-	shOverlay(2)
-}
-
-shIncursion(){
 	shOverlay(3)
 }
 
-shMaps(){
+shIncursion(){
 	shOverlay(4)
 }
 
-shFossils(){
+shMaps(){
 	shOverlay(5)
 }
 
-shSyndicate(){
+shFossils(){
 	shOverlay(6)
 }
 
-shProphecy(){
+shSyndicate(){
 	shOverlay(7)
 }
 
-replacerImages() {
-	FileSelectFile, FilePath, , , Укажите путь к новому файлу для создания замены, Изображения (*.png)
+shProphecy(){
+	shOverlay(8)
+}
+
+shOils(){
+	shOverlay(9)
+}
+
+forceSync(){
+	SendInput, {enter}{/}oos{enter}
+}
+
+toCharacterSelection(){
+	SendInput, {enter}{/}exit{enter}
+}
+
+textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
+	global
+	tfwFilePath:=FilePath
+	Gui, tfwGui:Destroy
+	Gui, tfwGui:Font, s10, Consolas
+	FileRead, tfwContentFile, %tfwFilePath%
+	if ReadOnlyStatus {
+		Gui, tfwGui:Add, Edit, w580 h400 +ReadOnly, %tfwContentFile%
+	} else {
+		if (tfwContentFile="" && contentDefault!="")
+			tfwContentFile:=contentDefault
+		Menu, tfwMenuBar, Add, Сохранить `tCtrl+S, tfwSave
+		Gui, tfwGui:Menu, tfwMenuBar
+		Gui, tfwGui:Add, Edit, w580 h400 vtfwContentFile, %tfwContentFile%
+	}
+	Gui, tfwGui:Show,, %prjName% - %Title%
+}
+
+tfwSave(){
+	global
+	Gui, tfwGui:Submit
+	FileDelete, %tfwFilePath%
+	sleep 100
+	FileAppend, %tfwContentFile%, %tfwFilePath%, UTF-8
+	Gui, tfwGui:Destroy
+}
+
+showUpdateHistory(){
+	textFileWindow("История изменений", "resources\Updates.txt")
+}
+
+showUserNotes(){
+	textFileWindow("Пользовательские заметки", configFolder "\notes.txt", false, "Здесь вы можете оставить для себя заметки)")
+}
+
+replacerImages(){
+	FileSelectFile, FilePath, , , Укажите путь к новому файлу для создания замены, Изображения (*.png;*.zip)
 	if (FilePath="" || !FileExist(FilePath) || !RegExMatch(FilePath, "i).(png|zip)$")) {
-		msgbox, 0x1040, %prjName%, Файл не найден или не соответствует файлам макроса!
-		return
-	}
-	if RegExMatch(FilePath, "i).png$") {
-		if RegExMatch(FilePath, "i)(Fossil|Incursion|Map|Prophecy|Syndicate).png$", replaceImgName) {
-			FileCopy, %FilePath%, %configFolder%\images\%replaceImgName%, true
-		} else {
-			Msgbox, 0x1040, %prjName%, Не удалось определить тип изображения!`n`n`Указанный файл будет установлен в качестве 'Пользовательского изображения'!
-			FileCopy, %FilePath%, %configFolder%\images\Custom.png, true
+		msgbox, 0x1040, %prjName%, Неподходящий тип файла!
+	} else {
+		if RegExMatch(FilePath, "i).png$") {
+			SplitPath, FilePath, replaceImgName
+			if RegExMatch(replaceImgName, "i)(Fossil|Incursion|Map|Oils|Prophecy|Syndicate)", replaceImgType) {
+				StringLower, replaceImgType, replaceImgType, T
+			} else {
+				replaceImgType:="Custom"
+			}
+			FileCopy, %FilePath%, %configFolder%\images\%replaceImgType%.png, true
+			Msgbox, 0x1040, %prjName%, Создана новая замена - %replaceImgType%!
 		}
-	}
-	if RegExMatch(FilePath, "i).zip$") {
-		unZipArchive(FilePath, configFolder "\images\")
+		if RegExMatch(FilePath, "i).zip$") {
+			unZipArchive(FilePath, configFolder "\images\")
+		}
 	}
 }
 
-delReplacedImages() {
+delReplacedImages(){
 	FileSelectFile, FilePath, , %configFolder%\images\, Выберите изображение в этой папке для удаления замены, Изображения (*.png)
 	if (FilePath="" || !FileExist(FilePath) || !RegExMatch(FilePath, "i).png$") || !inStr(FilePath, configFolder "\images\")) {
-		msgbox, 0x1040, %prjName%, Файл не найден или изображение указано не верно!
+		msgbox, 0x1040, %prjName%, Изображение указано не верно!
 		return
 	} else {
 		FileDelete, %FilePath%
 	}
 }
 
-showSettings() {
+showSettings(){
 	global
 	Gui, Settings:Destroy
 	
@@ -232,63 +277,64 @@ showSettings() {
 	IniRead, skipLoadLabS, %configFile%, settings, skipLoadLab, 0
 	IniRead, hotkeyLastImgS, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenuS, %configFile%, hotkeys, hotkeyMainMenu, !f2
-	
+	IniRead, hotkeyForceSyncS, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
+	IniRead, hotkeyToCharacterSelectionS, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
 	
 	legacyHotkeysOldPosition:=legacyHotkeysS
 	lvlLabOldPosition:=lvlLabS
 	
-	Gui, Settings:Add, Text, x10 y5 w365 h28 cGreen, %prjName% - Макрос предоставляющий вам информацию в виде изображений наложенных поверх окна игры.
+	Gui, Settings:Add, Text, x10 y5 w330 h28 cGreen, %prjName% - Макрос предоставляющий вам информацию в виде изображений наложенных поверх окна игры.
 	
-	Gui, Settings:Add, Picture, x405 y10 w107 h-1, resources\qiwi-logo.png
-	Gui, Settings:Add, Link, x385 y+10, <a href="https://qiwi.me/megaezik">Поддержать %prjName%</a>
-	Gui, Settings:Add, Link, x10 yp+0 w365, <a href="https://ru.pathofexile.com/forum/view-post/21681060">Пост на форуме</a>  |  <a href="https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/Updates.txt">История изменений</a>  |  <a href="https://github.com/MegaEzik/LeagueOverlay_ru/releases">Страница на GitHub</a>
+	Gui, Settings:Add, Picture, x370 y7 w107 h-1, resources\qiwi-logo.png
+	Gui, Settings:Add, Link, x350 y+7, <a href="https://qiwi.me/megaezik">Поддержать %prjName%</a>
+	Gui, Settings:Add, Link, x10 yp+0 w195, <a href="https://ru.pathofexile.com/forum/view-post/21681060">Пост на форуме</a> | <a href="https://github.com/MegaEzik/LeagueOverlay_ru/releases">Страница на GitHub</a>
 	
-	Gui, Settings:Add, Text, x10 yp-22 w180, Установлена версия: %verScript%
-	Gui, Settings:Add, Button, x+23 yp-5 w135 gCheckUpdateFromMenu, Выполнить обновление
-	
-	Gui, Settings:Add, Text, x0 y85 w555 h2 0x10
-	
-	/*
-	FileRead, updateNotes, resources\Updates.txt
-	Gui, Settings:Add, Text, x10 y+5 w270 h12, История изменений:	
-	Gui, Settings:Add, Edit, r10 ReadOnly w530, %updateNotes%
-	Gui, Settings:Add, Text, x0 y+5 w555 h2 0x10
-	Gui, Settings:Add, Text, x10 yp+5 h20, Файл конфигурации:`n %configFile%
-	*/
+	Gui, Settings:Add, Text, x10 yp-18 w194, Установлена версия: %verScript%
+	Gui, Settings:Add, Button, x+2 yp-5 w135 gCheckUpdateFromMenu, Выполнить обновление
 
-	Gui, Settings:Add, GroupBox, x10 y+5 w530 h185, Основные настройки
+	Gui, Settings:Add, Text, x0 y78 w520 h2 0x10
+
+	Gui, Settings:Add, GroupBox, x10 y+4 w495 h237, Основные настройки
 	
-	Gui, Settings:Add, Checkbox, vautoUpdateS x25 yp+17 w360 h20 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
+	Gui, Settings:Add, Checkbox, vautoUpdateS x25 yp+16 w370 h20 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
 	
-	Gui, Settings:Add, Text, x25 y+5 w505 h2 0x10
+	Gui, Settings:Add, Text, x25 y+2 w470 h2 0x10
 	
-	Gui, Settings:Add, Checkbox, vlegacyHotkeysS x25 yp+7 w360 h20 Checked%legacyHotkeysS%, Устаревшая раскладка клавиш(использовать не рекомендуется)
+	Gui, Settings:Add, Checkbox, vlegacyHotkeysS x25 yp+5 w370 h20 Checked%legacyHotkeysS%, Использовать режим Устаревшей раскладки(не рекомендуется)
 	
-	Gui, Settings:Add, Text, x25 yp+27 w165, Последнее изображение:
-	Gui, Settings:Add, Hotkey, vhotkeyLastImgS x+24 yp-3 w135 h20 , %hotkeyLastImgS%
+	Gui, Settings:Add, Text, x25 yp+26 w180, Последнее изображение*:
+	Gui, Settings:Add, Hotkey, vhotkeyLastImgS x+2 yp-3 w135 h20 , %hotkeyLastImgS%
 	
-	Gui, Settings:Add, Text, x25 yp+27 w165, Меню быстрого доступа:
-	Gui, Settings:Add, Hotkey, vhotkeyMainMenuS x+24 yp-3 w135 h20 , %hotkeyMainMenuS%
+	Gui, Settings:Add, Text, x25 yp+26 w180, Меню изображений*:
+	Gui, Settings:Add, Hotkey, vhotkeyMainMenuS x+2 yp-3 w135 h20 , %hotkeyMainMenuS%
 	
-	Gui, Settings:Add, Text, x25 y+7 w505 h2 0x10	
+	Gui, Settings:Add, Text, x25 yp+26 w180, Синхронизировать(/oos)*:
+	Gui, Settings:Add, Hotkey, vhotkeyForceSyncS x+2 yp-3 w135 h20 , %hotkeyForceSyncS%
 	
-	Gui, Settings:Add, Checkbox, vskipLoadLabS x25 yp+7 w360 h20 Checked%skipLoadLabS%, Не загружать изображение раскладки лабиринта
-	Gui, Settings:Add, Text, x25 yp+27 w165, Уровень лабиринта:
-	Gui, Settings:Add, DropDownList, vlvlLabS x+24 yp-3 w135, normal|cruel|merciless|uber
+	Gui, Settings:Add, Text, x25 yp+26 w180, К выбору персонажа(/exit)*:
+	Gui, Settings:Add, Hotkey, vhotkeyToCharacterSelectionS x+2 yp-3 w135 h20 , %hotkeyToCharacterSelectionS%
+	
+	Gui, Settings:Add, Text, x25 yp+26 w370 cGray, * - Недоступно при использовании режима Устаревшей раскладки
+	
+	Gui, Settings:Add, Text, x25 y+5 w470 h2 0x10	
+	
+	Gui, Settings:Add, Checkbox, vskipLoadLabS x25 yp+5 w370 h20 Checked%skipLoadLabS%, Пропустить загрузку изображения раскладки лабиринта
+	Gui, Settings:Add, Link, x25 yp+26 w180, <a href="https://www.poelab.com/">Уровень лабиринта(POELab.com):</a>
+	Gui, Settings:Add, DropDownList, vlvlLabS x+2 yp-3 w135, normal|cruel|merciless|uber
 	GuiControl,Settings:ChooseString, lvlLabS, %lvlLabS%
-	Gui, Settings:Add, Link, x+15 yp+3 w165, <a href="https://www.poelab.com/">c использованием POELab.com</a>
 	
-	Gui, Settings:Add, GroupBox, x10 y+20 w530 h50, Замена изображений
-	Gui, Settings:Add, Button, xp10 yp+17 w253 greplacerImages, Указать изображение для создания замены
-	Gui, Settings:Add, Button, x+4 yp+0 w253 gdelReplacedImages, Удалить замену указав на изображение
-	
-	Gui, Settings:Add, Button, x10 y+25 gdelConfigFolder, Сбросить
-	Gui, Settings:Add, Button, x+4 yp+0 gopenConfigFolder, Открыть папку настроек
-	Gui, Settings:Add, Button, x370 yp+0 w170 gsaveSettings, Применить и перезапустить
-	Gui, Settings:Show, w550, %prjName% - Информация и настройки
+	Gui, Settings:Add, GroupBox, x10 y+12 w495 h48, Управление заменой изображений
+	Gui, Settings:Add, Button, xp10 yp+16 w248 greplacerImages, Указать изображение для создания замены
+	Gui, Settings:Add, Button, x+2 yp+0 w226 gdelReplacedImages, Удалить замену указав на изображение
+		
+	Gui, Settings:Add, Button, x10 y+18 gdelConfigFolder, Сбросить
+	Gui, Settings:Add, Button, x+2 yp+0 gopenConfigFolder, Папка настроек
+	Gui, Settings:Add, Button, x+2 yp+0 gshowUpdateHistory, История изменений
+	Gui, Settings:Add, Button, x345 yp+0 w160 gsaveSettings, Применить и перезапустить
+	Gui, Settings:Show, w515, %prjName% - Информация и настройки
 }
 
-saveSettings() {
+saveSettings(){
 	global
 	Gui, Settings:Submit
 	
@@ -298,21 +344,18 @@ saveSettings() {
 	IniWrite, %skipLoadLabS%, %configFile%, settings, skipLoadLab
 	IniWrite, %hotkeyLastImgS%, %configFile%, hotkeys, hotkeyLastImg
 	IniWrite, %hotkeyMainMenuS%, %configFile%, hotkeys, hotkeyMainMenu
+	IniWrite, %hotkeyForceSyncS%, %configFile%, hotkeys, hotkeyForceSync
+	IniWrite, %hotkeyToCharacterSelectionS%, %configFile%, hotkeys, hotkeyToCharacterSelection
 	
-	if (lvlLabS!=lvlLabOldPosition) {
+	if (lvlLabS!=lvlLabOldPosition && !skipLoadLabS) {
 		Run, https://www.poelab.com/
 	}
 	
 	if (legacyHotkeysS>legacyHotkeysOldPosition) {
 		msgText:="Устаревшая раскладка имеет следующее управление:`n"
-		msgText.="     [Alt+F1] - Лабиринт`n"
-		msgText.="     [Alt+F2] - Синдикат`n"
-		msgText.="     [Alt+F3] - Вмешательство`n"
-		msgText.="     [Alt+F4] - Карты`n"
-		msgText.="     [Alt+F6] - Ископаемые`n"
-		msgText.="     [Alt+F7] - Пророчества`n`n"
-		msgText.="Использовать 'Устаревшую раскладку' не рекомендуется, ведь она заменяет сочетание клавиш [Alt+F4], и вы не сможете использовать этот способ для выхода из игры!`n`n"
-		msgText.="Вы уверены, что хотите переключиться на данный режим управления?"
+		msgText.="`t[Alt+F1] - Лабиринт`n`t[Alt+F2] - Синдикат`n`t[Alt+F3] - Вмешательство`n`t[Alt+F4] - Атлас`n`t[Alt+F5] - Масла`n`t[Alt+F6] - Ископаемые`n`t[Alt+F7] - Пророчества`n"
+		msgText.="`nИспользовать не рекомендуется, поскольку заменяется сочетание клавиш [Alt+F4], и вы не сможете выйти из игры используя его!`n"
+		msgText.="`nВы все еще хотите использовать эту раскладку?"
 		MsgBox, 0x1024, %prjName%,  %msgText%
 		IfMsgBox No
 			IniWrite, 0, %configFile%, settings, legacyHotkeys
@@ -320,31 +363,55 @@ saveSettings() {
 	ReStart()
 }
 
-delConfigFolder() {
+delConfigFolder(){
 	FileRemoveDir, %configFolder%, 1
 	Sleep 100
 	ReStart()
 }
 
+setHotkeys(){
+	IniRead, legacyHotkeys, %configFile%, settings, legacyHotkeys, 0
+	If !legacyHotkeys {
+		IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
+		IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
+		IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
+		IniRead, hotkeyToCharacterSelection, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
+		if (hotkeyLastImg!="")
+			Hotkey, % hotkeyLastImg, shLastImage, On
+		if (hotkeyMainMenu!="")
+			Hotkey, % hotkeyMainMenu, shMainMenu, On
+		if (hotkeyForceSync!="")
+			Hotkey, % hotkeyForceSync, forceSync, On
+		if (hotkeyToCharacterSelection!="")
+			Hotkey, % hotkeyToCharacterSelection, toCharacterSelection, On
+	} Else {
+		Hotkey, !f1, shLabyrinth, On
+		Hotkey, !f2, shSyndicate, On
+		Hotkey, !f3, shIncursion, On
+		Hotkey, !f4, shMaps, On
+		Hotkey, !f5, shOils, On
+		Hotkey, !f6, shFossils, On
+		Hotkey, !f7, shProphecy, On
+	}
+}
+
 menuCreate(){
-	Menu, Tray, NoStandard
 	Menu, Tray, Add, Информация и настройки, showSettings
 	Menu, Tray, Default, Информация и настройки
-	Menu, Tray, Add, Выполнить обновление,CheckUpdateFromMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Отметить испытания лабиринта, showLabTrials
+	Menu, Tray, Add, Пользовательские заметки, showUserNotes
 	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить, ReStart
 	Menu, Tray, Add, Завершить работу макроса, Exit
-	;Menu, Tray, Standard
-	
-	Menu, mainMenu, Add, Раскладка лабиринта, shLabyrinth
+	Menu, Tray, NoStandard
+
 	If FileExist(configFolder "\images\Custom.png")
 		Menu, mainMenu, Add, Пользовательское изображение, shCustom
-	Menu, mainMenu, Add
 	Menu, mainMenu, Add, Альва - Комнаты храма Ацоатль, shIncursion
 	Menu, mainMenu, Add, Джун - Награды бессмертного Синдиката, shSyndicate
-	Menu, mainMenu, Add, Зана - Прогрессия карт, shMaps
+	Menu, mainMenu, Add, Зана - Карты, shMaps
+	Menu, mainMenu, Add, Кассия - Масла, shOils
 	Menu, mainMenu, Add, Навали - Пророчества, shProphecy
 	Menu, mainMenu, Add, Нико - Ископаемые, shFossils
 	Menu, mainMenu, Add	
@@ -355,29 +422,18 @@ openConfigFolder(){
 	Run, explorer "%configFolder%"
 }
 
-ReStart() {
+trayUpdate(nLine=""){
+	trayMsg.=nLine
+	Menu, Tray, Tip, %trayMsg%
+}
+
+ReStart(){
 	Gdip_Shutdown(pToken)
-	sleep 100
+	sleep 35
 	Reload
 }
 
 ;#################################################
-
-CheckWinActivePOE:
-	GuiControlGet, focused_control, focus
-	
-	Loop %NumImg%{
-		If(WinActive(poeWindowName))
-			If (GuiON%A_Index%=0){			
-				GuiON%A_Index%:=0
-			}
-		If(!WinActive(poeWindowName ))
-			If (GuiON%A_Index%=1){
-				Gui, %A_Index%: Hide
-				GuiON%A_Index%:=0
-			}		
-}
-Return
 
 Exit:
 ; gdi+ may now be shutdown on exiting the program
