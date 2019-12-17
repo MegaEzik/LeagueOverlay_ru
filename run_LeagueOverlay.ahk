@@ -216,6 +216,7 @@ textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 		Gui, tfwGui:Menu, tfwMenuBar
 		Gui, tfwGui:Add, Edit, w580 h400 vtfwContentFile, %tfwContentFile%
 	}
+	Gui, tfwGui:+AlwaysOnTop
 	Gui, tfwGui:Show,, %prjName% - %Title%
 }
 
@@ -287,7 +288,7 @@ showSettings(){
 	
 	Gui, Settings:Add, Picture, x370 y7 w107 h-1, resources\qiwi-logo.png
 	Gui, Settings:Add, Link, x350 y+7, <a href="https://qiwi.me/megaezik">Поддержать %prjName%</a>
-	Gui, Settings:Add, Link, x10 yp+0 w195, <a href="https://ru.pathofexile.com/forum/view-post/21681060">Пост на форуме</a> | <a href="https://github.com/MegaEzik/LeagueOverlay_ru/releases">Страница на GitHub</a>
+	Gui, Settings:Add, Link, x10 yp+0 w195, <a href="https://ru.pathofexile.com/forum/view-thread/2694683">Тема на форуме</a> | <a href="https://github.com/MegaEzik/LeagueOverlay_ru/releases">Страница на GitHub</a>
 	
 	Gui, Settings:Add, Text, x10 yp-18 w194, Установлена версия: %verScript%
 	Gui, Settings:Add, Button, x+2 yp-5 w135 gCheckUpdateFromMenu, Выполнить обновление
