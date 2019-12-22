@@ -399,6 +399,7 @@ setHotkeys(){
 menuCreate(){
 	Menu, Tray, Add, Информация и настройки, showSettings
 	Menu, Tray, Default, Информация и настройки
+	Menu, Tray, Add, Выполнить обновление, CheckUpdateFromMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Отметить испытания лабиринта, showLabTrials
 	Menu, Tray, Add, Пользовательские заметки, showUserNotes
