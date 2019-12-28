@@ -79,43 +79,36 @@ if (verConfig!=verScript) {
 If !pToken:=Gdip_Startup()
 	{
 	   ;MsgBox, 48, gdiplus error!, Gdiplus failed to start. Please ensure you have gdiplus on your system
-	   MsgBox, 48, Ошибка gdi+!, Не удалось запустить gdi+. Пожалуйста, убедитесь, что  вашей системе он есть
+	   MsgBox, 48, Ошибка gdi+!, Не удалось запустить gdi+. Пожалуйста, убедитесь, что в вашей системе он есть
 	}
 OnExit, Exit
 
 ;Глобальные переменные для количества изображений, самих изображений, их статуса и номера последнего
-global NumImg:=9
-global LastImg:=1
 global GuiOn1, GuiOn2, GuiOn3, GuiOn4, GuiOn5, GuiOn6, GuiOn7, GuiOn8, GuiOn9
 global image1, image2, image3, image4, image5, image6, image7, image8, image9
+global imgNameArray:=["", "", "", "Incursion.png", "Map.png", "Fossil.png", "Syndicate.png", "Prophecy.png", "Oils.png"]
+global NumImg:=imgNameArray.MaxIndex()
+global LastImg:=1
 Loop %NumImg%{
 	GuiOn%A_Index%:=0
 	image%A_Index%:="resources\images\ImgError.png"
 }
 
-;Пути к изображениям
-image4:="resources\images\Incursion.png"
-image5:="resources\images\Map.jpg"
-image6:="resources\images\Fossil.png"
-image7:="resources\images\Syndicate.png"
-image8:="resources\images\Prophecy.png"
-image9:="resources\images\Oils.png"
+;Установим изображения
+setPreset("resources\images\")
+If FileExist("resources\images\Map.jpg")
+	image5:="resources\images\Map.jpg"
+
+;Если установлен пресет, то установим его изображения
+IniRead, imagesPreset, %configFile%, settings, imagesPreset, No
+if (imagesPreset!="No" || imagesPreset!="") {
+	setPreset("resources\images\" imagesPreset "\")
+}
 
 ;Назначим новые пути изображений, если их аналоги есть в папке с настройками
+setPreset(configFolder "\images\")
 If FileExist(configFolder "\images\Custom.png")
 	image3:=configFolder "\images\Custom.png"
-If FileExist(configFolder "\images\Incursion.png")
-	image4:=configFolder "\images\Incursion.png"
-If FileExist(configFolder "\images\Map.png")
-	image5:=configFolder "\images\Map.png"
-If FileExist(configFolder "\images\Fossil.png")
-	image6:=configFolder "\images\Fossil.png"
-If FileExist(configFolder "\images\Syndicate.png")
-	image7:=configFolder "\images\Syndicate.png"
-If FileExist(configFolder "\images\Prophecy.png")
-	image8:=configFolder "\images\Prophecy.png"
-If FileExist(configFolder "\images\Oils.png")
-	image9:=configFolder "\images\Oils.png"
 	
 ;Загружаем раскладку лабиринта, и если изображение получено, то устанавливаем его
 IniRead, skipLoadLab, %configFile%, settings, skipLoadLab, 0
@@ -148,6 +141,14 @@ Return
 ;#################################################
 
 #IfWinActive Path of Exile
+
+setPreset(path){
+	Loop %NumImg% {
+		If imgNameArray[A_Index]!=""
+			If FileExist(path imgNameArray[A_Index])
+				image%A_Index%:=path imgNameArray[A_Index]
+	}
+}
 
 shLastImage(){
 	shOverlay(LastImg)
@@ -273,6 +274,7 @@ showSettings(){
 	Gui, Settings:Destroy
 	
 	IniRead, autoUpdateS, %configFile%, settings, autoUpdate, 1
+	IniRead, imagesPresetS, %configFile%, settings, imagesPreset, No
 	IniRead, legacyHotkeysS, %configFile%, settings, legacyHotkeys, 0
 	IniRead, lvlLabS, %configFile%, settings, lvlLab, uber
 	IniRead, skipLoadLabS, %configFile%, settings, skipLoadLab, 0
@@ -295,11 +297,18 @@ showSettings(){
 
 	Gui, Settings:Add, Text, x0 y78 w520 h2 0x10
 
-	Gui, Settings:Add, GroupBox, x10 y+4 w495 h237, Основные настройки
+	Gui, Settings:Add, GroupBox, x10 y+4 w495 h262, Основные настройки
 	
 	Gui, Settings:Add, Checkbox, vautoUpdateS x25 yp+16 w370 h20 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
 	
-	Gui, Settings:Add, Text, x25 y+2 w470 h2 0x10
+	presetListS:="No"
+	Loop, resources\images\*, 2
+		presetListS.="|" A_LoopFileName
+	Gui, Settings:Add, Text, x25 yp+26 w180, Другой набор изображений:
+	Gui, Settings:Add, DropDownList, vimagesPresetS x+2 yp-3 w135, %presetListS%
+	GuiControl,Settings:ChooseString, imagesPresetS, %imagesPresetS%
+	
+	Gui, Settings:Add, Text, x25 y+5 w470 h2 0x10
 	
 	Gui, Settings:Add, Checkbox, vlegacyHotkeysS x25 yp+5 w370 h20 Checked%legacyHotkeysS%, Использовать режим Устаревшей раскладки(не рекомендуется)
 	
@@ -340,6 +349,7 @@ saveSettings(){
 	Gui, Settings:Submit
 	
 	IniWrite, %autoUpdateS%, %configFile%, settings, autoUpdate
+	IniWrite, %imagesPresetS%, %configFile%, settings, imagesPreset
 	IniWrite, %legacyHotkeysS%, %configFile%, settings, legacyHotkeys
 	IniWrite, %lvlLabS%, %configFile%, settings, lvlLab
 	IniWrite, %skipLoadLabS%, %configFile%, settings, skipLoadLab
@@ -354,7 +364,7 @@ saveSettings(){
 	
 	if (legacyHotkeysS>legacyHotkeysOldPosition) {
 		msgText:="Устаревшая раскладка имеет следующее управление:`n"
-		msgText.="`t[Alt+F1] - Лабиринт`n`t[Alt+F2] - Синдикат`n`t[Alt+F3] - Вмешательство`n`t[Alt+F4] - Атлас`n`t[Alt+F5] - Масла`n`t[Alt+F6] - Ископаемые`n`t[Alt+F7] - Пророчества`n"
+		msgText.="`t[Alt+F1] - Лабиринт`n`t[Alt+F2] - Синдикат`n`t[Alt+F3] - Вмешательство`n`t[Alt+F4] - Атлас`n`t[Alt+F6] - Ископаемые`n`t[Alt+F7] - Пророчества`n"
 		msgText.="`nИспользовать не рекомендуется, поскольку заменяется сочетание клавиш [Alt+F4], и вы не сможете выйти из игры используя его!`n"
 		msgText.="`nВы все еще хотите использовать эту раскладку?"
 		MsgBox, 0x1024, %prjName%,  %msgText%
@@ -390,7 +400,6 @@ setHotkeys(){
 		Hotkey, !f2, shSyndicate, On
 		Hotkey, !f3, shIncursion, On
 		Hotkey, !f4, shMaps, On
-		Hotkey, !f5, shOils, On
 		Hotkey, !f6, shFossils, On
 		Hotkey, !f7, shProphecy, On
 	}
