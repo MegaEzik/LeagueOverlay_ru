@@ -101,7 +101,7 @@ If FileExist("resources\images\Map.jpg")
 
 ;Если установлен пресет, то установим его изображения
 IniRead, imagesPreset, %configFile%, settings, imagesPreset, Default
-if (imagesPreset!="Default" || imagesPreset!="") {
+if (imagesPreset!="Default" && imagesPreset!="") {
 	setPreset("resources\images\" imagesPreset "\")
 }
 
