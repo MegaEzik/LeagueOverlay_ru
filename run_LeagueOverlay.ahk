@@ -100,8 +100,8 @@ If FileExist("resources\images\Map.jpg")
 	image5:="resources\images\Map.jpg"
 
 ;Если установлен пресет, то установим его изображения
-IniRead, imagesPreset, %configFile%, settings, imagesPreset, No
-if (imagesPreset!="No" || imagesPreset!="") {
+IniRead, imagesPreset, %configFile%, settings, imagesPreset, Default
+if (imagesPreset!="Default" || imagesPreset!="") {
 	setPreset("resources\images\" imagesPreset "\")
 }
 
@@ -274,7 +274,7 @@ showSettings(){
 	Gui, Settings:Destroy
 	
 	IniRead, autoUpdateS, %configFile%, settings, autoUpdate, 1
-	IniRead, imagesPresetS, %configFile%, settings, imagesPreset, No
+	IniRead, imagesPresetS, %configFile%, settings, imagesPreset, Default
 	IniRead, legacyHotkeysS, %configFile%, settings, legacyHotkeys, 0
 	IniRead, lvlLabS, %configFile%, settings, lvlLab, uber
 	IniRead, skipLoadLabS, %configFile%, settings, skipLoadLab, 0
@@ -301,10 +301,10 @@ showSettings(){
 	
 	Gui, Settings:Add, Checkbox, vautoUpdateS x25 yp+16 w370 h20 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
 	
-	presetListS:="No"
+	presetListS:="Default"
 	Loop, resources\images\*, 2
 		presetListS.="|" A_LoopFileName
-	Gui, Settings:Add, Text, x25 yp+26 w180, Другой набор изображений:
+	Gui, Settings:Add, Text, x25 yp+26 w180, Набор изображений:
 	Gui, Settings:Add, DropDownList, vimagesPresetS x+2 yp-3 w135, %presetListS%
 	GuiControl,Settings:ChooseString, imagesPresetS, %imagesPresetS%
 	
@@ -347,6 +347,9 @@ showSettings(){
 saveSettings(){
 	global
 	Gui, Settings:Submit
+	
+	if (imagesPresetS="")
+		imagesPresetS:="Default"
 	
 	IniWrite, %autoUpdateS%, %configFile%, settings, autoUpdate
 	IniWrite, %imagesPresetS%, %configFile%, settings, imagesPreset
