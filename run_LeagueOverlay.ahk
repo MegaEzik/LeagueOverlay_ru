@@ -274,6 +274,7 @@ showSettings(){
 	Gui, Settings:Destroy
 	
 	IniRead, autoUpdateS, %configFile%, settings, autoUpdate, 1
+	IniRead, devModeS, %configFile%, settings, devMode, 0
 	IniRead, imagesPresetS, %configFile%, settings, imagesPreset, Default
 	IniRead, legacyHotkeysS, %configFile%, settings, legacyHotkeys, 0
 	IniRead, lvlLabS, %configFile%, settings, lvlLab, uber
@@ -352,6 +353,7 @@ saveSettings(){
 		imagesPresetS:="Default"
 	
 	IniWrite, %autoUpdateS%, %configFile%, settings, autoUpdate
+	IniWrite, %devModeS%, %configFile%, settings, devMode
 	IniWrite, %imagesPresetS%, %configFile%, settings, imagesPreset
 	IniWrite, %legacyHotkeysS%, %configFile%, settings, legacyHotkeys
 	IniWrite, %lvlLabS%, %configFile%, settings, lvlLab
@@ -361,7 +363,7 @@ saveSettings(){
 	IniWrite, %hotkeyForceSyncS%, %configFile%, hotkeys, hotkeyForceSync
 	IniWrite, %hotkeyToCharacterSelectionS%, %configFile%, hotkeys, hotkeyToCharacterSelection
 	
-	if (lvlLabS!=lvlLabOldPosition && !skipLoadLabS) {
+	if (lvlLabS!=lvlLabOldPosition && !skipLoadLabS && !devModeS) {
 		Run, https://www.poelab.com/
 	}
 	
