@@ -86,7 +86,7 @@ OnExit, Exit
 ;Глобальные переменные для количества изображений, самих изображений, их статуса и номера последнего
 global GuiOn1, GuiOn2, GuiOn3, GuiOn4, GuiOn5, GuiOn6, GuiOn7, GuiOn8, GuiOn9
 global image1, image2, image3, image4, image5, image6, image7, image8, image9
-global imgNameArray:=["", "", "", "Incursion.png", "Map.png", "Fossil.png", "Syndicate.png", "Prophecy.png", "Oils.png"]
+global imgNameArray:=["", "", "Custom", "Incursion", "Map", "Fossil", "Syndicate", "Prophecy", "Oils"]
 global NumImg:=imgNameArray.MaxIndex()
 global LastImg:=1
 Loop %NumImg%{
@@ -96,23 +96,21 @@ Loop %NumImg%{
 
 ;Установим изображения
 setPreset("resources\images\")
-If FileExist("resources\images\Map.jpg")
-	image5:="resources\images\Map.jpg"
 
 ;Если установлен пресет, то установим его изображения
-IniRead, imagesPreset, %configFile%, settings, imagesPreset, Default
-if (imagesPreset!="Default" && imagesPreset!="") {
+IniRead, imagesPreset, %configFile%, settings, imagesPreset, default
+if (imagesPreset!="default" && imagesPreset!="") {
 	setPreset("resources\images\" imagesPreset "\")
 }
 
 ;Назначим новые пути изображений, если их аналоги есть в папке с настройками
 setPreset(configFolder "\images\")
-If FileExist(configFolder "\images\Custom.png")
-	image3:=configFolder "\images\Custom.png"
 	
 ;Загружаем раскладку лабиринта, и если изображение получено, то устанавливаем его
-IniRead, skipLoadLab, %configFile%, settings, skipLoadLab, 0
-if !skipLoadLab {
+FileDelete, %configFolder%\Lab.jpg
+sleep 35
+IniRead, lvlLab, %configFile%, settings, lvlLab, uber
+if (lvlLab!="" && lvlLab!="skip") {
 	downloadLabLayout()
 	If FileExist(configFolder "\Lab.jpg") {
 		image1:=configFolder "\Lab.jpg"
@@ -121,9 +119,6 @@ if !skipLoadLab {
 		trayUpdate("`nЛабиринт(POELab.com): " lvlLab " " dateLab)
 		Menu, mainMenu, Add, POELab.com - Раскладка лабиринта(%lvlLab% %dateLab%), shLabyrinth
 	}
-} else {
-	FileDelete, %configFolder%\Lab.jpg
-	sleep 35
 }
 	
 ;Назначим управление и создадим меню
@@ -144,9 +139,12 @@ Return
 
 setPreset(path){
 	Loop %NumImg% {
-		If imgNameArray[A_Index]!=""
-			If FileExist(path imgNameArray[A_Index])
-				image%A_Index%:=path imgNameArray[A_Index]
+		If imgNameArray[A_Index]!="" {
+			If FileExist(path imgNameArray[A_Index] ".jpg")
+				image%A_Index%:=path imgNameArray[A_Index] ".jpg"
+			If FileExist(path imgNameArray[A_Index] ".png")
+				image%A_Index%:=path imgNameArray[A_Index] ".png"
+		}
 	}
 }
 
@@ -239,19 +237,19 @@ showUserNotes(){
 }
 
 replacerImages(){
-	FileSelectFile, FilePath, , , Укажите путь к новому файлу для создания замены, Изображения (*.png;*.zip)
-	if (FilePath="" || !FileExist(FilePath) || !RegExMatch(FilePath, "i).(png|zip)$")) {
+	FileSelectFile, FilePath, , , Укажите путь к новому файлу для создания замены, Изображения (*.jpg;*.png)
+	if (FilePath="" || !FileExist(FilePath) || !RegExMatch(FilePath, "i).(jpg|png|zip)$")) {
 		msgbox, 0x1040, %prjName%, Неподходящий тип файла!
 	} else {
-		if RegExMatch(FilePath, "i).png$") {
+		if RegExMatch(FilePath, "i).(jpg|png)$", typeFile) {
 			SplitPath, FilePath, replaceImgName
 			if RegExMatch(replaceImgName, "i)(Fossil|Incursion|Map|Oils|Prophecy|Syndicate)", replaceImgType) {
 				StringLower, replaceImgType, replaceImgType, T
 			} else {
 				replaceImgType:="Custom"
 			}
-			FileCopy, %FilePath%, %configFolder%\images\%replaceImgType%.png, true
-			Msgbox, 0x1040, %prjName%, Создана новая замена - %replaceImgType%!
+			FileCopy, %FilePath%, %configFolder%\images\%replaceImgType%.%typeFile1%, true
+			Msgbox, 0x1040, %prjName%, Создана новая замена - %replaceImgType%!, 2
 		}
 		if RegExMatch(FilePath, "i).zip$") {
 			unZipArchive(FilePath, configFolder "\images\")
@@ -260,8 +258,8 @@ replacerImages(){
 }
 
 delReplacedImages(){
-	FileSelectFile, FilePath, , %configFolder%\images\, Выберите изображение в этой папке для удаления замены, Изображения (*.png)
-	if (FilePath="" || !FileExist(FilePath) || !RegExMatch(FilePath, "i).png$") || !inStr(FilePath, configFolder "\images\")) {
+	FileSelectFile, FilePath, , %configFolder%\images\, Выберите изображение в этой папке для удаления замены, Изображения (*.jpg;*.png)
+	if (FilePath="" || !FileExist(FilePath) || !RegExMatch(FilePath, "i).(jpg|png)$") || !inStr(FilePath, configFolder "\images\")) {
 		msgbox, 0x1040, %prjName%, Изображение указано не верно!
 		return
 	} else {
@@ -275,10 +273,9 @@ showSettings(){
 	
 	IniRead, autoUpdateS, %configFile%, settings, autoUpdate, 1
 	IniRead, devModeS, %configFile%, settings, devMode, 0
-	IniRead, imagesPresetS, %configFile%, settings, imagesPreset, Default
+	IniRead, imagesPresetS, %configFile%, settings, imagesPreset, default
 	IniRead, legacyHotkeysS, %configFile%, settings, legacyHotkeys, 0
 	IniRead, lvlLabS, %configFile%, settings, lvlLab, uber
-	IniRead, skipLoadLabS, %configFile%, settings, skipLoadLab, 0
 	IniRead, hotkeyLastImgS, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenuS, %configFile%, hotkeys, hotkeyMainMenu, !f2
 	IniRead, hotkeyForceSyncS, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
@@ -286,6 +283,12 @@ showSettings(){
 	
 	legacyHotkeysOldPosition:=legacyHotkeysS
 	lvlLabOldPosition:=lvlLabS
+	
+	Menu, settingsSubMenu2, Add, Указать изображение для создания замены, replacerImages
+	Menu, settingsSubMenu2, Add, Удалить замену указав на изображение, delReplacedImages
+	Menu, settingsMenuBar, Add, Замена изображений, :settingsSubMenu2
+	Menu, settingsMenuBar, Add, История изменений, showUpdateHistory
+	Gui, Settings:Menu, settingsMenuBar
 	
 	Gui, Settings:Add, Text, x10 y5 w330 h28 cGreen, %prjName% - Макрос предоставляющий вам информацию в виде изображений наложенных поверх окна игры.
 	
@@ -298,16 +301,20 @@ showSettings(){
 
 	Gui, Settings:Add, Text, x0 y78 w520 h2 0x10
 
-	Gui, Settings:Add, GroupBox, x10 y+4 w495 h262, Основные настройки
+	Gui, Settings:Add, GroupBox, x10 y+4 w495 h233, Основные настройки
 	
 	Gui, Settings:Add, Checkbox, vautoUpdateS x25 yp+16 w370 h20 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
 	
-	presetListS:="Default"
+	presetListS:="default"
 	Loop, resources\images\*, 2
 		presetListS.="|" A_LoopFileName
 	Gui, Settings:Add, Text, x25 yp+26 w180, Набор изображений:
 	Gui, Settings:Add, DropDownList, vimagesPresetS x+2 yp-3 w135, %presetListS%
 	GuiControl,Settings:ChooseString, imagesPresetS, %imagesPresetS%
+	
+	Gui, Settings:Add, Link, x25 yp+27 w180, <a href="https://www.poelab.com/">Уровень лабиринта(POELab.com):</a>
+	Gui, Settings:Add, DropDownList, vlvlLabS x+2 yp-3 w135, skip|normal|cruel|merciless|uber
+	GuiControl,Settings:ChooseString, lvlLabS, %lvlLabS%
 	
 	Gui, Settings:Add, Text, x25 y+5 w470 h2 0x10
 	
@@ -325,22 +332,10 @@ showSettings(){
 	Gui, Settings:Add, Text, x25 yp+26 w180, К выбору персонажа(/exit)*:
 	Gui, Settings:Add, Hotkey, vhotkeyToCharacterSelectionS x+2 yp-3 w135 h20 , %hotkeyToCharacterSelectionS%
 	
-	Gui, Settings:Add, Text, x25 yp+26 w370 cGray, * - Недоступно при использовании режима Устаревшей раскладки
+	Gui, Settings:Add, Text, x25 yp+26 w370 cGray, * - Недоступно при использовании режима Устаревшей раскладки	
 	
-	Gui, Settings:Add, Text, x25 y+5 w470 h2 0x10	
-	
-	Gui, Settings:Add, Checkbox, vskipLoadLabS x25 yp+5 w370 h20 Checked%skipLoadLabS%, Пропустить загрузку изображения раскладки лабиринта
-	Gui, Settings:Add, Link, x25 yp+26 w180, <a href="https://www.poelab.com/">Уровень лабиринта(POELab.com):</a>
-	Gui, Settings:Add, DropDownList, vlvlLabS x+2 yp-3 w135, normal|cruel|merciless|uber
-	GuiControl,Settings:ChooseString, lvlLabS, %lvlLabS%
-	
-	Gui, Settings:Add, GroupBox, x10 y+12 w495 h48, Управление заменой изображений
-	Gui, Settings:Add, Button, xp10 yp+16 w248 greplacerImages, Указать изображение для создания замены
-	Gui, Settings:Add, Button, x+2 yp+0 w226 gdelReplacedImages, Удалить замену указав на изображение
-		
-	Gui, Settings:Add, Button, x10 y+18 gdelConfigFolder, Сбросить
+	Gui, Settings:Add, Button, x10 y+15 gdelConfigFolder, Сбросить
 	Gui, Settings:Add, Button, x+2 yp+0 gopenConfigFolder, Папка настроек
-	Gui, Settings:Add, Button, x+2 yp+0 gshowUpdateHistory, История изменений
 	Gui, Settings:Add, Button, x345 yp+0 w160 gsaveSettings, Применить и перезапустить
 	Gui, Settings:Show, w515, %prjName% - Информация и настройки
 }
@@ -350,20 +345,19 @@ saveSettings(){
 	Gui, Settings:Submit
 	
 	if (imagesPresetS="")
-		imagesPresetS:="Default"
+		imagesPresetS:="default"
 	
 	IniWrite, %autoUpdateS%, %configFile%, settings, autoUpdate
 	IniWrite, %devModeS%, %configFile%, settings, devMode
 	IniWrite, %imagesPresetS%, %configFile%, settings, imagesPreset
 	IniWrite, %legacyHotkeysS%, %configFile%, settings, legacyHotkeys
 	IniWrite, %lvlLabS%, %configFile%, settings, lvlLab
-	IniWrite, %skipLoadLabS%, %configFile%, settings, skipLoadLab
 	IniWrite, %hotkeyLastImgS%, %configFile%, hotkeys, hotkeyLastImg
 	IniWrite, %hotkeyMainMenuS%, %configFile%, hotkeys, hotkeyMainMenu
 	IniWrite, %hotkeyForceSyncS%, %configFile%, hotkeys, hotkeyForceSync
 	IniWrite, %hotkeyToCharacterSelectionS%, %configFile%, hotkeys, hotkeyToCharacterSelection
 	
-	if (lvlLabS!=lvlLabOldPosition && !skipLoadLabS && !devModeS) {
+	if (lvlLabS!=lvlLabOldPosition && !devModeS) {
 		Run, https://www.poelab.com/
 	}
 	
@@ -380,9 +374,12 @@ saveSettings(){
 }
 
 delConfigFolder(){
+	MsgBox, 0x1024, %prjName%, Это удалит все настройки макроса и закроет его!`n`nПродолжить?
+	IfMsgBox No
+		return																																	   
 	FileRemoveDir, %configFolder%, 1
 	Sleep 100
-	ReStart()
+	Exit
 }
 
 setHotkeys(){
@@ -422,7 +419,7 @@ menuCreate(){
 	Menu, Tray, Add, Завершить работу макроса, Exit
 	Menu, Tray, NoStandard
 
-	If FileExist(configFolder "\images\Custom.png")
+	If FileExist(configFolder "\images\Custom.jpg") || FileExist(configFolder "\images\Custom.png")
 		Menu, mainMenu, Add, Пользовательское изображение, shCustom
 	Menu, mainMenu, Add, Альва - Комнаты храма Ацоатль, shIncursion
 	Menu, mainMenu, Add, Джун - Награды бессмертного Синдиката, shSyndicate
