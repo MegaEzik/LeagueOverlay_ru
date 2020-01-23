@@ -38,7 +38,7 @@ global prjName:="LeagueOverlay_ru"
 global githubUser:="MegaEzik"
 global configFolder:=A_MyDocuments "\AutoHotKey\" prjName
 global configFile:=configFolder "\settings.ini"
-global trayMsg, verScript
+global trayMsg, verScript, textMsg1, textMsg2, textMsg3
 FileReadLine, verScript, resources\Updates.txt, 4
 
 ;Подсказка в области уведомлений и сообщение при запуске
@@ -200,6 +200,34 @@ toCharacterSelection(){
 	SendInput, {enter}{/}exit{enter}
 }
 
+chatMsg1(){
+	chatReply(textMsg1)
+}
+
+chatMsg2(){
+	chatReply(textMsg2)
+}
+
+chatMsg3(){
+	chatReply(textMsg3)
+}
+
+chatReply(msg){
+	SendInput, ^{Enter}%msg%{Enter}
+}
+
+chatInvite(){
+	SendInput, ^{Enter}{Home}{Delete}/invite {Enter}
+}
+
+chatKick(){
+	SendInput, ^{Enter}{Home}{Delete}/kick {Enter}
+}
+
+chatTradeWith(){
+	SendInput, ^{Enter}{Home}{Delete}/tradewith {Enter}
+}
+
 textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 	global
 	tfwFilePath:=FilePath
@@ -270,6 +298,7 @@ delReplacedImages(){
 showSettings(){
 	global
 	Gui, Settings:Destroy
+	Gui, Settings:Font, s8, Consolas
 	
 	IniRead, autoUpdateS, %configFile%, settings, autoUpdate, 1
 	IniRead, devModeS, %configFile%, settings, devMode, 0
@@ -281,6 +310,16 @@ showSettings(){
 	IniRead, hotkeyForceSyncS, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
 	IniRead, hotkeyToCharacterSelectionS, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
 	
+	IniRead, hotkeyMsg1S, %configFile%, hotkeys, hotkeyMsg1, %A_Space%
+	IniRead, hotkeyMsg2S, %configFile%, hotkeys, hotkeyMsg2, %A_Space%
+	IniRead, hotkeyMsg3S, %configFile%, hotkeys, hotkeyMsg3, %A_Space%
+	IniRead, textMsg1S, %configFile%, settings, textMsg1, sold(
+	IniRead, textMsg2S, %configFile%, settings, textMsg2, 2 min
+	IniRead, textMsg3S, %configFile%, settings, textMsg3, ty)
+	IniRead, hotkeyInviteS, %configFile%, hotkeys, hotkeyInvite, %A_Space%
+	IniRead, hotkeyKickS, %configFile%, hotkeys, hotkeyKick, %A_Space%
+	IniRead, hotkeyTradeWithS, %configFile%, hotkeys, hotkeyTradeWith, %A_Space%
+	
 	legacyHotkeysOldPosition:=legacyHotkeysS
 	lvlLabOldPosition:=lvlLabS
 	
@@ -290,29 +329,29 @@ showSettings(){
 	Menu, settingsMenuBar, Add, История изменений, showUpdateHistory
 	Gui, Settings:Menu, settingsMenuBar
 	
-	Gui, Settings:Add, Text, x10 y5 w330 h28 cGreen, %prjName% - Макрос предоставляющий вам информацию в виде изображений наложенных поверх окна игры.
+	Gui, Settings:Add, Text, x10 y5 w330 h28 cGreen, %prjName% - макрос содержащий несколько нужных функций и отображающий полезные изображения.
 	
 	Gui, Settings:Add, Picture, x370 y7 w107 h-1, resources\qiwi-logo.png
-	Gui, Settings:Add, Link, x350 y+7, <a href="https://qiwi.me/megaezik">Поддержать %prjName%</a>
-	Gui, Settings:Add, Link, x10 yp+0 w195, <a href="https://ru.pathofexile.com/forum/view-thread/2694683">Тема на форуме</a> | <a href="https://github.com/MegaEzik/LeagueOverlay_ru/releases">Страница на GitHub</a>
+	Gui, Settings:Add, Link, x345 y+7, <a href="https://qiwi.me/megaezik">Поддержать %prjName%</a>
+	Gui, Settings:Add, Link, x10 yp+0 w250, <a href="https://ru.pathofexile.com/forum/view-thread/2694683">Тема на форуме</a> | <a href="https://github.com/MegaEzik/LeagueOverlay_ru/releases">Страница на GitHub</a>
 	
-	Gui, Settings:Add, Text, x10 yp-18 w194, Установлена версия: %verScript%
+	Gui, Settings:Add, Text, x10 yp-18 w184, Установлена версия: %verScript%
 	Gui, Settings:Add, Button, x+2 yp-5 w135 gCheckUpdateFromMenu, Выполнить обновление
 
 	Gui, Settings:Add, Text, x0 y78 w520 h2 0x10
 
-	Gui, Settings:Add, GroupBox, x10 y+4 w495 h233, Основные настройки
+	Gui, Settings:Add, GroupBox, x10 y+4 w495 h383, Основные настройки
 	
 	Gui, Settings:Add, Checkbox, vautoUpdateS x25 yp+16 w370 h20 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
 	
 	presetListS:="default"
 	Loop, resources\images\*, 2
 		presetListS.="|" A_LoopFileName
-	Gui, Settings:Add, Text, x25 yp+26 w180, Набор изображений:
+	Gui, Settings:Add, Text, x25 yp+26 w170, Набор изображений:
 	Gui, Settings:Add, DropDownList, vimagesPresetS x+2 yp-3 w135, %presetListS%
 	GuiControl,Settings:ChooseString, imagesPresetS, %imagesPresetS%
 	
-	Gui, Settings:Add, Link, x25 yp+27 w180, <a href="https://www.poelab.com/">Уровень лабиринта(POELab.com):</a>
+	Gui, Settings:Add, Link, x25 yp+27 w170, <a href="https://www.poelab.com/">Лабиринт(POELab.com):</a>
 	Gui, Settings:Add, DropDownList, vlvlLabS x+2 yp-3 w135, skip|normal|cruel|merciless|uber
 	GuiControl,Settings:ChooseString, lvlLabS, %lvlLabS%
 	
@@ -320,23 +359,44 @@ showSettings(){
 	
 	Gui, Settings:Add, Checkbox, vlegacyHotkeysS x25 yp+5 w370 h20 Checked%legacyHotkeysS%, Использовать режим Устаревшей раскладки(не рекомендуется)
 	
-	Gui, Settings:Add, Text, x25 yp+26 w180, Последнее изображение*:
-	Gui, Settings:Add, Hotkey, vhotkeyLastImgS x+2 yp-3 w135 h20 , %hotkeyLastImgS%
+	Gui, Settings:Add, Text, x25 yp+26 w170, Последнее изображение¹:
+	Gui, Settings:Add, Hotkey, vhotkeyLastImgS x+2 yp-3 w135 h20, %hotkeyLastImgS%
 	
-	Gui, Settings:Add, Text, x25 yp+26 w180, Меню изображений*:
-	Gui, Settings:Add, Hotkey, vhotkeyMainMenuS x+2 yp-3 w135 h20 , %hotkeyMainMenuS%
+	Gui, Settings:Add, Text, x25 yp+26 w170, Меню изображений¹:
+	Gui, Settings:Add, Hotkey, vhotkeyMainMenuS x+2 yp-3 w135 h20, %hotkeyMainMenuS%
 	
-	Gui, Settings:Add, Text, x25 yp+26 w180, Синхронизировать(/oos)*:
-	Gui, Settings:Add, Hotkey, vhotkeyForceSyncS x+2 yp-3 w135 h20 , %hotkeyForceSyncS%
+	Gui, Settings:Add, Text, x25 yp+26 w170, Синхронизировать(/oos):
+	Gui, Settings:Add, Hotkey, vhotkeyForceSyncS x+2 yp-3 w135 h20, %hotkeyForceSyncS%
 	
-	Gui, Settings:Add, Text, x25 yp+26 w180, К выбору персонажа(/exit)*:
-	Gui, Settings:Add, Hotkey, vhotkeyToCharacterSelectionS x+2 yp-3 w135 h20 , %hotkeyToCharacterSelectionS%
+	Gui, Settings:Add, Text, x25 yp+26 w170, К выбору персонажа(/exit):
+	Gui, Settings:Add, Hotkey, vhotkeyToCharacterSelectionS x+2 yp-3 w135 h20, %hotkeyToCharacterSelectionS%
 	
-	Gui, Settings:Add, Text, x25 yp+26 w370 cGray, * - Недоступно при использовании режима Устаревшей раскладки	
+	Gui, Settings:Add, Text, x25 yp+26 w170, Пригласить(/invite)²:
+	Gui, Settings:Add, Hotkey, vhotkeyInviteS x+2 yp-3 w135 h20, %hotkeyInviteS%
+	
+	Gui, Settings:Add, Text, x25 yp+26 w170, Выгнать(/kick)²:
+	Gui, Settings:Add, Hotkey, vhotkeyKickS x+2 yp-3 w135 h20, %hotkeyKickS%
+	
+	Gui, Settings:Add, Text, x25 yp+26 w170, Торговать(/tradewith)²:
+	Gui, Settings:Add, Hotkey, vhotkeyTradeWithS x+2 yp-3 w135 h20, %hotkeyTradeWithS%
+	
+	Gui, Settings:Add, Text, x25 yp+26 w170, Быстрый ответ 1²:
+	Gui, Settings:Add, Hotkey, vhotkeyMsg1S x+2 yp-3 w135 h20, %hotkeyMsg1S%
+	Gui, Settings:Add, Edit, vtextMsg1S x+5 w155 h20, %textMsg1S%
+	
+	Gui, Settings:Add, Text, x25 yp+26 w170, Быстрый ответ 2²:
+	Gui, Settings:Add, Hotkey, vhotkeyMsg2S x+2 yp-3 w135 h20, %hotkeyMsg2S%
+	Gui, Settings:Add, Edit, vtextMsg2S x+5 w155 h20, %textMsg2S%
+	
+	Gui, Settings:Add, Text, x25 yp+26 w170, Быстрый ответ 3²:
+	Gui, Settings:Add, Hotkey, vhotkeyMsg3S x+2 yp-3 w135 h20, %hotkeyMsg3S%
+	Gui, Settings:Add, Edit, vtextMsg3S x+5 w155 h20, %textMsg3S%
+	
+	Gui, Settings:Add, Text, x25 yp+26 w400 cGray, ¹ - Недоступно при использовании режима Устаревшей раскладки`n² - Выполняется по отношению к последнему написавшему игроку
 	
 	Gui, Settings:Add, Button, x10 y+15 gdelConfigFolder, Сбросить
 	Gui, Settings:Add, Button, x+2 yp+0 gopenConfigFolder, Папка настроек
-	Gui, Settings:Add, Button, x345 yp+0 w160 gsaveSettings, Применить и перезапустить
+	Gui, Settings:Add, Button, x340 yp+0 w165 gsaveSettings, Применить и перезапустить
 	Gui, Settings:Show, w515, %prjName% - Информация и настройки
 }
 
@@ -357,13 +417,23 @@ saveSettings(){
 	IniWrite, %hotkeyForceSyncS%, %configFile%, hotkeys, hotkeyForceSync
 	IniWrite, %hotkeyToCharacterSelectionS%, %configFile%, hotkeys, hotkeyToCharacterSelection
 	
+	IniWrite, %hotkeyKickS%, %configFile%, hotkeys, hotkeyKick
+	IniWrite, %hotkeyInviteS%, %configFile%, hotkeys, hotkeyInvite
+	IniWrite, %hotkeyTradeWithS%, %configFile%, hotkeys, hotkeyTradeWith
+	IniWrite, %hotkeyMsg1S%, %configFile%, hotkeys, hotkeyMsg1
+	IniWrite, %hotkeyMsg2S%, %configFile%, hotkeys, hotkeyMsg2
+	IniWrite, %hotkeyMsg3S%, %configFile%, hotkeys, hotkeyMsg3
+	IniWrite, %textMsg1S%, %configFile%, settings, textMsg1
+	IniWrite, %textMsg2S%, %configFile%, settings, textMsg2
+	IniWrite, %textMsg3S%, %configFile%, settings, textMsg3
+	
 	if (lvlLabS!=lvlLabOldPosition && !devModeS) {
 		Run, https://www.poelab.com/
 	}
 	
 	if (legacyHotkeysS>legacyHotkeysOldPosition) {
 		msgText:="Устаревшая раскладка имеет следующее управление:`n"
-		msgText.="`t[Alt+F1] - Лабиринт`n`t[Alt+F2] - Синдикат`n`t[Alt+F3] - Вмешательство`n`t[Alt+F4] - Атлас`n`t[Alt+F6] - Ископаемые`n`t[Alt+F7] - Пророчества`n"
+		msgText.="`t[Alt+F1] - Лабиринт`n`t[Alt+F2] - Синдикат`n`t[Alt+F3] - Вмешательство`n`t[Alt+F4] - Атлас`n`t[Alt+F5] - Масла`n`t[Alt+F6] - Ископаемые`n`t[Alt+F7] - Пророчества`n"
 		msgText.="`nИспользовать не рекомендуется, поскольку заменяется сочетание клавиш [Alt+F4], и вы не сможете выйти из игры используя его!`n"
 		msgText.="`nВы все еще хотите использовать эту раскладку?"
 		MsgBox, 0x1024, %prjName%,  %msgText%
@@ -387,24 +457,46 @@ setHotkeys(){
 	If !legacyHotkeys {
 		IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
 		IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
-		IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
-		IniRead, hotkeyToCharacterSelection, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
 		if (hotkeyLastImg!="")
 			Hotkey, % hotkeyLastImg, shLastImage, On
 		if (hotkeyMainMenu!="")
 			Hotkey, % hotkeyMainMenu, shMainMenu, On
-		if (hotkeyForceSync!="")
-			Hotkey, % hotkeyForceSync, forceSync, On
-		if (hotkeyToCharacterSelection!="")
-			Hotkey, % hotkeyToCharacterSelection, toCharacterSelection, On
 	} Else {
 		Hotkey, !f1, shLabyrinth, On
 		Hotkey, !f2, shSyndicate, On
 		Hotkey, !f3, shIncursion, On
 		Hotkey, !f4, shMaps, On
+		Hotkey, !f5, shOils, On
 		Hotkey, !f6, shFossils, On
 		Hotkey, !f7, shProphecy, On
 	}
+	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
+	IniRead, hotkeyToCharacterSelection, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
+	IniRead, hotkeyMsg1, %configFile%, hotkeys, hotkeyMsg1, %A_Space%
+	IniRead, hotkeyMsg2, %configFile%, hotkeys, hotkeyMsg2, %A_Space%
+	IniRead, hotkeyMsg3, %configFile%, hotkeys, hotkeyMsg3, %A_Space%
+	IniRead, textMsg1, %configFile%, settings, textMsg1, sold(
+	IniRead, textMsg2, %configFile%, settings, textMsg2, 2 min
+	IniRead, textMsg3, %configFile%, settings, textMsg3, ty)
+	IniRead, hotkeyInvite, %configFile%, hotkeys, hotkeyInvite, %A_Space%
+	IniRead, hotkeyKick, %configFile%, hotkeys, hotkeyKick, %A_Space%
+	IniRead, hotkeyTradeWith, %configFile%, hotkeys, hotkeyTradeWith, %A_Space%
+	if (hotkeyForceSync!="")
+		Hotkey, % hotkeyForceSync, forceSync, On
+	if (hotkeyToCharacterSelection!="")
+		Hotkey, % hotkeyToCharacterSelection, toCharacterSelection, On
+	if (hotkeyMsg1!="")
+		Hotkey, % hotkeyMsg1, chatMsg1, On
+	if (hotkeyMsg2!="")
+		Hotkey, % hotkeyMsg2, chatMsg2, On
+	if (hotkeyMsg3!="")
+		Hotkey, % hotkeyMsg3, chatMsg3, On
+	if (hotkeyInvite!="")
+		Hotkey, % hotkeyInvite, chatInvite, On
+	if (hotkeyKick!="")
+		Hotkey, % hotkeyKick, chatKick, On
+	if (hotkeyTradeWith!="")
+		Hotkey, % hotkeyTradeWith, chatTradeWith, On
 }
 
 menuCreate(){
