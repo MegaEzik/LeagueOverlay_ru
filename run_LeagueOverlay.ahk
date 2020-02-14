@@ -193,15 +193,21 @@ shOils(){
 }
 
 forceSync(){
+	BlockInput On
 	SendInput, {Enter}{/}oos{Enter}
+	BlockInput Off
 }
 
 toCharacterSelection(){
+	BlockInput On
 	SendInput, {Enter}{/}exit{Enter}
+	BlockInput Off
 }
 
 goHideout(){
+	BlockInput On
 	SendInput, {Enter}{/}hideout{Enter}
+	BlockInput Off
 }
 
 chatMsg1(){
@@ -217,19 +223,27 @@ chatMsg3(){
 }
 
 chatReply(msg){
+	BlockInput On
 	SendInput, ^{Enter}%msg%{Enter}
+	BlockInput Off
 }
 
 chatInvite(){
+	BlockInput On
 	SendInput, ^{Enter}{Home}{Delete}/invite {Enter}
+	BlockInput Off
 }
 
 chatKick(){
+	BlockInput On
 	SendInput, ^{Enter}{Home}{Delete}/kick {Enter}
+	BlockInput Off
 }
 
 chatTradeWith(){
+	BlockInput On
 	SendInput, ^{Enter}{Home}{Delete}/tradewith {Enter}
+	BlockInput Off
 }
 
 textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
