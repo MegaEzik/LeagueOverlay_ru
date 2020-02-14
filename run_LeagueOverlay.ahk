@@ -193,11 +193,15 @@ shOils(){
 }
 
 forceSync(){
-	SendInput, {enter}{/}oos{enter}
+	SendInput, {Enter}{/}oos{Enter}
 }
 
 toCharacterSelection(){
-	SendInput, {enter}{/}exit{enter}
+	SendInput, {Enter}{/}exit{Enter}
+}
+
+goHideout(){
+	SendInput, {Enter}{/}hideout{Enter}
 }
 
 chatMsg1(){
@@ -309,13 +313,14 @@ showSettings(){
 	IniRead, hotkeyMainMenuS, %configFile%, hotkeys, hotkeyMainMenu, !f2
 	IniRead, hotkeyForceSyncS, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
 	IniRead, hotkeyToCharacterSelectionS, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
+	IniRead, hotkeyHideoutS, %configFile%, hotkeys, hotkeyHideout, %A_Space%
 	
 	IniRead, hotkeyMsg1S, %configFile%, hotkeys, hotkeyMsg1, %A_Space%
 	IniRead, hotkeyMsg2S, %configFile%, hotkeys, hotkeyMsg2, %A_Space%
 	IniRead, hotkeyMsg3S, %configFile%, hotkeys, hotkeyMsg3, %A_Space%
 	IniRead, textMsg1S, %configFile%, settings, textMsg1, sold(
-	IniRead, textMsg2S, %configFile%, settings, textMsg2, 2 min
-	IniRead, textMsg3S, %configFile%, settings, textMsg3, ty)
+	IniRead, textMsg2S, %configFile%, settings, textMsg2, 2 minutes
+	IniRead, textMsg3S, %configFile%, settings, textMsg3, ty & gl exile)
 	IniRead, hotkeyInviteS, %configFile%, hotkeys, hotkeyInvite, %A_Space%
 	IniRead, hotkeyKickS, %configFile%, hotkeys, hotkeyKick, %A_Space%
 	IniRead, hotkeyTradeWithS, %configFile%, hotkeys, hotkeyTradeWith, %A_Space%
@@ -340,7 +345,7 @@ showSettings(){
 
 	Gui, Settings:Add, Text, x0 y78 w520 h2 0x10
 
-	Gui, Settings:Add, GroupBox, x10 y+4 w495 h383, Основные настройки
+	Gui, Settings:Add, GroupBox, x10 y+4 w495 h405, Основные настройки
 	
 	Gui, Settings:Add, Checkbox, vautoUpdateS x25 yp+16 w370 h20 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
 	
@@ -370,6 +375,9 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x25 yp+26 w170, К выбору персонажа(/exit):
 	Gui, Settings:Add, Hotkey, vhotkeyToCharacterSelectionS x+2 yp-3 w135 h20, %hotkeyToCharacterSelectionS%
+	
+	Gui, Settings:Add, Text, x25 yp+26 w170, В убежище(/hideout):
+	Gui, Settings:Add, Hotkey, vhotkeyHideoutS x+2 yp-3 w135 h20, %hotkeyHideoutS%
 	
 	Gui, Settings:Add, Text, x25 yp+26 w170, Пригласить(/invite)²:
 	Gui, Settings:Add, Hotkey, vhotkeyInviteS x+2 yp-3 w135 h20, %hotkeyInviteS%
@@ -416,6 +424,7 @@ saveSettings(){
 	IniWrite, %hotkeyMainMenuS%, %configFile%, hotkeys, hotkeyMainMenu
 	IniWrite, %hotkeyForceSyncS%, %configFile%, hotkeys, hotkeyForceSync
 	IniWrite, %hotkeyToCharacterSelectionS%, %configFile%, hotkeys, hotkeyToCharacterSelection
+	IniWrite, %hotkeyHideoutS%, %configFile%, hotkeys, hotkeyHideout
 	
 	IniWrite, %hotkeyKickS%, %configFile%, hotkeys, hotkeyKick
 	IniWrite, %hotkeyInviteS%, %configFile%, hotkeys, hotkeyInvite
@@ -449,7 +458,7 @@ delConfigFolder(){
 		return																																	   
 	FileRemoveDir, %configFolder%, 1
 	Sleep 100
-	Exit
+	Reload
 }
 
 setHotkeys(){
@@ -472,6 +481,7 @@ setHotkeys(){
 	}
 	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
 	IniRead, hotkeyToCharacterSelection, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
+	IniRead, hotkeyHideout, %configFile%, hotkeys, hotkeyHideout, %A_Space%
 	IniRead, hotkeyMsg1, %configFile%, hotkeys, hotkeyMsg1, %A_Space%
 	IniRead, hotkeyMsg2, %configFile%, hotkeys, hotkeyMsg2, %A_Space%
 	IniRead, hotkeyMsg3, %configFile%, hotkeys, hotkeyMsg3, %A_Space%
@@ -485,6 +495,8 @@ setHotkeys(){
 		Hotkey, % hotkeyForceSync, forceSync, On
 	if (hotkeyToCharacterSelection!="")
 		Hotkey, % hotkeyToCharacterSelection, toCharacterSelection, On
+	if (hotkeyHideout!="")
+		Hotkey, % hotkeyHideout, goHideout, On
 	if (hotkeyMsg1!="")
 		Hotkey, % hotkeyMsg1, chatMsg1, On
 	if (hotkeyMsg2!="")
