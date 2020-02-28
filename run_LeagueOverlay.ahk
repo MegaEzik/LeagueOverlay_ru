@@ -288,6 +288,30 @@ showUserNotes(){
 	textFileWindow("Пользовательские заметки", configFolder "\notes.txt", false, "Здесь вы можете оставить для себя заметки)")
 }
 
+clearPoECache(){
+	FileSelectFile, FilePath, , , Укажите путь к исполняемому файлу игры, (PathOfExile.exe;PathOfExileSteam.exe)
+	if (FilePath="") {
+		msgbox, 0x1040, %prjName%, Операция прервана пользователем!
+		return
+	} else {
+		SplashTextOn, 300, 20, %prjName%, Очистка кэша, пожалуйста подождите...
+		
+		SplitPath, FilePath, , PoEFolderPath
+		FileRemoveDir, %PoEFolderPath%\CachedHLSLShaders, 1
+		FileRemoveDir, %PoEFolderPath%\logs, 1
+		FileRemoveDir, %PoEFolderPath%\ShaderCacheD3D11, 1
+		
+		PoEConfigFolderPath:=A_MyDocuments "\My Games\Path of Exile"
+		FileRemoveDir, %PoEConfigFolderPath%\Countdown, 1
+		FileRemoveDir, %PoEConfigFolderPath%\DailyDealCache, 1
+		FileRemoveDir, %PoEConfigFolderPath%\Minimap, 1
+		FileRemoveDir, %PoEConfigFolderPath%\MOTDCache, 1
+		FileRemoveDir, %PoEConfigFolderPath%\ShopImages, 1
+		
+		SplashTextOff
+	}
+}
+
 replacerImages(){
 	FileSelectFile, FilePath, , , Укажите путь к новому файлу для создания замены, Изображения (*.jpg;*.png)
 	if (FilePath="" || !FileExist(FilePath) || !RegExMatch(FilePath, "i).(jpg|png|zip)$")) {
@@ -363,17 +387,20 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x10 yp-18 w184, Установлена версия: %verScript%
 	Gui, Settings:Add, Button, x+2 yp-5 w135 gCheckUpdateFromMenu, Выполнить обновление
-
-	Gui, Settings:Add, Text, x0 y78 w520 h2 0x10
-
-	Gui, Settings:Add, GroupBox, x10 y+4 w495 h427, Основные настройки
 	
-	Gui, Settings:Add, Checkbox, vautoUpdateS x25 yp+16 w370 h20 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
+	Gui, Settings:Add, Button, x10 y360 gdelConfigFolder, Сбросить
+	Gui, Settings:Add, Button, x+2 yp+0 gopenConfigFolder, Папка настроек
+	Gui, Settings:Add, Button, x340 yp+0 w165 gsaveSettings, Применить и перезапустить
+
+	Gui, Settings:Add, Tab, x10 y75 w495 h280, Основные настройки|Быстрые команды ;Вкладки
+	Gui, Settings:Tab, 1 ;Первая вкладка
+	
+	Gui, Settings:Add, Checkbox, vautoUpdateS x25 y105 w370 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
 	
 	presetListS:="default"
 	Loop, resources\images\*, 2
 		presetListS.="|" A_LoopFileName
-	Gui, Settings:Add, Text, x25 yp+26 w170, Набор изображений:
+	Gui, Settings:Add, Text, x25 yp+22 w170, Набор изображений:
 	Gui, Settings:Add, DropDownList, vimagesPresetS x+2 yp-3 w135, %presetListS%
 	GuiControl,Settings:ChooseString, imagesPresetS, %imagesPresetS%
 	
@@ -383,15 +410,19 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x25 y+5 w470 h2 0x10
 	
-	Gui, Settings:Add, Checkbox, vlegacyHotkeysS x25 yp+5 w370 h20 Checked%legacyHotkeysS%, Использовать режим Устаревшей раскладки(не рекомендуется)
+	Gui, Settings:Add, Checkbox, vlegacyHotkeysS x25 yp+10 w370 Checked%legacyHotkeysS%, Режим Устаревшей раскладки(использовать не рекомендуется)
 	
-	Gui, Settings:Add, Text, x25 yp+26 w170, Последнее изображение¹:
+	Gui, Settings:Add, Text, x25 yp+22 w170, Последнее изображение*:
 	Gui, Settings:Add, Hotkey, vhotkeyLastImgS x+2 yp-3 w135 h20, %hotkeyLastImgS%
 	
-	Gui, Settings:Add, Text, x25 yp+26 w170, Меню изображений¹:
+	Gui, Settings:Add, Text, x25 yp+26 w170, Меню изображений*:
 	Gui, Settings:Add, Hotkey, vhotkeyMainMenuS x+2 yp-3 w135 h20, %hotkeyMainMenuS%
 	
-	Gui, Settings:Add, Text, x25 yp+26 w170, Синхронизировать(/oos):
+	Gui, Settings:Add, Text, x25 y335 w400 cGray, * - Недоступно при использовании режима Устаревшей раскладки
+	
+	Gui, Settings:Tab, 2 ; Вторая вкладка
+	
+	Gui, Settings:Add, Text, x25 y105 w170, Синхронизировать(/oos):
 	Gui, Settings:Add, Hotkey, vhotkeyForceSyncS x+2 yp-3 w135 h20, %hotkeyForceSyncS%
 	
 	Gui, Settings:Add, Text, x25 yp+26 w170, К выбору персонажа(/exit):
@@ -403,33 +434,30 @@ showSettings(){
 	Gui, Settings:Add, Text, x25 yp+26 w170, Не беспокоить(/dnd):
 	Gui, Settings:Add, Hotkey, vhotkeyDndS x+2 yp-3 w135 h20, %hotkeyDndS%
 	
-	Gui, Settings:Add, Text, x25 yp+26 w170, Пригласить(/invite)²:
+	Gui, Settings:Add, Text, x25 yp+26 w170, Пригласить(/invite)*:
 	Gui, Settings:Add, Hotkey, vhotkeyInviteS x+2 yp-3 w135 h20, %hotkeyInviteS%
 	
-	Gui, Settings:Add, Text, x25 yp+26 w170, Выгнать(/kick)²:
+	Gui, Settings:Add, Text, x25 yp+26 w170, Выгнать(/kick)*:
 	Gui, Settings:Add, Hotkey, vhotkeyKickS x+2 yp-3 w135 h20, %hotkeyKickS%
 	
-	Gui, Settings:Add, Text, x25 yp+26 w170, Торговать(/tradewith)²:
+	Gui, Settings:Add, Text, x25 yp+26 w170, Торговать(/tradewith)*:
 	Gui, Settings:Add, Hotkey, vhotkeyTradeWithS x+2 yp-3 w135 h20, %hotkeyTradeWithS%
 	
-	Gui, Settings:Add, Text, x25 yp+26 w170, Быстрый ответ 1²:
+	Gui, Settings:Add, Text, x25 yp+26 w170, Быстрый ответ 1*:
 	Gui, Settings:Add, Hotkey, vhotkeyMsg1S x+2 yp-3 w135 h20, %hotkeyMsg1S%
 	Gui, Settings:Add, Edit, vtextMsg1S x+5 w155 h20, %textMsg1S%
 	
-	Gui, Settings:Add, Text, x25 yp+26 w170, Быстрый ответ 2²:
+	Gui, Settings:Add, Text, x25 yp+26 w170, Быстрый ответ 2*:
 	Gui, Settings:Add, Hotkey, vhotkeyMsg2S x+2 yp-3 w135 h20, %hotkeyMsg2S%
 	Gui, Settings:Add, Edit, vtextMsg2S x+5 w155 h20, %textMsg2S%
 	
-	Gui, Settings:Add, Text, x25 yp+26 w170, Быстрый ответ 3²:
+	Gui, Settings:Add, Text, x25 yp+26 w170, Быстрый ответ 3*:
 	Gui, Settings:Add, Hotkey, vhotkeyMsg3S x+2 yp-3 w135 h20, %hotkeyMsg3S%
 	Gui, Settings:Add, Edit, vtextMsg3S x+5 w155 h20, %textMsg3S%
 	
-	Gui, Settings:Add, Text, x25 yp+26 w400 cGray, ¹ - Недоступно при использовании режима Устаревшей раскладки`n² - Выполняется по отношению к последнему написавшему игроку
+	Gui, Settings:Add, Text, x25 y335 w400 cGray, * - Применяется по отношению к игроку в последнем диалоге
 	
-	Gui, Settings:Add, Button, x10 y+15 gdelConfigFolder, Сбросить
-	Gui, Settings:Add, Button, x+2 yp+0 gopenConfigFolder, Папка настроек
-	Gui, Settings:Add, Button, x340 yp+0 w165 gsaveSettings, Применить и перезапустить
-	Gui, Settings:Show, w515, %prjName% - Информация и настройки
+	Gui, Settings:Show, w515, %prjName% - Информация и настройки ;Отобразить окно настроек
 }
 
 saveSettings(){
@@ -482,8 +510,7 @@ delConfigFolder(){
 	IfMsgBox No
 		return																																	   
 	FileRemoveDir, %configFolder%, 1
-	Sleep 100
-	Reload
+	Gosub, Exit
 }
 
 setHotkeys(){
@@ -548,8 +575,10 @@ menuCreate(){
 	Menu, Tray, Add, Отметить испытания лабиринта, showLabTrials
 	Menu, Tray, Add, Пользовательские заметки, showUserNotes
 	Menu, Tray, Add
+	Menu, Tray, Add, Очистить кэш Path of Exile, clearPoECache
+	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить, ReStart
-	Menu, Tray, Add, Завершить работу макроса, Exit
+	Menu, Tray, Add, Завершить работу макроса, closeMacros
 	Menu, Tray, NoStandard
 
 	If FileExist(configFolder "\images\Custom.jpg") || FileExist(configFolder "\images\Custom.png")
@@ -579,10 +608,18 @@ ReStart(){
 	Reload
 }
 
+closeMacros(){
+	MsgBox, 0x1024, %prjName%, Завершить работу %prjName%?
+	IfMsgBox No
+		return
+	Gosub, Exit
+}
+
 ;#################################################
 
 Exit:
 ; gdi+ may now be shutdown on exiting the program
 	Gdip_Shutdown(pToken)
+	sleep 35
 	ExitApp
 Return
