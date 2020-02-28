@@ -210,6 +210,12 @@ goHideout(){
 	BlockInput Off
 }
 
+dndMode(){
+	BlockInput On
+	SendInput, {Enter}{/}dnd{Enter}
+	BlockInput Off
+}
+
 chatMsg1(){
 	chatReply(textMsg1)
 }
@@ -326,6 +332,7 @@ showSettings(){
 	IniRead, hotkeyLastImgS, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenuS, %configFile%, hotkeys, hotkeyMainMenu, !f2
 	IniRead, hotkeyForceSyncS, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
+	IniRead, hotkeyDndS, %configFile%, hotkeys, hotkeyDnd, %A_Space%
 	IniRead, hotkeyToCharacterSelectionS, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
 	IniRead, hotkeyHideoutS, %configFile%, hotkeys, hotkeyHideout, %A_Space%
 	
@@ -359,7 +366,7 @@ showSettings(){
 
 	Gui, Settings:Add, Text, x0 y78 w520 h2 0x10
 
-	Gui, Settings:Add, GroupBox, x10 y+4 w495 h405, Основные настройки
+	Gui, Settings:Add, GroupBox, x10 y+4 w495 h427, Основные настройки
 	
 	Gui, Settings:Add, Checkbox, vautoUpdateS x25 yp+16 w370 h20 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
 	
@@ -392,6 +399,9 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x25 yp+26 w170, В убежище(/hideout):
 	Gui, Settings:Add, Hotkey, vhotkeyHideoutS x+2 yp-3 w135 h20, %hotkeyHideoutS%
+	
+	Gui, Settings:Add, Text, x25 yp+26 w170, Не беспокоить(/dnd):
+	Gui, Settings:Add, Hotkey, vhotkeyDndS x+2 yp-3 w135 h20, %hotkeyDndS%
 	
 	Gui, Settings:Add, Text, x25 yp+26 w170, Пригласить(/invite)²:
 	Gui, Settings:Add, Hotkey, vhotkeyInviteS x+2 yp-3 w135 h20, %hotkeyInviteS%
@@ -437,6 +447,7 @@ saveSettings(){
 	IniWrite, %hotkeyLastImgS%, %configFile%, hotkeys, hotkeyLastImg
 	IniWrite, %hotkeyMainMenuS%, %configFile%, hotkeys, hotkeyMainMenu
 	IniWrite, %hotkeyForceSyncS%, %configFile%, hotkeys, hotkeyForceSync
+	IniWrite, %hotkeyDndS%, %configFile%, hotkeys, hotkeyDnd
 	IniWrite, %hotkeyToCharacterSelectionS%, %configFile%, hotkeys, hotkeyToCharacterSelection
 	IniWrite, %hotkeyHideoutS%, %configFile%, hotkeys, hotkeyHideout
 	
@@ -497,6 +508,7 @@ setHotkeys(){
 	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
 	IniRead, hotkeyToCharacterSelection, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
 	IniRead, hotkeyHideout, %configFile%, hotkeys, hotkeyHideout, %A_Space%
+	IniRead, hotkeyDnd, %configFile%, hotkeys, hotkeyDnd, %A_Space%
 	IniRead, hotkeyMsg1, %configFile%, hotkeys, hotkeyMsg1, %A_Space%
 	IniRead, hotkeyMsg2, %configFile%, hotkeys, hotkeyMsg2, %A_Space%
 	IniRead, hotkeyMsg3, %configFile%, hotkeys, hotkeyMsg3, %A_Space%
@@ -512,6 +524,8 @@ setHotkeys(){
 		Hotkey, % hotkeyToCharacterSelection, toCharacterSelection, On
 	if (hotkeyHideout!="")
 		Hotkey, % hotkeyHideout, goHideout, On
+	if (hotkeyDnd!="")
+		Hotkey, % hotkeyDnd, dndMode, On
 	if (hotkeyMsg1!="")
 		Hotkey, % hotkeyMsg1, chatMsg1, On
 	if (hotkeyMsg2!="")
