@@ -396,6 +396,7 @@ showSettings(){
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
 	Gui, Settings:Add, Checkbox, vautoUpdateS x25 y105 w370 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
+	Gui, Settings:Add, Checkbox, vdevModeS x25 yp+22 w370 disabled Checked%devModeS%, Режим разработчика
 	
 	presetListS:="default"
 	Loop, resources\images\*, 2
