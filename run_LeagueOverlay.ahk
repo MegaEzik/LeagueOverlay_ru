@@ -65,11 +65,11 @@ if (verConfig!=verScript) {
 	If FileExist(A_MyDocuments "\LeagueOverlay_ru\") {
 		FileCopyDir, %A_MyDocuments%\LeagueOverlay_ru\, %configFolder%, 0
 		FileRemoveDir, %A_MyDocuments%\LeagueOverlay_ru\, 1
-		sleep 35
+		sleep 25
 	}
 	showSettings()
 	FileDelete, %configFile%
-	sleep 35
+	sleep 25
 	FileCreateDir, %configFolder%\images
 	IniWrite, %verScript%, %configFile%, info, verConfig
 	saveSettings()
@@ -107,17 +107,14 @@ if (imagesPreset!="default" && imagesPreset!="") {
 setPreset(configFolder "\images\")
 	
 ;Загружаем раскладку лабиринта, и если изображение получено, то устанавливаем его
-FileDelete, %configFolder%\Lab.jpg
-sleep 35
-IniRead, lvlLab, %configFile%, settings, lvlLab, uber
-if (lvlLab!="" && lvlLab!="skip") {
+IniRead, loadLab, %configFile%, settings, loadLab, 0
+if (loadLab) {
+	run, https://www.poelab.com/
+	sleep 1000
 	downloadLabLayout()
 	If FileExist(configFolder "\Lab.jpg") {
 		image1:=configFolder "\Lab.jpg"
-		IniRead, lvlLab, %configFile%, settings, lvlLab, uber
-		FormatTime, dateLab, %A_NowUTC%, dd.MM
-		trayUpdate("`nЛабиринт(POELab.com): " lvlLab " " dateLab)
-		Menu, mainMenu, Add, POELab.com - Раскладка лабиринта(%lvlLab% %dateLab%), shLabyrinth
+		Menu, mainMenu, Add, POELab.com - Раскладка лабиринта, shLabyrinth
 	}
 }
 	
@@ -307,6 +304,7 @@ clearPoECache(){
 		FileRemoveDir, %PoEConfigFolderPath%\Minimap, 1
 		FileRemoveDir, %PoEConfigFolderPath%\MOTDCache, 1
 		FileRemoveDir, %PoEConfigFolderPath%\ShopImages, 1
+		FileRemoveDir, %PoEConfigFolderPath%\OnlineFilters, 1
 		
 		SplashTextOff
 	}
@@ -351,8 +349,8 @@ showSettings(){
 	IniRead, autoUpdateS, %configFile%, settings, autoUpdate, 1
 	IniRead, devModeS, %configFile%, settings, devMode, 0
 	IniRead, imagesPresetS, %configFile%, settings, imagesPreset, default
+	IniRead, loadLabS, %configFile%, settings, loadLab, 0
 	IniRead, legacyHotkeysS, %configFile%, settings, legacyHotkeys, 0
-	IniRead, lvlLabS, %configFile%, settings, lvlLab, uber
 	IniRead, hotkeyLastImgS, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenuS, %configFile%, hotkeys, hotkeyMainMenu, !f2
 	IniRead, hotkeyForceSyncS, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
@@ -397,6 +395,7 @@ showSettings(){
 	
 	Gui, Settings:Add, Checkbox, vautoUpdateS x25 y105 w370 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
 	Gui, Settings:Add, Checkbox, vdevModeS x25 yp+22 w370 disabled Checked%devModeS%, Режим разработчика
+	Gui, Settings:Add, Checkbox, vloadLabS x25 yp+22 w370 Checked%loadLabS%, Загружать раскладку лабиринта(POELab.com)
 	
 	presetListS:="default"
 	Loop, resources\images\*, 2
@@ -404,10 +403,6 @@ showSettings(){
 	Gui, Settings:Add, Text, x25 yp+22 w170, Набор изображений:
 	Gui, Settings:Add, DropDownList, vimagesPresetS x+2 yp-3 w135, %presetListS%
 	GuiControl,Settings:ChooseString, imagesPresetS, %imagesPresetS%
-	
-	Gui, Settings:Add, Link, x25 yp+27 w170, <a href="https://www.poelab.com/">Лабиринт(POELab.com):</a>
-	Gui, Settings:Add, DropDownList, vlvlLabS x+2 yp-3 w135, skip|normal|cruel|merciless|uber
-	GuiControl,Settings:ChooseString, lvlLabS, %lvlLabS%
 	
 	Gui, Settings:Add, Text, x25 y+5 w470 h2 0x10
 	
@@ -471,8 +466,8 @@ saveSettings(){
 	IniWrite, %autoUpdateS%, %configFile%, settings, autoUpdate
 	IniWrite, %devModeS%, %configFile%, settings, devMode
 	IniWrite, %imagesPresetS%, %configFile%, settings, imagesPreset
+	IniWrite, %loadLabS%, %configFile%, settings, loadLab
 	IniWrite, %legacyHotkeysS%, %configFile%, settings, legacyHotkeys
-	IniWrite, %lvlLabS%, %configFile%, settings, lvlLab
 	IniWrite, %hotkeyLastImgS%, %configFile%, hotkeys, hotkeyLastImg
 	IniWrite, %hotkeyMainMenuS%, %configFile%, hotkeys, hotkeyMainMenu
 	IniWrite, %hotkeyForceSyncS%, %configFile%, hotkeys, hotkeyForceSync
@@ -489,10 +484,6 @@ saveSettings(){
 	IniWrite, %textMsg1S%, %configFile%, settings, textMsg1
 	IniWrite, %textMsg2S%, %configFile%, settings, textMsg2
 	IniWrite, %textMsg3S%, %configFile%, settings, textMsg3
-	
-	if (lvlLabS!=lvlLabOldPosition && !devModeS) {
-		Run, https://www.poelab.com/
-	}
 	
 	if (legacyHotkeysS>legacyHotkeysOldPosition) {
 		msgText:="Устаревшая раскладка имеет следующее управление:`n"

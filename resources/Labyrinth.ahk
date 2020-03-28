@@ -5,8 +5,20 @@ downloadLabLayout() {
 	FormatTime, Month, %A_NowUTC%, MM
 	FormatTime, Day, %A_NowUTC%, dd
 	
-	IniRead, lvlLab, %configFile%, settings, lvlLab, uber
+	;IniRead, lvlLab, %configFile%, settings, lvlLab, uber
 	
+	If FileExist(A_WinDir "\System32\curl.exe") {
+		FileDelete, %configFolder%\Lab.jpg
+		sleep 25
+		LabURL:="http://poelab.com/wp-content/labfiles/" Year "-" Month "-" Day "_uber.jpg"
+		CurlLine:="curl -A ""Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:74.0) Gecko/20100101 Firefox/74.0"" -o " configfolder "\Lab.jpg " LabURL
+		RunWait, %CurlLine%
+	} else {
+		msgbox, 0x1040, %prjName%, В вашей системе не найдена утилита Curl!`n`nБез нее загрузка изображения лабиринта невозможна(, 5
+		return
+	}
+	
+	/*
 	FileDelete, %configFolder%\Lab.jpg
 	LabURL:="https://poelab.com/wp-content/labfiles/" Year "-" Month "-" Day "_" lvlLab ".jpg"
 	UrlDownloadToFile, %LabURL%, %configFolder%\Lab.jpg
@@ -17,11 +29,12 @@ downloadLabLayout() {
 		LabURL:="https://poelab.com/wp-content/uploads/" Year "/" Month "/" Year "-" Month "-" Day "_" lvlLab ".jpg"
 		UrlDownloadToFile, %LabURL%, %configFolder%\Lab.jpg
 	}
+	*/
 	
 	FileReadLine, Line, %configFolder%\Lab.jpg, 1
 	if (Line="" || (InStr(Line, "<") && InStr(Line, ">")) || InStr(Line, "ban") || InStr(Line, "error")) {
 		FileDelete, %configFolder%\Lab.jpg
-		MsgBox, 0x1040, %prjName%, Не удалось получить файл с раскладкой лабиринта,`nвозможно еще нет информации на текущую дату!`n`nПопробуйте перезапустить скрипт позднее!
+		MsgBox, 0x1040, %prjName%, Не удалось получить файл с раскладкой лабиринта,`nвозможно еще нет информации на текущую дату!`n`nПопробуйте перезапустить скрипт позднее!, 5
 	}
 }
 
