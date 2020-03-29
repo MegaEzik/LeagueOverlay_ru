@@ -11,7 +11,7 @@ downloadLabLayout() {
 		FileDelete, %configFolder%\Lab.jpg
 		sleep 25
 		LabURL:="http://poelab.com/wp-content/labfiles/" Year "-" Month "-" Day "_uber.jpg"
-		CurlLine:="curl -A ""Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:74.0) Gecko/20100101 Firefox/74.0"" -o " configfolder "\Lab.jpg " LabURL
+		CurlLine:="curl -A ""Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36"" -o " configfolder "\Lab.jpg " LabURL
 		RunWait, %CurlLine%
 	} else {
 		msgbox, 0x1040, %prjName%, В вашей системе не найдена утилита Curl!`n`nБез нее загрузка изображения лабиринта невозможна(, 5
