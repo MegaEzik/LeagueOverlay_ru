@@ -38,8 +38,9 @@ global prjName:="LeagueOverlay_ru"
 global githubUser:="MegaEzik"
 global configFolder:=A_MyDocuments "\AutoHotKey\" prjName
 global configFile:=configFolder "\settings.ini"
-global trayMsg, verScript, textMsg1, textMsg2, textMsg3
+global trayMsg, verScript, devMode, textMsg1, textMsg2, textMsg3
 FileReadLine, verScript, resources\Updates.txt, 4
+IniRead, devMode, %configFile%, settings, devMode, 0
 
 ;Подсказка в области уведомлений и сообщение при запуске
 trayUpdate("PoE-" prjName " v" verScript)
@@ -109,8 +110,10 @@ setPreset(configFolder "\images\")
 ;Загружаем раскладку лабиринта, и если изображение получено, то устанавливаем его
 IniRead, loadLab, %configFile%, settings, loadLab, 0
 if (loadLab) {
-	run, https://www.poelab.com/
-	sleep 1000
+	If (!devMode) {
+		run, https://www.poelab.com/
+		sleep 1000
+	}
 	downloadLabLayout()
 	If FileExist(configFolder "\Lab.jpg") {
 		image1:=configFolder "\Lab.jpg"
