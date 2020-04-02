@@ -116,7 +116,6 @@ if (imagesPreset!="default" && imagesPreset!="") {
 ;Назначим новые пути изображений, если их аналоги есть в папке с настройками
 setPreset(configFolder "\images\")
 	
-		image1:=configFolder "\Lab.jpg"
 ;Назначим управление и создадим меню
 setHotkeys()
 menuCreate()
