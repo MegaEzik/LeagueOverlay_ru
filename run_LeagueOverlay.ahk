@@ -32,6 +32,7 @@ SetWorkingDir %A_ScriptDir%
 #Include, %A_ScriptDir%\resources\Overlay.ahk
 #Include, %A_ScriptDir%\resources\Labyrinth.ahk
 #Include, %A_ScriptDir%\resources\Updater.ahk
+#Include, %A_ScriptDir%\resources\devLib.ahk
 
 ;Объявление и загрузка основных переменных
 global prjName:="LeagueOverlay_ru"
@@ -40,7 +41,12 @@ global configFolder:=A_MyDocuments "\AutoHotKey\" prjName
 global configFile:=configFolder "\settings.ini"
 global trayMsg, verScript, devMode, textMsg1, textMsg2, textMsg3
 FileReadLine, verScript, resources\Updates.txt, 4
+
+;Если режим разработчика активен, то выполним инициализацию
 IniRead, devMode, %configFile%, settings, devMode, 0
+If devMode {
+	devInit()
+}
 
 ;Подсказка в области уведомлений и сообщение при запуске
 trayUpdate("PoE-" prjName " v" verScript)
@@ -63,11 +69,6 @@ if autoUpdate {
 ;Проверим файл конфигурации
 IniRead, verConfig, %configFile%, info, verConfig, ""
 if (verConfig!=verScript) {
-	If FileExist(A_MyDocuments "\LeagueOverlay_ru\") {
-		FileCopyDir, %A_MyDocuments%\LeagueOverlay_ru\, %configFolder%, 0
-		FileRemoveDir, %A_MyDocuments%\LeagueOverlay_ru\, 1
-		sleep 25
-	}
 	showSettings()
 	FileDelete, %configFile%
 	sleep 25
@@ -87,12 +88,20 @@ OnExit, Exit
 ;Глобальные переменные для количества изображений, самих изображений, их статуса и номера последнего
 global GuiOn1, GuiOn2, GuiOn3, GuiOn4, GuiOn5, GuiOn6, GuiOn7, GuiOn8, GuiOn9
 global image1, image2, image3, image4, image5, image6, image7, image8, image9
-global imgNameArray:=["", "", "Custom", "Incursion", "Map", "Fossil", "Syndicate", "Prophecy", "Oils"]
+global imgNameArray:=["Lab", "", "Custom", "Incursion", "Map", "Fossil", "Syndicate", "Prophecy", "Oils"]
 global NumImg:=imgNameArray.MaxIndex()
 global LastImg:=1
 Loop %NumImg%{
 	GuiOn%A_Index%:=0
 	image%A_Index%:="resources\images\ImgError.png"
+}
+
+;Загружаем раскладку лабиринта, и если изображение получено, то устанавливаем его
+IniRead, loadLab, %configFile%, settings, loadLab, 0
+If (loadLab) {
+	downloadLabLayout()
+} Else {
+	FileDelete, %configFolder%\images\Lab.jpg
 }
 
 ;Установим изображения
@@ -107,20 +116,7 @@ if (imagesPreset!="default" && imagesPreset!="") {
 ;Назначим новые пути изображений, если их аналоги есть в папке с настройками
 setPreset(configFolder "\images\")
 	
-;Загружаем раскладку лабиринта, и если изображение получено, то устанавливаем его
-IniRead, loadLab, %configFile%, settings, loadLab, 0
-if (loadLab) {
-	If (!devMode) {
-		run, https://www.poelab.com/
-		sleep 1000
-	}
-	downloadLabLayout()
-	If FileExist(configFolder "\Lab.jpg") {
 		image1:=configFolder "\Lab.jpg"
-		Menu, mainMenu, Add, POELab.com - Раскладка лабиринта, shLabyrinth
-	}
-}
-	
 ;Назначим управление и создадим меню
 setHotkeys()
 menuCreate()
@@ -571,11 +567,15 @@ menuCreate(){
 	Menu, Tray, Add, Пользовательские заметки, showUserNotes
 	Menu, Tray, Add
 	Menu, Tray, Add, Очистить кэш Path of Exile, clearPoECache
+	If devMode
+		Menu, Tray, Add, Инструменты разработчика, :devMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить, ReStart
 	Menu, Tray, Add, Завершить работу макроса, closeMacros
 	Menu, Tray, NoStandard
 
+	If FileExist(configFolder "\images\Lab.jpg")
+		Menu, mainMenu, Add, POELab.com - Раскладка лабиринта, shLabyrinth
 	If FileExist(configFolder "\images\Custom.jpg") || FileExist(configFolder "\images\Custom.png")
 		Menu, mainMenu, Add, Пользовательское изображение, shCustom
 	Menu, mainMenu, Add, Альва - Комнаты храма Ацоатль, shIncursion

@@ -8,14 +8,25 @@ downloadLabLayout() {
 	;IniRead, lvlLab, %configFile%, settings, lvlLab, uber
 	
 	If FileExist(A_WinDir "\System32\curl.exe") {
-		FileDelete, %configFolder%\Lab.jpg
-		sleep 25
-		LabURL:="http://poelab.com/wp-content/labfiles/" Year "-" Month "-" Day "_uber.jpg"
-		CurlLine:="curl -A ""Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36"" -o " configfolder "\Lab.jpg " LabURL
-		RunWait, %CurlLine%
-	} else {
+		CurlLine:="curl "
+	} Else If FileExist(configfolder "\curl.exe") {
+		CurlLine:="""" configFolder "\curl.exe"" "
+	} Else {
 		msgbox, 0x1040, %prjName%, В вашей системе не найдена утилита Curl!`n`nБез нее загрузка изображения лабиринта невозможна(, 5
 		return
+	}
+	
+	If (!devMode) {
+		run, https://www.poelab.com/
+		sleep 1000
+	}
+
+	If (CurlLine!="") {
+		FileDelete, %configFolder%\images\Lab.jpg
+		sleep 25
+		LabURL:="http://poelab.com/wp-content/labfiles/" Year "-" Month "-" Day "_uber.jpg"
+		CurlLine.="-A ""Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36"" -o " configfolder "\images\Lab.jpg " LabURL
+		RunWait, %CurlLine%
 	}
 	
 	/*
@@ -31,10 +42,10 @@ downloadLabLayout() {
 	}
 	*/
 	
-	FileReadLine, Line, %configFolder%\Lab.jpg, 1
+	FileReadLine, Line, %configFolder%\images\Lab.jpg, 1
 	if (Line="" || (InStr(Line, "<") && InStr(Line, ">")) || InStr(Line, "ban") || InStr(Line, "error")) {
-		FileDelete, %configFolder%\Lab.jpg
-		MsgBox, 0x1040, %prjName%, Не удалось получить файл с раскладкой лабиринта,`nвозможно еще нет информации на текущую дату!`n`nПопробуйте перезапустить скрипт позднее!, 5
+		FileDelete, %configFolder%\images\Lab.jpg
+		MsgBox, 0x1040, %prjName%, Не удалось получить файл с раскладкой лабиринта!`n`nПопробуйте перезапустить скрипт позднее!, 5
 	}
 }
 
