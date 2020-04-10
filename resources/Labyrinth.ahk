@@ -1,35 +1,53 @@
 ﻿
 ;Загрузка изображения с раскладкой лабиринта соответствующего уровня
-downloadLabLayout() {
+downloadLabLayout(lvlLab="uber") {
 	FormatTime, Year, %A_NowUTC%, yyyy
 	FormatTime, Month, %A_NowUTC%, MM
 	FormatTime, Day, %A_NowUTC%, dd
 	
-	;IniRead, lvlLab, %configFile%, settings, lvlLab, uber
+	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.92 Safari/537.36"
+	
+	FormatTime, Hour, %A_NowUTC%, H
+	If (Hour<1) {
+		TrayTip, %prjName% - Загрузка лабиринта, Сейчас неподходящее время)
+		return
+	}
+	
+	If FileExist(configfolder "\images\Lab.jpg") {
+		FileGetTime, FileDate, %configfolder%\images\Lab.jpg
+		UtcFileDate:=FileDate+A_NowUTC-A_Now
+		FormatTime, FileDateString, %UtcFileDate%, yyyyMMdd
+		CurrentDate:=Year Month Day
+		If (FileDateString=CurrentDate)
+			return
+	}
+	
 	
 	If FileExist(A_WinDir "\System32\curl.exe") {
 		CurlLine:="curl "
 	} Else If FileExist(configfolder "\curl.exe") {
 		CurlLine:="""" configFolder "\curl.exe"" "
 	} Else {
-		msgbox, 0x1040, %prjName%, В вашей системе не найдена утилита Curl!`n`nБез нее загрузка изображения лабиринта невозможна(, 5
+		msgbox, 0x1040, %prjName% - Загрузка лабиринта, В вашей системе не найдена утилита Curl!`nБез нее загрузка изображения лабиринта невозможна!`n`nРешение этой проблемы есть в теме на форуме), 10
 		return
 	}
 	
 	If (!devMode) {
 		run, https://www.poelab.com/
-		sleep 1000
+		sleep 2000
 	}
 
 	If (CurlLine!="") {
 		FileDelete, %configFolder%\images\Lab.jpg
 		sleep 25
-		LabURL:="http://poelab.com/wp-content/labfiles/" Year "-" Month "-" Day "_uber.jpg"
-		CurlLine.="-A ""Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36"" -o " configfolder "\images\Lab.jpg " LabURL
+		LabURL:="http://poelab.com/wp-content/labfiles/" Year "-" Month "-" Day "_" lvlLab ".jpg"
+		CurlLine.="-A """ UserAgent """ -o " configfolder "\images\Lab.jpg " LabURL
 		RunWait, %CurlLine%
 	}
 	
 	/*
+	IniRead, lvlLab, %configFile%, settings, lvlLab, uber
+	
 	FileDelete, %configFolder%\Lab.jpg
 	LabURL:="https://poelab.com/wp-content/labfiles/" Year "-" Month "-" Day "_" lvlLab ".jpg"
 	UrlDownloadToFile, %LabURL%, %configFolder%\Lab.jpg
@@ -43,9 +61,9 @@ downloadLabLayout() {
 	*/
 	
 	FileReadLine, Line, %configFolder%\images\Lab.jpg, 1
-	if (Line="" || (InStr(Line, "<") && InStr(Line, ">")) || InStr(Line, "ban") || InStr(Line, "error")) {
+	If (Line="" || (InStr(Line, "<") && InStr(Line, ">")) || InStr(Line, "ban") || InStr(Line, "error")) {
 		FileDelete, %configFolder%\images\Lab.jpg
-		MsgBox, 0x1040, %prjName%, Не удалось получить файл с раскладкой лабиринта!`n`nПопробуйте перезапустить скрипт позднее!, 5
+		MsgBox, 0x1010, %prjName% - Загрузка лабиринта, Получен некорректный файл лабиринта!, 5
 	}
 }
 

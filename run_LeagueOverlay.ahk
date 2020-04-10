@@ -39,17 +39,11 @@ global prjName:="LeagueOverlay_ru"
 global githubUser:="MegaEzik"
 global configFolder:=A_MyDocuments "\AutoHotKey\" prjName
 global configFile:=configFolder "\settings.ini"
-global trayMsg, verScript, devMode, textMsg1, textMsg2, textMsg3
+global trayMsg, verScript, devMode=0 textMsg1, textMsg2, textMsg3
 FileReadLine, verScript, resources\Updates.txt, 4
 
-;Если режим разработчика активен, то выполним инициализацию
-IniRead, devMode, %configFile%, settings, devMode, 0
-If devMode {
-	devInit()
-}
-
 ;Подсказка в области уведомлений и сообщение при запуске
-trayUpdate("PoE-" prjName " v" verScript)
+trayUpdate("PoE-" prjName " " verScript)
 Menu, Tray, Icon, resources\Syndicate.ico
 initMsgs := ["Подготовка макроса к работе)"
 			,"Поприветствуем Кассию)"
@@ -58,6 +52,12 @@ initMsgs := ["Подготовка макроса к работе)"
 Random, randomNum, 1, initMsgs.MaxIndex()
 initMsg:=initMsgs[randomNum]
 SplashTextOn, 300, 20, %prjName%, %initMsg%
+
+;Если найден файл конфигурации разработчика, то активируем режим разработчика
+If FileExist(configfolder "\dev.cfg")
+	devMode:=1
+If devMode
+	devInit()
 
 ;Проверка обновлений
 IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
@@ -345,7 +345,6 @@ showSettings(){
 	Gui, Settings:Font, s8, Consolas
 	
 	IniRead, autoUpdateS, %configFile%, settings, autoUpdate, 1
-	IniRead, devModeS, %configFile%, settings, devMode, 0
 	IniRead, imagesPresetS, %configFile%, settings, imagesPreset, default
 	IniRead, loadLabS, %configFile%, settings, loadLab, 0
 	IniRead, legacyHotkeysS, %configFile%, settings, legacyHotkeys, 0
@@ -385,14 +384,13 @@ showSettings(){
 	Gui, Settings:Add, Button, x+2 yp-5 w135 gCheckUpdateFromMenu, Выполнить обновление
 	
 	Gui, Settings:Add, Button, x10 y360 gdelConfigFolder, Сбросить
-	Gui, Settings:Add, Button, x+2 yp+0 gopenConfigFolder, Папка настроек
+	Gui, Settings:Add, Button, x+2 yp+0 gopenConfigFolder, Открыть папку настроек
 	Gui, Settings:Add, Button, x340 yp+0 w165 gsaveSettings, Применить и перезапустить
 
 	Gui, Settings:Add, Tab, x10 y75 w495 h280, Основные настройки|Быстрые команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
 	Gui, Settings:Add, Checkbox, vautoUpdateS x25 y105 w370 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
-	Gui, Settings:Add, Checkbox, vdevModeS x25 yp+22 w370 disabled Checked%devModeS%, Режим разработчика
 	Gui, Settings:Add, Checkbox, vloadLabS x25 yp+22 w370 Checked%loadLabS%, Загружать раскладку лабиринта(POELab.com)
 	
 	presetListS:="default"
@@ -462,7 +460,6 @@ saveSettings(){
 		imagesPresetS:="default"
 	
 	IniWrite, %autoUpdateS%, %configFile%, settings, autoUpdate
-	IniWrite, %devModeS%, %configFile%, settings, devMode
 	IniWrite, %imagesPresetS%, %configFile%, settings, imagesPreset
 	IniWrite, %loadLabS%, %configFile%, settings, loadLab
 	IniWrite, %legacyHotkeysS%, %configFile%, settings, legacyHotkeys
@@ -574,7 +571,7 @@ menuCreate(){
 	Menu, Tray, NoStandard
 
 	If FileExist(configFolder "\images\Lab.jpg")
-		Menu, mainMenu, Add, POELab.com - Раскладка лабиринта, shLabyrinth
+		Menu, mainMenu, Add, Лабиринт, shLabyrinth
 	If FileExist(configFolder "\images\Custom.jpg") || FileExist(configFolder "\images\Custom.png")
 		Menu, mainMenu, Add, Пользовательское изображение, shCustom
 	Menu, mainMenu, Add, Альва - Комнаты храма Ацоатль, shIncursion
