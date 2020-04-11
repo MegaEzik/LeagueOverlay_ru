@@ -22,6 +22,17 @@ devMenu() {
 	Menu, devMenu, Add, Удалить замену, delReplacedImages
 }
 
+debugMsg(textMsg) {
+	If devMode {
+		If FileExist(configfolder "\debug.log") {
+			TrayTip, %prjName% - Отладка, %textMsg%
+			FormatTime, TimeString
+			TextString:=TimeString " - " StrReplace(textMsg, "`n", " | ") "`n"
+			FileAppend, %TextString%, %configfolder%\debug.log
+		}
+	}
+}
+
 labNormal() {
 	FileDelete, %configFolder%\images\Lab.jpg
 	sleep 25

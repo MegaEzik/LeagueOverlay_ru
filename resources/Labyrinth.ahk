@@ -18,6 +18,7 @@ downloadLabLayout(lvlLab="uber") {
 		UtcFileDate:=FileDate+A_NowUTC-A_Now
 		FormatTime, FileDateString, %UtcFileDate%, yyyyMMdd
 		CurrentDate:=Year Month Day
+		debugMsg(FileDateString "`n" CurrentDate)
 		If (FileDateString=CurrentDate)
 			return
 	}

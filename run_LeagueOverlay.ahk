@@ -54,7 +54,7 @@ initMsg:=initMsgs[randomNum]
 SplashTextOn, 300, 20, %prjName%, %initMsg%
 
 ;Если найден файл конфигурации разработчика, то активируем режим разработчика
-If FileExist(configfolder "\dev.cfg")
+If FileExist(configfolder "\debug.log")
 	devMode:=1
 If devMode
 	devInit()
