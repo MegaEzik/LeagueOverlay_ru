@@ -15,14 +15,14 @@ downloadLabLayout(lvlLab="uber") {
 	
 	If FileExist(configfolder "\images\Lab.jpg") {
 		FileGetTime, FileDate, %configfolder%\images\Lab.jpg
-		UtcFileDate:=FileDate+A_NowUTC-A_Now
+		;UtcFileDate:=FileDate+A_NowUTC-A_Now
+		UtcFileDate:=(A_Now-A_NowUTC>140000)?FileDate:FileDate+A_NowUTC-A_Now
 		FormatTime, FileDateString, %UtcFileDate%, yyyyMMdd
 		CurrentDate:=Year Month Day
-		debugMsg(FileDateString "`n" CurrentDate)
-		If (FileDateString=CurrentDate)
+		debugMsg(lvlLab "`n" FileDateString "`n" CurrentDate "`n" A_Now-A_NowUTC)
+		If (FileDateString==CurrentDate)
 			return
 	}
-	
 	
 	If FileExist(A_WinDir "\System32\curl.exe") {
 		CurlLine:="curl "

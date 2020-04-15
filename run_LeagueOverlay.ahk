@@ -27,12 +27,13 @@ if (!A_IsAdmin) {
 SetWorkingDir %A_ScriptDir%
 
 ;Подключение библиотек
-#Include, %A_ScriptDir%\resources\Gdip_All.ahk
-#Include, %A_ScriptDir%\resources\JSON.ahk
-#Include, %A_ScriptDir%\resources\Overlay.ahk
-#Include, %A_ScriptDir%\resources\Labyrinth.ahk
-#Include, %A_ScriptDir%\resources\Updater.ahk
-#Include, %A_ScriptDir%\resources\devLib.ahk
+#Include, %A_ScriptDir%\resources\ahk\Gdip_All.ahk
+#Include, %A_ScriptDir%\resources\ahk\JSON.ahk
+#Include, %A_ScriptDir%\resources\ahk\Overlay.ahk
+#Include, %A_ScriptDir%\resources\ahk\Labyrinth.ahk
+#Include, %A_ScriptDir%\resources\ahk\Updater.ahk
+#Include, %A_ScriptDir%\resources\ahk\fastReply.ahk
+#Include, %A_ScriptDir%\resources\ahk\devLib.ahk
 
 ;Объявление и загрузка основных переменных
 global prjName:="LeagueOverlay_ru"
@@ -43,7 +44,7 @@ global trayMsg, verScript, devMode=0, textMsg1, textMsg2, textMsg3
 FileReadLine, verScript, resources\Updates.txt, 4
 
 ;Подсказка в области уведомлений и сообщение при запуске
-trayUpdate("PoE-" prjName " " verScript)
+trayUpdate(prjName " " verScript)
 Menu, Tray, Icon, resources\Syndicate.ico
 initMsgs := ["Подготовка макроса к работе)"
 			,"Поприветствуем Кассию)"
@@ -185,66 +186,6 @@ shProphecy(){
 
 shOils(){
 	shOverlay(9)
-}
-
-forceSync(){
-	BlockInput On
-	SendInput, {Enter}{/}oos{Enter}
-	BlockInput Off
-}
-
-toCharacterSelection(){
-	BlockInput On
-	SendInput, {Enter}{/}exit{Enter}
-	BlockInput Off
-}
-
-goHideout(){
-	BlockInput On
-	SendInput, {Enter}{/}hideout{Enter}
-	BlockInput Off
-}
-
-dndMode(){
-	BlockInput On
-	SendInput, {Enter}{/}dnd{Enter}
-	BlockInput Off
-}
-
-chatMsg1(){
-	chatReply(textMsg1)
-}
-
-chatMsg2(){
-	chatReply(textMsg2)
-}
-
-chatMsg3(){
-	chatReply(textMsg3)
-}
-
-chatReply(msg){
-	BlockInput On
-	SendInput, ^{Enter}%msg%{Enter}
-	BlockInput Off
-}
-
-chatInvite(){
-	BlockInput On
-	SendInput, ^{Enter}{Home}{Delete}/invite {Enter}
-	BlockInput Off
-}
-
-chatKick(){
-	BlockInput On
-	SendInput, ^{Enter}{Home}{Delete}/kick {Enter}
-	BlockInput Off
-}
-
-chatTradeWith(){
-	BlockInput On
-	SendInput, ^{Enter}{Home}{Delete}/tradewith {Enter}
-	BlockInput Off
 }
 
 textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
@@ -571,7 +512,7 @@ menuCreate(){
 	Menu, Tray, NoStandard
 
 	If FileExist(configFolder "\images\Lab.jpg")
-		Menu, mainMenu, Add, Лабиринт, shLabyrinth
+		Menu, mainMenu, Add, Раскладка лабиринта, shLabyrinth
 	If FileExist(configFolder "\images\Custom.jpg") || FileExist(configFolder "\images\Custom.png")
 		Menu, mainMenu, Add, Пользовательское изображение, shCustom
 	Menu, mainMenu, Add, Альва - Комнаты храма Ацоатль, shIncursion
