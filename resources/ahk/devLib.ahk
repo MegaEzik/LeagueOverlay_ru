@@ -7,12 +7,6 @@ devInit() {
 
 ;Создание меню разработчика
 devMenu() {
-	;menu, devSubMenu1, Add, normal, devLab
-	;menu, devSubMenu1, Add, cruel, devLab
-	menu, devSubMenu1, Add, merciless, devLab
-	menu, devSubMenu1, Add, uber, devLab
-
-	Menu, devMenu, Add, Лабиринт, :devSubMenu1
 	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
 	Menu, devMenu, Add, Открыть файл отладки, openDebugFile
 	Menu, devMenu, Add, Открыть папку настроек, openConfigFolder
@@ -37,14 +31,6 @@ debugMsg(textMsg="", Notify=false) {
 ;Открыть файл отладки
 openDebugFile() {
 	textFileWindow("Файл отладки", configFolder "\debug.log", false)
-}
-
-;Лабиринт
-devLab(lvlLab="uber"){
-	FileDelete, %configFolder%\images\Lab.jpg
-	sleep 25
-	downloadLabLayout(lvlLab)
-	ReStart()
 }
 
 ;Откатиться на релизную версию

@@ -1,9 +1,6 @@
 ﻿
 ;Загрузка изображения с раскладкой лабиринта соответствующего уровня
-downloadLabLayout(lvlLab="uber") {
-	
-	FileDelete, %configFolder%\images\Lab.jpg
-	return
+downloadLabLayout() {
 	
 	FormatTime, Year, %A_NowUTC%, yyyy
 	FormatTime, Month, %A_NowUTC%, MM
@@ -12,18 +9,16 @@ downloadLabLayout(lvlLab="uber") {
 	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.92 Safari/537.36"
 	
 	FormatTime, Hour, %A_NowUTC%, H
-	If (Hour<1) {
+	If (Hour<2) {
 		TrayTip, %prjName% - Загрузка лабиринта, Сейчас неподходящее время)
 		return
 	}
 	
 	If FileExist(configfolder "\images\Lab.jpg") {
 		FileGetTime, FileDate, %configfolder%\images\Lab.jpg
-		;UtcFileDate:=FileDate+A_NowUTC-A_Now
 		UtcFileDate:=(A_Now-A_NowUTC>140000)?FileDate:FileDate+A_NowUTC-A_Now
 		FormatTime, FileDateString, %UtcFileDate%, yyyyMMdd
 		CurrentDate:=Year Month Day
-		debugMsg(lvlLab "`n" FileDateString "`n" CurrentDate "`n" A_Now-A_NowUTC)
 		If (FileDateString==CurrentDate)
 			return
 	}
@@ -41,7 +36,39 @@ downloadLabLayout(lvlLab="uber") {
 		run, https://www.poelab.com/
 		sleep 2000
 	}
+	
+	
+	CurlLine.="-L -A """ UserAgent """ -o "
 
+	FileDelete, %configFolder%\labmain.html
+	FileDelete, %configFolder%\labpage.html
+
+	sleep 25
+
+	CurlLineLabMain:=CurlLine configFolder "\labmain.html https://www.poelab.com/"
+	RunWait, %CurlLineLabMain%
+	FileRead, PoELabData, %configFolder%\labmain.html
+	RegExMatch(PoELabData, "href=""https://www.poelab.com/(.*)""><strong>UBER LAB</strong>", FindText)
+	FileDelete, %configFolder%\labmain.html
+	If (StrLen(FindText1)<3 || StrLen(FindText1)>100) {
+		msgbox, 0x1010, %prjName% - Загрузка лабиринта, Не удалось скачать страницу!, 3
+		return
+	}
+
+	CurlLineLabPage:=CurlLine configFolder "\labpage.html https://www.poelab.com/"FindText1
+	RunWait, %CurlLineLabPage%
+	FileRead, PoELabData, %configFolder%\labpage.html
+	RegExMatch(PoELabData, "data-mfp-src=""https://www.poelab.com/(.*).jpg"" data-mfp-type=", FindText)
+	FileDelete, %configFolder%\labpage.html
+	If (StrLen(FindText1)<3 || StrLen(FindText1)>100) {
+		msgbox, 0x1010, %prjName% - Загрузка лабиринта, Не удалось скачать страницу!, 3
+		return
+	}
+
+	CurlLineImage:=CurlLine configFolder "\images\Lab.jpg https://www.poelab.com/" FindText1 ".jpg"
+	RunWait, %CurlLineImage%
+	
+	/*
 	If (CurlLine!="") {
 		FileDelete, %configFolder%\images\Lab.jpg
 		sleep 25
@@ -49,6 +76,7 @@ downloadLabLayout(lvlLab="uber") {
 		CurlLine.="-A """ UserAgent """ -o " configfolder "\images\Lab.jpg " LabURL
 		RunWait, %CurlLine%
 	}
+	*/
 	
 	/*
 	IniRead, lvlLab, %configFile%, settings, lvlLab, uber
