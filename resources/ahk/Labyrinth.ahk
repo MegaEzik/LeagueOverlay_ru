@@ -1,6 +1,10 @@
 ﻿
 ;Загрузка изображения с раскладкой лабиринта соответствующего уровня
 downloadLabLayout(lvlLab="uber") {
+	
+	FileDelete, %configFolder%\images\Lab.jpg
+	return
+	
 	FormatTime, Year, %A_NowUTC%, yyyy
 	FormatTime, Month, %A_NowUTC%, MM
 	FormatTime, Day, %A_NowUTC%, dd

@@ -332,7 +332,7 @@ showSettings(){
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
 	Gui, Settings:Add, Checkbox, vautoUpdateS x25 y105 w370 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
-	Gui, Settings:Add, Checkbox, vloadLabS x25 yp+22 w370 Checked%loadLabS%, Загружать раскладку лабиринта(POELab.com)
+	;Gui, Settings:Add, Checkbox, vloadLabS x25 yp+22 w370 Checked%loadLabS%, Загружать раскладку лабиринта(POELab.com)
 	
 	presetListS:="default"
 	Loop, resources\images\*, 2
