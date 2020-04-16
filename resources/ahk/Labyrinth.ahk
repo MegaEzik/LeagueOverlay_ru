@@ -1,14 +1,12 @@
 ﻿
 ;Загрузка изображения с раскладкой лабиринта соответствующего уровня
 downloadLabLayout() {
-	
 	FormatTime, Year, %A_NowUTC%, yyyy
 	FormatTime, Month, %A_NowUTC%, MM
-	FormatTime, Day, %A_NowUTC%, dd
-	
-	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.92 Safari/537.36"
-	
+	FormatTime, Day, %A_NowUTC%, dd	
 	FormatTime, Hour, %A_NowUTC%, H
+	
+	;Проверка условий
 	If (Hour<2) {
 		TrayTip, %prjName% - Загрузка лабиринта, Сейчас неподходящее время)
 		return
@@ -37,35 +35,50 @@ downloadLabLayout() {
 		sleep 2000
 	}
 	
-	
+	;Назначение переменных и очистка файлов
+	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.92 Safari/537.36"
 	CurlLine.="-L -A """ UserAgent """ -o "
 
 	FileDelete, %configFolder%\labmain.html
 	FileDelete, %configFolder%\labpage.html
+	FileDelete, %configFolder%\images\Lab.jpg
 
 	sleep 25
-
+	
+	;Загружаем основную страницу и извлекаем ссылку на страницу с убер-лабой
 	CurlLineLabMain:=CurlLine configFolder "\labmain.html https://www.poelab.com/"
 	RunWait, %CurlLineLabMain%
-	FileRead, PoELabData, %configFolder%\labmain.html
-	RegExMatch(PoELabData, "href=""https://www.poelab.com/(.*)""><strong>UBER LAB</strong>", FindText)
+	URL:=""
+	FileRead, LabData, %configFolder%\labmain.html
+	LabDataSplit:=StrSplit(LabData, "`n")
+	For k, val in LabDataSplit {
+		If RegExMatch(LabDataSplit[k], "href=""(.*)""><strong>UBER LAB</strong>", FindText)
+			URL:=FindText1
+	}
 	FileDelete, %configFolder%\labmain.html
-	If (StrLen(FindText1)<3 || StrLen(FindText1)>100) {
+	If (StrLen(URL)<3 || StrLen(URL)>200) {
 		msgbox, 0x1010, %prjName% - Загрузка лабиринта, Не удалось скачать страницу!, 3
 		return
 	}
-
-	CurlLineLabPage:=CurlLine configFolder "\labpage.html https://www.poelab.com/"FindText1
+	
+	;Загружаем страницу с убер-лабой и извлекаем ссылку на изображение
+	CurlLineLabPage:=CurlLine configFolder "\labpage.html " URL
 	RunWait, %CurlLineLabPage%
-	FileRead, PoELabData, %configFolder%\labpage.html
-	RegExMatch(PoELabData, "data-mfp-src=""https://www.poelab.com/(.*).jpg"" data-mfp-type=", FindText)
+	URL:=""
+	FileRead, LabData, %configFolder%\labpage.html
+	LabDataSplit:=StrSplit(LabData, "`n")
+	For k, val in LabDataSplit {
+		If RegExMatch(LabDataSplit[k], "data-mfp-src=""(.*)"" data-mfp-type=", FindText)
+			URL:=FindText1
+	}
 	FileDelete, %configFolder%\labpage.html
-	If (StrLen(FindText1)<3 || StrLen(FindText1)>100) {
+	If (StrLen(URL)<3 || StrLen(URL)>200) {
 		msgbox, 0x1010, %prjName% - Загрузка лабиринта, Не удалось скачать страницу!, 3
 		return
 	}
-
-	CurlLineImage:=CurlLine configFolder "\images\Lab.jpg https://www.poelab.com/" FindText1 ".jpg"
+	
+	;Загружаем изображение убер-лабы
+	CurlLineImage:=CurlLine configFolder "\images\Lab.jpg " URL
 	RunWait, %CurlLineImage%
 	
 	/*
@@ -93,6 +106,7 @@ downloadLabLayout() {
 	}
 	*/
 	
+	;Проверим изображение, чтобы оно не было пустым файлом или веб-страницей
 	FileReadLine, Line, %configFolder%\images\Lab.jpg, 1
 	If (Line="" || (InStr(Line, "<") && InStr(Line, ">")) || InStr(Line, "ban") || InStr(Line, "error")) {
 		FileDelete, %configFolder%\images\Lab.jpg
