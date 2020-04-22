@@ -23,6 +23,12 @@ dndMode(){
 	BlockInput Off
 }
 
+whoIs(){
+	BlockInput On
+	SendInput, ^{Enter}{Home}{Delete}/whois {Enter}
+	BlockInput Off
+}
+
 chatMsg1(){
 	chatReply(textMsg1)
 }
@@ -33,6 +39,14 @@ chatMsg2(){
 
 chatMsg3(){
 	chatReply(textMsg3)
+}
+
+chatMsg4(){
+	chatReply(textMsg4)
+}
+
+chatMsg5(){
+	chatReply(textMsg5)
 }
 
 chatReply(msg){

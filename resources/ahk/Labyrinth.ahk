@@ -7,6 +7,15 @@ downloadLabLayout() {
 	FormatTime, Hour, %A_NowUTC%, H
 	
 	;Проверка условий
+	If FileExist(A_WinDir "\System32\curl.exe") {
+		CurlLine:="curl "
+	} Else If FileExist(configfolder "\curl.exe") {
+		CurlLine:="""" configFolder "\curl.exe"" "
+	} Else {
+		msgbox, 0x1040, %prjName% - Загрузка лабиринта, В вашей системе не найдена утилита Curl!`nБез нее загрузка изображения лабиринта невозможна!`n`nРешение этой проблемы есть в теме на форуме), 10
+		return
+	}
+	
 	If (Hour<2) {
 		TrayTip, %prjName% - Загрузка лабиринта, Сейчас неподходящее время)
 		return
@@ -21,90 +30,60 @@ downloadLabLayout() {
 			return
 	}
 	
-	If FileExist(A_WinDir "\System32\curl.exe") {
-		CurlLine:="curl "
-	} Else If FileExist(configfolder "\curl.exe") {
-		CurlLine:="""" configFolder "\curl.exe"" "
-	} Else {
-		msgbox, 0x1040, %prjName% - Загрузка лабиринта, В вашей системе не найдена утилита Curl!`nБез нее загрузка изображения лабиринта невозможна!`n`nРешение этой проблемы есть в теме на форуме), 10
-		return
-	}
-	
-	If (!devMode) {
+	If !devMode
 		run, https://www.poelab.com/
-		sleep 2000
-	}
 	
 	;Назначение переменных и очистка файлов
-	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.92 Safari/537.36"
+	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36"
+	If FileExist(configfolder "\UserAgent.txt")
+		FileReadLine, UserAgent, %configFolder%\UserAgent.txt, 1
 	CurlLine.="-L -A """ UserAgent """ -o "
 
-	FileDelete, %configFolder%\labmain.html
-	FileDelete, %configFolder%\labpage.html
+	FileDelete, %A_Temp%\labmain.html
+	FileDelete, %A_Temp%\labpage.html
 	FileDelete, %configFolder%\images\Lab.jpg
 
 	sleep 25
 	
 	;Загружаем основную страницу и извлекаем ссылку на страницу с убер-лабой
-	CurlLineLabMain:=CurlLine configFolder "\labmain.html https://www.poelab.com/"
+	CurlLineLabMain:=CurlLine A_Temp "\labmain.html https://www.poelab.com/"
 	RunWait, %CurlLineLabMain%
-	URL:=""
-	FileRead, LabData, %configFolder%\labmain.html
+	FileRead, LabData, %A_Temp%\labmain.html
 	LabDataSplit:=StrSplit(LabData, "`n")
 	For k, val in LabDataSplit {
-		If RegExMatch(LabDataSplit[k], "href=""(.*)""><strong>UBER LAB</strong>", FindText)
-			URL:=FindText1
+		If RegExMatch(LabDataSplit[k], "<a href=""(.*)"">Uber Labyrinth Daily Notes</a>", URL)
+			break
+		If RegExMatch(LabDataSplit[k], "href=""(.*)""><strong>UBER LAB</strong>", URL)
+			break
 	}
-	FileDelete, %configFolder%\labmain.html
-	If (StrLen(URL)<3 || StrLen(URL)>200) {
+	FileDelete, %A_Temp%\labmain.html
+	debugMsg(URL1)
+	If (StrLen(URL1)<23 || StrLen(URL1)>100) {
 		msgbox, 0x1010, %prjName% - Загрузка лабиринта, Не удалось скачать страницу!, 3
 		return
 	}
 	
 	;Загружаем страницу с убер-лабой и извлекаем ссылку на изображение
-	CurlLineLabPage:=CurlLine configFolder "\labpage.html " URL
+	CurlLineLabPage:=CurlLine A_Temp "\labpage.html " URL1
 	RunWait, %CurlLineLabPage%
-	URL:=""
-	FileRead, LabData, %configFolder%\labpage.html
+	FileRead, LabData, %A_Temp%\labpage.html
 	LabDataSplit:=StrSplit(LabData, "`n")
 	For k, val in LabDataSplit {
-		If RegExMatch(LabDataSplit[k], "data-mfp-src=""(.*)"" data-mfp-type=", FindText)
-			URL:=FindText1
+		If RegExMatch(LabDataSplit[k], "<img id=""notesImg"" style=""width: margin: 0 auto; display: inline-block; cursor: zoom-in;"" src=""(.*)"" />", URL)
+			break
+		If RegExMatch(LabDataSplit[k], "data-mfp-src=""(.*)"" data-mfp-type=", URL)
+			break
 	}
-	FileDelete, %configFolder%\labpage.html
-	If (StrLen(URL)<3 || StrLen(URL)>200) {
+	FileDelete, %A_Temp%\labpage.html
+	debugMsg(URL1)
+	If (StrLen(URL1)<23 || StrLen(URL1)>100) {
 		msgbox, 0x1010, %prjName% - Загрузка лабиринта, Не удалось скачать страницу!, 3
 		return
 	}
 	
 	;Загружаем изображение убер-лабы
-	CurlLineImage:=CurlLine configFolder "\images\Lab.jpg " URL
-	RunWait, %CurlLineImage%
-	
-	/*
-	If (CurlLine!="") {
-		FileDelete, %configFolder%\images\Lab.jpg
-		sleep 25
-		LabURL:="http://poelab.com/wp-content/labfiles/" Year "-" Month "-" Day "_" lvlLab ".jpg"
-		CurlLine.="-A """ UserAgent """ -o " configfolder "\images\Lab.jpg " LabURL
-		RunWait, %CurlLine%
-	}
-	*/
-	
-	/*
-	IniRead, lvlLab, %configFile%, settings, lvlLab, uber
-	
-	FileDelete, %configFolder%\Lab.jpg
-	LabURL:="https://poelab.com/wp-content/labfiles/" Year "-" Month "-" Day "_" lvlLab ".jpg"
-	UrlDownloadToFile, %LabURL%, %configFolder%\Lab.jpg
-
-	FileReadLine, Line, %configFolder%\Lab.jpg, 1
-	if (Line="" || (InStr(Line, "<") && InStr(Line, ">")) || InStr(Line, "ban") || InStr(Line, "error")) {
-		FileDelete, %configFolder%\Lab.jpg
-		LabURL:="https://poelab.com/wp-content/uploads/" Year "/" Month "/" Year "-" Month "-" Day "_" lvlLab ".jpg"
-		UrlDownloadToFile, %LabURL%, %configFolder%\Lab.jpg
-	}
-	*/
+	CurlLineImg:=CurlLine configFolder "\images\Lab.jpg " URL1
+	RunWait, %CurlLineImg%
 	
 	;Проверим изображение, чтобы оно не было пустым файлом или веб-страницей
 	FileReadLine, Line, %configFolder%\images\Lab.jpg, 1

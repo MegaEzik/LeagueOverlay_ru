@@ -16,7 +16,7 @@ CheckUpdate() {
 CheckUpdateFromMenu(PressedBtn=""){
 	statusUpdate:=CheckUpdate()
 	if (statusUpdate="noupdate" && PressedBtn!="onStart") {
-		MsgBox, 0x1040, %prjName%, Вы используете актуальную версию), 3
+		MsgBox, 0x1040, %prjName%, Вы используете актуальную версию), 2
 	}
 	else if (statusUpdate!="noupdate" && statusUpdate!="") {
 		MsgBox, 0x1024, %prjName%, Установлена версия: %verScript%`nДоступна версия: %statusUpdate%`n`nХотите выполнить обновление до версии %statusUpdate%?
@@ -30,16 +30,16 @@ StartUpdate(verRelease) {
 	SplashTextOn, 300, 20, %prjName%, Выполняется обновление...
 	zipArchive:=A_Temp "\" prjName "-Update.zip"
 	FileDelete, %zipArchive%
-	sleep 35
+	sleep 25
 	newVersionURL:="https://github.com/" githubUser "/" prjName "/releases/download/" verRelease "/" prjName ".zip"
 	UrlDownloadToFile, %newVersionURL%, %zipArchive%
-	sleep 35	
+	sleep 25	
 	IfExist %zipArchive%
 	{
 		FileRemoveDir, %A_ScriptDir%, 1
 		sleep 1000
 		FileCreateDir, %A_ScriptDir%
-		sleep 35
+		sleep 25
 		unZipArchive(zipArchive, A_ScriptDir "\")
 		sleep 500
 		FileDelete, %zipArchive%
@@ -52,11 +52,11 @@ StartUpdate(verRelease) {
 DownloadToVar(URL) {
 	FilePath:=A_Temp "\" prjName "-JSONData.json"
 	UrlDownloadToFile, %URL%, %FilePath%
-	sleep 35
+	sleep 25
 	FileRead, Result, %FilePath%
-	sleep 35
+	sleep 25
 	FileDelete, %FilePath%
-	sleep 35
+	sleep 25
 	return Result
 }
 

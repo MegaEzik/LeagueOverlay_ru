@@ -92,13 +92,16 @@ calcMult(ImageWidth, ImageHeight, ScreenWidth, ScreenHeight){
 	return M
 }
 
-shOverlay(i){
+shOverlay(i=1){
 	If (GuiON%i%=1){
 		Gui, %i%: Hide
 		GuiON%i%:=0
 	}Else{
 		Gui, %i%: Show, NA
 		GuiON%i%:=1
-		LastImg:=i
+		if (LastImg!=i) {
+			IniWrite, %i%, %configFile%, settings, lastImg
+			LastImg:=i
+		}
 	}
 }
