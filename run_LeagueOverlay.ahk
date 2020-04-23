@@ -44,7 +44,7 @@ global trayMsg, verScript, devMode=0, textMsg1, textMsg2, textMsg3, textMsg4, te
 FileReadLine, verScript, resources\Updates.txt, 4
 
 ;Подсказка в области уведомлений и сообщение при запуске
-trayUpdate(prjName " " verScript)
+trayUpdate(prjName " " verScript " | AHK " A_AhkVersion)
 Menu, Tray, Icon, resources\Syndicate.ico
 initMsgs := ["Подготовка макроса к работе)"
 			,"Поприветствуем Кассию)"

@@ -45,6 +45,7 @@ downloadLabLayout() {
 
 	sleep 25
 	
+	/*
 	;Загружаем основную страницу и извлекаем ссылку на страницу с убер-лабой
 	CurlLineLabMain:=CurlLine A_Temp "\labmain.html https://www.poelab.com/"
 	RunWait, %CurlLineLabMain%
@@ -62,9 +63,11 @@ downloadLabLayout() {
 		msgbox, 0x1010, %prjName% - Загрузка лабиринта, Не удалось скачать страницу!, 3
 		return
 	}
+	*/
 	
 	;Загружаем страницу с убер-лабой и извлекаем ссылку на изображение
-	CurlLineLabPage:=CurlLine A_Temp "\labpage.html " URL1
+	;CurlLineLabPage:=CurlLine A_Temp "\labpage.html " URL1
+	CurlLineLabPage:=CurlLine A_Temp "\labpage.html https://www.poelab.com/wfbra"
 	RunWait, %CurlLineLabPage%
 	FileRead, LabData, %A_Temp%\labpage.html
 	LabDataSplit:=StrSplit(LabData, "`n")

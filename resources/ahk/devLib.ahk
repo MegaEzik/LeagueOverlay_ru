@@ -1,7 +1,7 @@
 ﻿
 ;Инициализация
 devInit() {
-	trayUpdate("`nРежим разработчика")
+	trayUpdate("`nВключен режим отладки")
 	devMenu()
 }
 
