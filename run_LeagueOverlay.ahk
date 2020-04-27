@@ -275,6 +275,8 @@ replacerImages(){
 			}
 			FileCopy, %FilePath%, %configFolder%\images\%replaceImgType%.%typeFile1%, true
 			Msgbox, 0x1040, %prjName%, Создана новая замена - %replaceImgType%!, 2
+			If (replaceImgType=="Lab")
+				ReStart()
 		}
 	}
 }
@@ -579,7 +581,7 @@ trayUpdate(nLine=""){
 
 ReStart(){
 	Gdip_Shutdown(pToken)
-	sleep 25
+	sleep 250
 	Reload
 }
 
@@ -595,6 +597,6 @@ closeMacros(){
 Exit:
 ; gdi+ may now be shutdown on exiting the program
 	Gdip_Shutdown(pToken)
-	sleep 25
+	sleep 250
 	ExitApp
 Return
