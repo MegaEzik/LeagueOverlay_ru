@@ -9,27 +9,16 @@ initOverlay(){
 		; Get a handle to this window we have created in order to update it later
 		hwnd%A_Index%:=WinExist()
 	}
-
+	
 	Loop %NumImg%{
-		If (GuiON%A_Index%=0){
-			CheckWinActivePOE()
-			SetTimer, CheckWinActivePOE, 200
-			GuiON%A_Index%=1
-		
-			; Show the window
-			Gui, %A_Index%: Show, NA
-		} Else {
-			SetTimer, CheckWinActivePOE, Off      
-			Gui, %A_Index%: Hide	
-			GuiON%A_Index%=0
-		}
+		Gui, %A_Index%: Show, NA
 		Gui, %A_Index%: Hide	
-		GuiON%A_Index%=0
+		GuiON%A_Index%:=0
 	}
-
+	
+	SetTimer, CheckWinActivePOE, 500
 
 	; If the image we want to work with does not exist on disk, then download it...
-
 	; Get a bitmap from the image
 
 	Loop %NumImg%{
@@ -66,19 +55,11 @@ initOverlay(){
 }
 
 CheckWinActivePOE(){
-	GuiControlGet, focused_control, focus
-	
-	Loop %NumImg%{
-		If(WinActive(poeWindowName))
-			If (GuiON%A_Index%=0){			
-				GuiON%A_Index%:=0
-			}
-		If(!WinActive(poeWindowName ))
-			If (GuiON%A_Index%=1){
-				Gui, %A_Index%: Hide
-				GuiON%A_Index%:=0
-			}
-	}
+	IfWinNotActive ahk_group PoEWindowGrp
+		Loop %NumImg%{
+			Gui, %A_Index%: Hide
+			GuiON%A_Index%:=0
+		}
 }
 
 ;Рассчитываем коэффициент для уменьшения изображения
@@ -93,6 +74,7 @@ calcMult(ImageWidth, ImageHeight, ScreenWidth, ScreenHeight){
 }
 
 shOverlay(i=1){
+	sleep 100 ;Нужна для корректной работы с GeForce NOW
 	If (GuiON%i%=1){
 		Gui, %i%: Hide
 		GuiON%i%:=0

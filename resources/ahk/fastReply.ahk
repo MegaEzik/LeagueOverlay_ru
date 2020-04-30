@@ -1,25 +1,31 @@
 ﻿
 forceSync(){
 	BlockInput On
-	SendInput, {Enter}{/}oos{Enter}
+	Send, {Enter}{/}oos{Enter}
 	BlockInput Off
 }
 
 toCharacterSelection(){
 	BlockInput On
-	SendInput, {Enter}{/}exit{Enter}
+	Send, {Enter}{/}exit{Enter}
 	BlockInput Off
 }
 
 goHideout(){
 	BlockInput On
-	SendInput, {Enter}{/}hideout{Enter}
+	Send, {Enter}{/}hideout{Enter}
 	BlockInput Off
 }
 
 dndMode(){
 	BlockInput On
-	SendInput, {Enter}{/}dnd{Enter}
+	Send, {Enter}{/}dnd{Enter}
+	BlockInput Off
+}
+
+traderHideout(){
+	BlockInput On
+	SendInput, ^{Enter}{Home}{Delete}/hideout {Enter}
 	BlockInput Off
 }
 

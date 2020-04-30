@@ -35,6 +35,10 @@ if (!A_IsAdmin) {
 #Include, %A_ScriptDir%\resources\ahk\fastReply.ahk
 #Include, %A_ScriptDir%\resources\ahk\devLib.ahk
 
+;Список окон Path of Exile
+GroupAdd, PoEWindowGrp, Path of Exile ahk_class POEWindowClass
+GroupAdd, PoEWindowGrp, ahk_exe GeForceNOWStreamer.exe
+
 ;Объявление и загрузка основных переменных
 global prjName:="LeagueOverlay_ru"
 global githubUser:="MegaEzik"
@@ -54,11 +58,7 @@ Random, randomNum, 1, initMsgs.MaxIndex()
 initMsg:=initMsgs[randomNum]
 SplashTextOn, 300, 20, %prjName%, %initMsg%
 
-;Если найден файл конфигурации разработчика, то активируем режим разработчика
-If FileExist(configfolder "\debug.log")
-	devMode:=1
-If devMode
-	devInit()
+devInit()
 
 ;Проверка обновлений
 IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
@@ -122,7 +122,6 @@ setHotkeys()
 menuCreate()
 
 ;Инициализируем оверлей
-global poeWindowName="Path of Exile ahk_class POEWindowClass"
 initOverlay()
 
 SplashTextOff
@@ -131,7 +130,7 @@ Return
 
 ;#################################################
 
-#IfWinActive Path of Exile
+#IfWinActive ahk_group PoEWindowGrp
 
 setPreset(path){
 	Loop %NumImg% {
@@ -304,7 +303,6 @@ showSettings(){
 	IniRead, hotkeyMainMenuS, %configFile%, hotkeys, hotkeyMainMenu, !f2
 	IniRead, hotkeyForceSyncS, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
 	IniRead, hotkeyDndS, %configFile%, hotkeys, hotkeyDnd, %A_Space%
-	IniRead, hotkeyWhoIsS, %configFile%, hotkeys, hotkeyWhoIs, %A_Space%
 	IniRead, hotkeyToCharacterSelectionS, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
 	IniRead, hotkeyHideoutS, %configFile%, hotkeys, hotkeyHideout, %A_Space%
 	
@@ -321,6 +319,8 @@ showSettings(){
 	IniRead, hotkeyInviteS, %configFile%, hotkeys, hotkeyInvite, %A_Space%
 	IniRead, hotkeyKickS, %configFile%, hotkeys, hotkeyKick, %A_Space%
 	IniRead, hotkeyTradeWithS, %configFile%, hotkeys, hotkeyTradeWith, %A_Space%
+	IniRead, hotkeyWhoIsS, %configFile%, hotkeys, hotkeyWhoIs, %A_Space%
+	IniRead, hotkeyTraderHideoutS, %configFile%, hotkeys, hotkeyTraderHideout, %A_Space%
 	
 	legacyHotkeysOldPosition:=legacyHotkeysS
 	lvlLabOldPosition:=lvlLabS
@@ -342,81 +342,86 @@ showSettings(){
 	Gui, Settings:Add, Link, x345 y+2, <a href="https://qiwi.me/megaezik">Поддержать %prjName%</a>
 	Gui, Settings:Add, Link, x10 yp+0 w250, <a href="https://ru.pathofexile.com/forum/view-thread/2694683">Тема на форуме</a> | <a href="https://github.com/MegaEzik/LeagueOverlay_ru/releases">Страница на GitHub</a>
 	
-	Gui, Settings:Add, Button, x335 y380 w170 gsaveSettings, Применить и перезапустить
+	Gui, Settings:Add, Button, x317 y405 w190 gsaveSettings, Применить и перезапустить
 
-	Gui, Settings:Add, Tab, x10 y65 w495 h310, Основные настройки|Быстрые команды ;Вкладки
+	Gui, Settings:Add, Tab, x10 y65 w495 h335, Основные настройки|Быстрые команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
-	Gui, Settings:Add, Checkbox, vautoUpdateS x25 y95 w370 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
-	Gui, Settings:Add, Checkbox, vloadLabS x25 yp+22 w270 Checked%loadLabS%, Загружать раскладку убер-лабиринта
+	Gui, Settings:Add, Checkbox, vautoUpdateS x20 y95 w370 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
+	Gui, Settings:Add, Checkbox, vloadLabS x20 yp+22 w270 Checked%loadLabS%, Загружать раскладку убер-лабиринта
 	Gui, Settings:Add, Link, x430 yp+0, <a href="https://www.poelab.com/">POELab.com</a>
 	
 	presetListS:="default"
 	Loop, resources\images\*, 2
 		presetListS.="|" A_LoopFileName
-	Gui, Settings:Add, Text, x25 yp+22 w170, Набор изображений:
-	Gui, Settings:Add, DropDownList, vimagesPresetS x+2 yp-3 w135, %presetListS%
+	Gui, Settings:Add, Text, x20 yp+22 w185, Набор изображений:
+	Gui, Settings:Add, DropDownList, vimagesPresetS x+2 yp-3 w110, %presetListS%
 	GuiControl,Settings:ChooseString, imagesPresetS, %imagesPresetS%
 	
-	Gui, Settings:Add, Text, x25 y+5 w470 h2 0x10
+	Gui, Settings:Add, Text, x20 y+5 w478 h2 0x10
 	
-	Gui, Settings:Add, Checkbox, vlegacyHotkeysS x25 yp+10 w370 Checked%legacyHotkeysS%, Устаревшая раскладка(использовать не рекомендуется)
+	Gui, Settings:Add, Checkbox, vlegacyHotkeysS x20 yp+10 w370 Checked%legacyHotkeysS%, Устаревшая раскладка(использовать не рекомендуется)
 	
-	Gui, Settings:Add, Text, x25 yp+22 w170, Последнее изображение*:
-	Gui, Settings:Add, Hotkey, vhotkeyLastImgS x+2 yp-2 w135 h18, %hotkeyLastImgS%
+	Gui, Settings:Add, Text, x20 yp+22 w185, Последнее изображение*:
+	Gui, Settings:Add, Hotkey, vhotkeyLastImgS x+2 yp-2 w110 h18, %hotkeyLastImgS%
 	
-	Gui, Settings:Add, Text, x25 yp+22 w170, Меню изображений*:
-	Gui, Settings:Add, Hotkey, vhotkeyMainMenuS x+2 yp-2 w135 h18, %hotkeyMainMenuS%
+	Gui, Settings:Add, Text, x20 yp+22 w185, Меню изображений*:
+	Gui, Settings:Add, Hotkey, vhotkeyMainMenuS x+2 yp-2 w110 h18, %hotkeyMainMenuS%
 	
-	Gui, Settings:Add, Text, x25 y355 w400 cGray, * - Недоступно в режиме Устаревшей раскладки
+	Gui, Settings:Add, Text, x20 y380 w400 cGray, * Недоступно в режиме Устаревшей раскладки
 	
 	Gui, Settings:Tab, 2 ; Вторая вкладка
 	
-	Gui, Settings:Add, Text, x25 y95 w170, Синхронизировать(/oos):
-	Gui, Settings:Add, Hotkey, vhotkeyForceSyncS x+2 yp-2 w135 h18, %hotkeyForceSyncS%
+	Gui, Settings:Add, Text, x20 y95 w185, Синхронизировать(/oos):
+	Gui, Settings:Add, Hotkey, vhotkeyForceSyncS x+2 yp-2 w110 h18, %hotkeyForceSyncS%
 	
-	Gui, Settings:Add, Text, x25 yp+22 w170, К выбору персонажа(/exit):
-	Gui, Settings:Add, Hotkey, vhotkeyToCharacterSelectionS x+2 yp-2 w135 h18, %hotkeyToCharacterSelectionS%
+	Gui, Settings:Add, Text, x20 yp+22 w185, К выбору персонажа(/exit):
+	Gui, Settings:Add, Hotkey, vhotkeyToCharacterSelectionS x+2 yp-2 w110 h18, %hotkeyToCharacterSelectionS%
 	
-	Gui, Settings:Add, Text, x25 yp+22 w170, В убежище(/hideout):
-	Gui, Settings:Add, Hotkey, vhotkeyHideoutS x+2 yp-2 w135 h18, %hotkeyHideoutS%
+	Gui, Settings:Add, Text, x20 yp+22 w185, В свое убежище(/hideout):
+	Gui, Settings:Add, Hotkey, vhotkeyHideoutS x+2 yp-2 w110 h18, %hotkeyHideoutS%
 	
-	Gui, Settings:Add, Text, x25 yp+22 w170, Не беспокоить(/dnd):
-	Gui, Settings:Add, Hotkey, vhotkeyDndS x+2 yp-2 w135 h18, %hotkeyDndS%
+	Gui, Settings:Add, Text, x20 yp+22 w185, Не беспокоить(/dnd):
+	Gui, Settings:Add, Hotkey, vhotkeyDndS x+2 yp-2 w110 h18, %hotkeyDndS%
 	
-	Gui, Settings:Add, Text, x25 yp+22 w170, Пригласить(/invite)*:
-	Gui, Settings:Add, Hotkey, vhotkeyInviteS x+2 yp-2 w135 h18, %hotkeyInviteS%
+	Gui, Settings:Add, Text, x20 y+2 w478 h2 0x10
 	
-	Gui, Settings:Add, Text, x25 yp+22 w170, Выгнать(/kick)*:
-	Gui, Settings:Add, Hotkey, vhotkeyKickS x+2 yp-2 w135 h18, %hotkeyKickS%
+	Gui, Settings:Add, Text, x20 yp+5 w185, Пригласить(/invite)*:
+	Gui, Settings:Add, Hotkey, vhotkeyInviteS x+2 yp-2 w110 h18, %hotkeyInviteS%
 	
-	Gui, Settings:Add, Text, x25 yp+22 w170, Торговать(/tradewith)*:
-	Gui, Settings:Add, Hotkey, vhotkeyTradeWithS x+2 yp-2 w135 h18, %hotkeyTradeWithS%
+	Gui, Settings:Add, Text, x20 yp+22 w185, Выгнать(/kick)*:
+	Gui, Settings:Add, Hotkey, vhotkeyKickS x+2 yp-2 w110 h18, %hotkeyKickS%
 	
-	Gui, Settings:Add, Text, x25 yp+22 w170, Об игроке(/whois)*:
-	Gui, Settings:Add, Hotkey, vhotkeyWhoIsS x+2 yp-2 w135 h18, %hotkeyWhoIsS%
+	Gui, Settings:Add, Text, x20 yp+22 w185, Торговать(/tradewith)*:
+	Gui, Settings:Add, Hotkey, vhotkeyTradeWithS x+2 yp-2 w110 h18, %hotkeyTradeWithS%
 	
-	Gui, Settings:Add, Text, x25 yp+22 w170, Быстрый ответ 1*:
-	Gui, Settings:Add, Hotkey, vhotkeyMsg1S x+2 yp-2 w135 h18, %hotkeyMsg1S%
-	Gui, Settings:Add, Edit, vtextMsg1S x+2 w158 h18, %textMsg1S%
+	Gui, Settings:Add, Text, x20 yp+22 w185, В убежище игрока(/hideout)*:
+	Gui, Settings:Add, Hotkey, vhotkeyTraderHideoutS x+2 yp-2 w110 h18, %hotkeyTraderHideoutS%
 	
-	Gui, Settings:Add, Text, x25 yp+22 w170, Быстрый ответ 2*:
-	Gui, Settings:Add, Hotkey, vhotkeyMsg2S x+2 yp-2 w135 h18, %hotkeyMsg2S%
-	Gui, Settings:Add, Edit, vtextMsg2S x+2 w158 h18, %textMsg2S%
+	Gui, Settings:Add, Text, x20 yp+22 w185, Об игроке(/whois)*:
+	Gui, Settings:Add, Hotkey, vhotkeyWhoIsS x+2 yp-2 w110 h18, %hotkeyWhoIsS%
 	
-	Gui, Settings:Add, Text, x25 yp+22 w170, Быстрый ответ 3*:
-	Gui, Settings:Add, Hotkey, vhotkeyMsg3S x+2 yp-2 w135 h18, %hotkeyMsg3S%
-	Gui, Settings:Add, Edit, vtextMsg3S x+2 w158 h18, %textMsg3S%
+	Gui, Settings:Add, Text, x20 yp+22 w185, Быстрый ответ 1*:
+	Gui, Settings:Add, Hotkey, vhotkeyMsg1S x+2 yp-2 w110 h18, %hotkeyMsg1S%
+	Gui, Settings:Add, Edit, vtextMsg1S x+2 w178 h18, %textMsg1S%
 	
-	Gui, Settings:Add, Text, x25 yp+22 w170, Быстрый ответ 4*:
-	Gui, Settings:Add, Hotkey, vhotkeyMsg4S x+2 yp-2 w135 h18, %hotkeyMsg4S%
-	Gui, Settings:Add, Edit, vtextMsg4S x+2 w158 h18, %textMsg4S%
+	Gui, Settings:Add, Text, x20 yp+22 w185, Быстрый ответ 2*:
+	Gui, Settings:Add, Hotkey, vhotkeyMsg2S x+2 yp-2 w110 h18, %hotkeyMsg2S%
+	Gui, Settings:Add, Edit, vtextMsg2S x+2 w178 h18, %textMsg2S%
 	
-	Gui, Settings:Add, Text, x25 yp+22 w170, Быстрый ответ 5*:
-	Gui, Settings:Add, Hotkey, vhotkeyMsg5S x+2 yp-2 w135 h18, %hotkeyMsg5S%
-	Gui, Settings:Add, Edit, vtextMsg5S x+2 w158 h18, %textMsg5S%
+	Gui, Settings:Add, Text, x20 yp+22 w185, Быстрый ответ 3*:
+	Gui, Settings:Add, Hotkey, vhotkeyMsg3S x+2 yp-2 w110 h18, %hotkeyMsg3S%
+	Gui, Settings:Add, Edit, vtextMsg3S x+2 w178 h18, %textMsg3S%
 	
-	Gui, Settings:Add, Text, x25 y355 w400 cGray, * - Применяется по отношению к игроку в последнем диалоге
+	Gui, Settings:Add, Text, x20 yp+22 w185, Быстрый ответ 4*:
+	Gui, Settings:Add, Hotkey, vhotkeyMsg4S x+2 yp-2 w110 h18, %hotkeyMsg4S%
+	Gui, Settings:Add, Edit, vtextMsg4S x+2 w178 h18, %textMsg4S%
+	
+	Gui, Settings:Add, Text, x20 yp+22 w185, Быстрый ответ 5*:
+	Gui, Settings:Add, Hotkey, vhotkeyMsg5S x+2 yp-2 w110 h18, %hotkeyMsg5S%
+	Gui, Settings:Add, Edit, vtextMsg5S x+2 w178 h18, %textMsg5S%
+	
+	Gui, Settings:Add, Text, x20 y380 w400 cGray, * Выполняется по отношению к игроку в последнем диалоге
 	
 	Gui, Settings:Show, w515, %prjName% %VerScript% - Информация и настройки ;Отобразить окно настроек
 }
@@ -436,13 +441,14 @@ saveSettings(){
 	IniWrite, %hotkeyMainMenuS%, %configFile%, hotkeys, hotkeyMainMenu
 	IniWrite, %hotkeyForceSyncS%, %configFile%, hotkeys, hotkeyForceSync
 	IniWrite, %hotkeyDndS%, %configFile%, hotkeys, hotkeyDnd
-	IniWrite, %hotkeyWhoIsS%, %configFile%, hotkeys, hotkeyWhoIs
 	IniWrite, %hotkeyToCharacterSelectionS%, %configFile%, hotkeys, hotkeyToCharacterSelection
 	IniWrite, %hotkeyHideoutS%, %configFile%, hotkeys, hotkeyHideout
 	
 	IniWrite, %hotkeyKickS%, %configFile%, hotkeys, hotkeyKick
 	IniWrite, %hotkeyInviteS%, %configFile%, hotkeys, hotkeyInvite
 	IniWrite, %hotkeyTradeWithS%, %configFile%, hotkeys, hotkeyTradeWith
+	IniWrite, %hotkeyWhoIsS%, %configFile%, hotkeys, hotkeyWhoIs
+	IniWrite, %hotkeyTraderHideoutS%, %configFile%, hotkeys, hotkeyTraderHideout
 	IniWrite, %hotkeyMsg1S%, %configFile%, hotkeys, hotkeyMsg1
 	IniWrite, %hotkeyMsg2S%, %configFile%, hotkeys, hotkeyMsg2
 	IniWrite, %hotkeyMsg3S%, %configFile%, hotkeys, hotkeyMsg3
@@ -497,7 +503,6 @@ setHotkeys(){
 	IniRead, hotkeyToCharacterSelection, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
 	IniRead, hotkeyHideout, %configFile%, hotkeys, hotkeyHideout, %A_Space%
 	IniRead, hotkeyDnd, %configFile%, hotkeys, hotkeyDnd, %A_Space%
-	IniRead, hotkeyWhoIs, %configFile%, hotkeys, hotkeyWhoIs, %A_Space%
 	IniRead, hotkeyMsg1, %configFile%, hotkeys, hotkeyMsg1, %A_Space%
 	IniRead, hotkeyMsg2, %configFile%, hotkeys, hotkeyMsg2, %A_Space%
 	IniRead, hotkeyMsg3, %configFile%, hotkeys, hotkeyMsg3, %A_Space%
@@ -511,6 +516,8 @@ setHotkeys(){
 	IniRead, hotkeyInvite, %configFile%, hotkeys, hotkeyInvite, %A_Space%
 	IniRead, hotkeyKick, %configFile%, hotkeys, hotkeyKick, %A_Space%
 	IniRead, hotkeyTradeWith, %configFile%, hotkeys, hotkeyTradeWith, %A_Space%
+	IniRead, hotkeyWhoIs, %configFile%, hotkeys, hotkeyWhoIs, %A_Space%
+	IniRead, hotkeyTraderHideout, %configFile%, hotkeys, hotkeyTraderHideout, %A_Space%
 	if (hotkeyForceSync!="")
 		Hotkey, % hotkeyForceSync, forceSync, On
 	if (hotkeyToCharacterSelection!="")
@@ -519,8 +526,6 @@ setHotkeys(){
 		Hotkey, % hotkeyHideout, goHideout, On
 	if (hotkeyDnd!="")
 		Hotkey, % hotkeyDnd, dndMode, On
-	if (hotkeyWhoIs!="")
-		Hotkey, % hotkeyWhoIs, whoIs, On
 	if (hotkeyMsg1!="")
 		Hotkey, % hotkeyMsg1, chatMsg1, On
 	if (hotkeyMsg2!="")
@@ -537,6 +542,10 @@ setHotkeys(){
 		Hotkey, % hotkeyKick, chatKick, On
 	if (hotkeyTradeWith!="")
 		Hotkey, % hotkeyTradeWith, chatTradeWith, On
+	if (hotkeyWhoIs!="")
+		Hotkey, % hotkeyWhoIs, whoIs, On
+	if (hotkeyTraderHideout!="")
+		Hotkey, % hotkeyTraderHideout, traderHideout, On
 }
 
 menuCreate(){
