@@ -429,6 +429,7 @@ showSettings(){
 saveSettings(){
 	global
 	DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", WM_INPUTLANGCHANGEREQUEST := 0x50, "UInt", INPUTLANGCHANGE_FORWARD := 0x2, "UInt", 0x00)
+	sleep 100
 	Gui, Settings:Submit
 	
 	if (imagesPresetS="")
