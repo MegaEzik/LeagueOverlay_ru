@@ -7,14 +7,14 @@
 		*Gdip_All.ahk - Библиотека отвечающая за отрисовку оверлея, авторство https://github.com/PoE-TradeMacro/PoE-CustomUIOverlay
 		*JSON.ahk - Разбор данных от api, авторство https://github.com/cocobelgica/AutoHotkey-JSON
 		*Overlay.ahk - Набор функций вынесенных из основного скрипта LeagueOverlay
-		*Labyrinth.ahk - Загрузка лабиринта с poelab.com и формирование меню по управлению
+		*Labyrinth.ahk - Загрузка убер-лабиринта с poelab.com, и создание окна управления испытаниями убер-лабиринта
 		*Updater.ahk - Проверка и установка обновлений
+		*devLib.ahk - Библиотека для функций отладки и тестирования новых функций
+		*fastReply.ahk - Библиотека с функциями 'Быстрых ответов'
 	
 	Управление:
 		[Alt+F1] - Последнее изображение
 		[Alt+F2] - Меню с изображениями
-		
-		Эти сочетания клавиш и другие настройки вы можете изменить вручную в файле конфигурации %USERPROFILE%\Documents\LeagueOverlay_ru\settings.ini
 */
 
 #NoEnv
@@ -428,6 +428,7 @@ showSettings(){
 
 saveSettings(){
 	global
+	DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", WM_INPUTLANGCHANGEREQUEST := 0x50, "UInt", INPUTLANGCHANGE_FORWARD := 0x2, "UInt", 0x00)
 	Gui, Settings:Submit
 	
 	if (imagesPresetS="")

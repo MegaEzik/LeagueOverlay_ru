@@ -1,25 +1,25 @@
 ﻿
 forceSync(){
 	BlockInput On
-	Send, {Enter}{/}oos{Enter}
+	SendInput, {Enter}{/}oos{Enter}
 	BlockInput Off
 }
 
 toCharacterSelection(){
 	BlockInput On
-	Send, {Enter}{/}exit{Enter}
+	SendInput, {Enter}{/}exit{Enter}
 	BlockInput Off
 }
 
 goHideout(){
 	BlockInput On
-	Send, {Enter}{/}hideout{Enter}
+	SendInput, {Enter}{/}hideout{Enter}
 	BlockInput Off
 }
 
 dndMode(){
 	BlockInput On
-	Send, {Enter}{/}dnd{Enter}
+	SendInput, {Enter}{/}dnd{Enter}
 	BlockInput Off
 }
 
