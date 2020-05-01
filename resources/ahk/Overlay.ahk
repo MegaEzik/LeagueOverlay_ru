@@ -74,7 +74,7 @@ calcMult(ImageWidth, ImageHeight, ScreenWidth, ScreenHeight){
 }
 
 shOverlay(i=1){
-	sleep 100 ;Нужна для корректной работы с GeForce NOW
+	sleep 50 ;Нужна для корректной работы с GeForce NOW
 	If (GuiON%i%=1){
 		Gui, %i%: Hide
 		GuiON%i%:=0
