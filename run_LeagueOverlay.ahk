@@ -428,7 +428,7 @@ showSettings(){
 
 saveSettings(){
 	global
-	DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", WM_INPUTLANGCHANGEREQUEST := 0x50, "UInt", INPUTLANGCHANGE_FORWARD := 0x2, "UInt", 0x00)
+	DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", 0x50, "UInt", 0x4090409, "UInt", 0x4090409)
 	sleep 100
 	Gui, Settings:Submit
 	
