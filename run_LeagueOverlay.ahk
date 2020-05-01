@@ -365,7 +365,7 @@ showSettings(){
 	Gui, Settings:Add, Text, x20 yp+22 w185, Последнее изображение*:
 	Gui, Settings:Add, Hotkey, vhotkeyLastImgS x+2 yp-2 w110 h18, %hotkeyLastImgS%
 	
-	Gui, Settings:Add, Text, x20 yp+22 w185, Меню изображений*:
+	Gui, Settings:Add, Text, x20 yp+22 w185, Меню быстрого доступа*:
 	Gui, Settings:Add, Hotkey, vhotkeyMainMenuS x+2 yp-2 w110 h18, %hotkeyMainMenuS%
 	
 	Gui, Settings:Add, Text, x20 y380 w400 cGray, * Недоступно в режиме Устаревшей раскладки
@@ -577,7 +577,9 @@ menuCreate(){
 	Menu, mainMenu, Add, Кассия - Масла, shOils
 	Menu, mainMenu, Add, Навали - Пророчества, shProphecy
 	Menu, mainMenu, Add, Нико - Ископаемые, shFossils
-	Menu, mainMenu, Add	
+	Menu, mainMenu, Add
+	If devMode
+		Menu, mainMenu, Add, Меню команд, :customCommandsMenu
 	Menu, mainMenu, Add, Меню области уведомлений, :Tray
 }
 
