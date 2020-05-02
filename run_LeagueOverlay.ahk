@@ -222,6 +222,7 @@ tfwSave(){
 	sleep 100
 	FileAppend, %tfwContentFile%, %tfwFilePath%, UTF-8
 	Gui, tfwGui:Destroy
+	ReStart()
 }
 
 showUpdateHistory(){
