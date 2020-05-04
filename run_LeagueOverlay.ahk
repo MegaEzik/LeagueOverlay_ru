@@ -119,6 +119,7 @@ setPreset(configFolder "\images\")
 	
 ;Назначим управление и создадим меню
 setHotkeys()
+createCustomCommandsMenu()
 menuCreate()
 
 ;Инициализируем оверлей

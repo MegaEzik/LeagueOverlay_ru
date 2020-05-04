@@ -1,7 +1,6 @@
 ﻿
 ;Инициализация
 devInit() {
-	createCustomCommandsMenu()
 	If !FileExist(configfolder "\debug.log")
 		return
 	devMode:=1
