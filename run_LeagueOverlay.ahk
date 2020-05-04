@@ -44,7 +44,7 @@ global prjName:="LeagueOverlay_ru"
 global githubUser:="MegaEzik"
 global configFolder:=A_MyDocuments "\AutoHotKey\" prjName
 global configFile:=configFolder "\settings.ini"
-global trayMsg, verScript, devMode=0, textMsg1, textMsg2, textMsg3, textMsg4, textMsg5
+global trayMsg, verScript, devMode=0, textMsg1, textMsg2, textMsg3
 FileReadLine, verScript, resources\Updates.txt, 4
 
 ;Подсказка в области уведомлений и сообщение при запуске
@@ -62,7 +62,7 @@ devInit()
 
 ;Проверка обновлений
 IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
-if autoUpdate {
+if autoUpdate && !devMode {
 	CheckUpdateFromMenu("onStart")
 	SetTimer, CheckUpdate, 10800000
 }
@@ -222,7 +222,6 @@ tfwSave(){
 	sleep 100
 	FileAppend, %tfwContentFile%, %tfwFilePath%, UTF-8
 	Gui, tfwGui:Destroy
-	ReStart()
 }
 
 showUpdateHistory(){
@@ -310,18 +309,12 @@ showSettings(){
 	IniRead, hotkeyMsg1S, %configFile%, hotkeys, hotkeyMsg1, %A_Space%
 	IniRead, hotkeyMsg2S, %configFile%, hotkeys, hotkeyMsg2, %A_Space%
 	IniRead, hotkeyMsg3S, %configFile%, hotkeys, hotkeyMsg3, %A_Space%
-	IniRead, hotkeyMsg4S, %configFile%, hotkeys, hotkeyMsg4, %A_Space%
-	IniRead, hotkeyMsg5S, %configFile%, hotkeys, hotkeyMsg5, %A_Space%
 	IniRead, textMsg1S, %configFile%, settings, textMsg1, sold(
 	IniRead, textMsg2S, %configFile%, settings, textMsg2, 2 minutes
 	IniRead, textMsg3S, %configFile%, settings, textMsg3, ty & gl exile)
-	IniRead, textMsg4S, %configFile%, settings, textMsg4, %A_Space%
-	IniRead, textMsg5S, %configFile%, settings, textMsg5, %A_Space%
 	IniRead, hotkeyInviteS, %configFile%, hotkeys, hotkeyInvite, %A_Space%
 	IniRead, hotkeyKickS, %configFile%, hotkeys, hotkeyKick, %A_Space%
 	IniRead, hotkeyTradeWithS, %configFile%, hotkeys, hotkeyTradeWith, %A_Space%
-	IniRead, hotkeyWhoIsS, %configFile%, hotkeys, hotkeyWhoIs, %A_Space%
-	IniRead, hotkeyTraderHideoutS, %configFile%, hotkeys, hotkeyTraderHideout, %A_Space%
 	
 	legacyHotkeysOldPosition:=legacyHotkeysS
 	lvlLabOldPosition:=lvlLabS
@@ -343,9 +336,9 @@ showSettings(){
 	Gui, Settings:Add, Link, x345 y+2, <a href="https://qiwi.me/megaezik">Поддержать %prjName%</a>
 	Gui, Settings:Add, Link, x10 yp+0 w250, <a href="https://ru.pathofexile.com/forum/view-thread/2694683">Тема на форуме</a> | <a href="https://github.com/MegaEzik/LeagueOverlay_ru/releases">Страница на GitHub</a>
 	
-	Gui, Settings:Add, Button, x317 y405 w190 gsaveSettings, Применить и перезапустить
+	Gui, Settings:Add, Button, x317 y325 w190 gsaveSettings, Применить и перезапустить
 
-	Gui, Settings:Add, Tab, x10 y65 w495 h335, Основные настройки|Быстрые команды ;Вкладки
+	Gui, Settings:Add, Tab, x10 y65 w495 h255, Основные настройки|Быстрые команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
 	Gui, Settings:Add, Checkbox, vautoUpdateS x20 y95 w370 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
@@ -369,7 +362,7 @@ showSettings(){
 	Gui, Settings:Add, Text, x20 yp+22 w185, Меню быстрого доступа*:
 	Gui, Settings:Add, Hotkey, vhotkeyMainMenuS x+2 yp-2 w110 h18, %hotkeyMainMenuS%
 	
-	Gui, Settings:Add, Text, x20 y380 w400 cGray, * Недоступно в режиме Устаревшей раскладки
+	Gui, Settings:Add, Text, x20 y300 w400 cGray, * Недоступно в режиме Устаревшей раскладки
 	
 	Gui, Settings:Tab, 2 ; Вторая вкладка
 	
@@ -396,12 +389,6 @@ showSettings(){
 	Gui, Settings:Add, Text, x20 yp+22 w185, Торговать(/tradewith)*:
 	Gui, Settings:Add, Hotkey, vhotkeyTradeWithS x+2 yp-2 w110 h18, %hotkeyTradeWithS%
 	
-	Gui, Settings:Add, Text, x20 yp+22 w185, В убежище игрока(/hideout)*:
-	Gui, Settings:Add, Hotkey, vhotkeyTraderHideoutS x+2 yp-2 w110 h18, %hotkeyTraderHideoutS%
-	
-	Gui, Settings:Add, Text, x20 yp+22 w185, Об игроке(/whois)*:
-	Gui, Settings:Add, Hotkey, vhotkeyWhoIsS x+2 yp-2 w110 h18, %hotkeyWhoIsS%
-	
 	Gui, Settings:Add, Text, x20 yp+22 w185, Быстрый ответ 1*:
 	Gui, Settings:Add, Hotkey, vhotkeyMsg1S x+2 yp-2 w110 h18, %hotkeyMsg1S%
 	Gui, Settings:Add, Edit, vtextMsg1S x+2 w178 h18, %textMsg1S%
@@ -414,15 +401,7 @@ showSettings(){
 	Gui, Settings:Add, Hotkey, vhotkeyMsg3S x+2 yp-2 w110 h18, %hotkeyMsg3S%
 	Gui, Settings:Add, Edit, vtextMsg3S x+2 w178 h18, %textMsg3S%
 	
-	Gui, Settings:Add, Text, x20 yp+22 w185, Быстрый ответ 4*:
-	Gui, Settings:Add, Hotkey, vhotkeyMsg4S x+2 yp-2 w110 h18, %hotkeyMsg4S%
-	Gui, Settings:Add, Edit, vtextMsg4S x+2 w178 h18, %textMsg4S%
-	
-	Gui, Settings:Add, Text, x20 yp+22 w185, Быстрый ответ 5*:
-	Gui, Settings:Add, Hotkey, vhotkeyMsg5S x+2 yp-2 w110 h18, %hotkeyMsg5S%
-	Gui, Settings:Add, Edit, vtextMsg5S x+2 w178 h18, %textMsg5S%
-	
-	Gui, Settings:Add, Text, x20 y380 w400 cGray, * Выполняется по отношению к игроку в последнем диалоге
+	Gui, Settings:Add, Text, x20 y300 w400 cGray, * Выполняется по отношению к игроку в последнем диалоге
 	
 	Gui, Settings:Show, w515, %prjName% %VerScript% - Информация и настройки ;Отобразить окно настроек
 }
@@ -450,18 +429,12 @@ saveSettings(){
 	IniWrite, %hotkeyKickS%, %configFile%, hotkeys, hotkeyKick
 	IniWrite, %hotkeyInviteS%, %configFile%, hotkeys, hotkeyInvite
 	IniWrite, %hotkeyTradeWithS%, %configFile%, hotkeys, hotkeyTradeWith
-	IniWrite, %hotkeyWhoIsS%, %configFile%, hotkeys, hotkeyWhoIs
-	IniWrite, %hotkeyTraderHideoutS%, %configFile%, hotkeys, hotkeyTraderHideout
 	IniWrite, %hotkeyMsg1S%, %configFile%, hotkeys, hotkeyMsg1
 	IniWrite, %hotkeyMsg2S%, %configFile%, hotkeys, hotkeyMsg2
 	IniWrite, %hotkeyMsg3S%, %configFile%, hotkeys, hotkeyMsg3
-	IniWrite, %hotkeyMsg4S%, %configFile%, hotkeys, hotkeyMsg4
-	IniWrite, %hotkeyMsg5S%, %configFile%, hotkeys, hotkeyMsg5
 	IniWrite, %textMsg1S%, %configFile%, settings, textMsg1
 	IniWrite, %textMsg2S%, %configFile%, settings, textMsg2
 	IniWrite, %textMsg3S%, %configFile%, settings, textMsg3
-	IniWrite, %textMsg4S%, %configFile%, settings, textMsg4
-	IniWrite, %textMsg5S%, %configFile%, settings, textMsg5
 	
 	if (legacyHotkeysS>legacyHotkeysOldPosition) {
 		msgText:="Устаревшая раскладка имеет следующее управление:`n"
@@ -509,18 +482,12 @@ setHotkeys(){
 	IniRead, hotkeyMsg1, %configFile%, hotkeys, hotkeyMsg1, %A_Space%
 	IniRead, hotkeyMsg2, %configFile%, hotkeys, hotkeyMsg2, %A_Space%
 	IniRead, hotkeyMsg3, %configFile%, hotkeys, hotkeyMsg3, %A_Space%
-	IniRead, hotkeyMsg4, %configFile%, hotkeys, hotkeyMsg4, %A_Space%
-	IniRead, hotkeyMsg5, %configFile%, hotkeys, hotkeyMsg5, %A_Space%
 	IniRead, textMsg1, %configFile%, settings, textMsg1, %A_Space%
 	IniRead, textMsg2, %configFile%, settings, textMsg2, %A_Space%
 	IniRead, textMsg3, %configFile%, settings, textMsg3, %A_Space%
-	IniRead, textMsg4, %configFile%, settings, textMsg4, %A_Space%
-	IniRead, textMsg5, %configFile%, settings, textMsg5, %A_Space%
 	IniRead, hotkeyInvite, %configFile%, hotkeys, hotkeyInvite, %A_Space%
 	IniRead, hotkeyKick, %configFile%, hotkeys, hotkeyKick, %A_Space%
 	IniRead, hotkeyTradeWith, %configFile%, hotkeys, hotkeyTradeWith, %A_Space%
-	IniRead, hotkeyWhoIs, %configFile%, hotkeys, hotkeyWhoIs, %A_Space%
-	IniRead, hotkeyTraderHideout, %configFile%, hotkeys, hotkeyTraderHideout, %A_Space%
 	if (hotkeyForceSync!="")
 		Hotkey, % hotkeyForceSync, forceSync, On
 	if (hotkeyToCharacterSelection!="")
@@ -535,20 +502,12 @@ setHotkeys(){
 		Hotkey, % hotkeyMsg2, chatMsg2, On
 	if (hotkeyMsg3!="")
 		Hotkey, % hotkeyMsg3, chatMsg3, On
-	if (hotkeyMsg4!="")
-		Hotkey, % hotkeyMsg4, chatMsg4, On
-	if (hotkeyMsg5!="")
-		Hotkey, % hotkeyMsg5, chatMsg5, On
 	if (hotkeyInvite!="")
 		Hotkey, % hotkeyInvite, chatInvite, On
 	if (hotkeyKick!="")
 		Hotkey, % hotkeyKick, chatKick, On
 	if (hotkeyTradeWith!="")
 		Hotkey, % hotkeyTradeWith, chatTradeWith, On
-	if (hotkeyWhoIs!="")
-		Hotkey, % hotkeyWhoIs, whoIs, On
-	if (hotkeyTraderHideout!="")
-		Hotkey, % hotkeyTraderHideout, traderHideout, On
 }
 
 menuCreate(){
@@ -579,8 +538,7 @@ menuCreate(){
 	Menu, mainMenu, Add, Навали - Пророчества, shProphecy
 	Menu, mainMenu, Add, Нико - Ископаемые, shFossils
 	Menu, mainMenu, Add
-	If devMode
-		Menu, mainMenu, Add, Меню команд, :customCommandsMenu
+	Menu, mainMenu, Add, Меню команд, :customCommandsMenu
 	Menu, mainMenu, Add, Меню области уведомлений, :Tray
 }
 
