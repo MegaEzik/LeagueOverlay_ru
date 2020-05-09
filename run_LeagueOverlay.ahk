@@ -318,7 +318,6 @@ showSettings(){
 	IniRead, hotkeyTradeWithS, %configFile%, hotkeys, hotkeyTradeWith, %A_Space%
 	
 	legacyHotkeysOldPosition:=legacyHotkeysS
-	lvlLabOldPosition:=lvlLabS
 	
 	Menu, settingsSubMenu1, Add
 	Menu, settingsSubMenu1, DeleteAll
