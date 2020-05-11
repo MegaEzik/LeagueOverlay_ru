@@ -1,12 +1,7 @@
 ﻿
 ;Загрузка изображения с раскладкой лабиринта соответствующего уровня
 downloadLabLayout() {
-	FormatTime, Year, %A_NowUTC%, yyyy
-	FormatTime, Month, %A_NowUTC%, MM
-	FormatTime, Day, %A_NowUTC%, dd	
-	FormatTime, Hour, %A_NowUTC%, H
-	
-	;Проверка условий
+	;Проверка наличия утилиты Curl
 	If FileExist(A_WinDir "\System32\curl.exe") {
 		CurlLine:="curl "
 	} Else If FileExist(configfolder "\curl.exe") {
@@ -16,25 +11,25 @@ downloadLabLayout() {
 		return
 	}
 	
+	;В это время раскладка лабиринта может быть недоступной
+	FormatTime, Hour, %A_NowUTC%, H
 	If (Hour<2) {
 		TrayTip, %prjName% - Загрузка лабиринта, Сейчас неподходящее время)
 		return
 	}
 	
-	If FileExist(configfolder "\images\Lab.jpg") {
-		FileGetTime, FileDate, %configfolder%\images\Lab.jpg
-		UtcFileDate:=(A_Now-A_NowUTC>140000)?FileDate:FileDate+A_NowUTC-A_Now
-		FormatTime, FileDateString, %UtcFileDate%, yyyyMMdd
-		CurrentDate:=Year Month Day
-		If (FileDateString==CurrentDate)
-			return
-	}
+	;Сравним текущую дату UTC с датой загрузки лабиринта 
+	IniRead, LabLoadDate, %configFile%, info, LabLoadDate, %A_Space%
+	FormatTime, CurrentDate, %A_NowUTC%, yyyyMMdd
+	If (CurrentDate==LabLoadDate && FileExist(configFolder "\images\Lab.jpg"))
+		return
 	
+	;Если режим разработчика не включен, то откроем сайт
 	If !devMode
 		run, https://www.poelab.com/
 	
 	;Назначение переменных и очистка файлов
-	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.122 Safari/537.36"
+	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36"
 	If FileExist(configfolder "\UserAgent.txt")
 		FileReadLine, UserAgent, %configFolder%\UserAgent.txt, 1
 	CurlLine.="-L -A """ UserAgent """ -o "
@@ -60,7 +55,7 @@ downloadLabLayout() {
 	FileDelete, %A_Temp%\labmain.html
 	debugMsg(URL1)
 	If (StrLen(URL1)<23 || StrLen(URL1)>100) {
-		msgbox, 0x1010, %prjName% - Загрузка лабиринта, Не удалось скачать страницу!, 3
+		msgbox, 0x1010, %prjName% - Загрузка лабиринта, Не удалось скачать основную страницу!, 3
 		return
 	}
 	*/
@@ -80,7 +75,7 @@ downloadLabLayout() {
 	FileDelete, %A_Temp%\labpage.html
 	debugMsg(URL1)
 	If (StrLen(URL1)<23 || StrLen(URL1)>100) {
-		msgbox, 0x1010, %prjName% - Загрузка лабиринта, Не удалось скачать страницу!, 3
+		msgbox, 0x1010, %prjName% - Загрузка лабиринта, Не удалось скачать страницу с раскладкой!, 3
 		return
 	}
 	
@@ -93,7 +88,11 @@ downloadLabLayout() {
 	If (Line="" || (InStr(Line, "<") && InStr(Line, ">")) || InStr(Line, "ban") || InStr(Line, "error")) {
 		FileDelete, %configFolder%\images\Lab.jpg
 		MsgBox, 0x1010, %prjName% - Загрузка лабиринта, Получен некорректный файл лабиринта!, 5
+		return
 	}
+	
+	;Запишем дату загрузки лабиринта
+	IniWrite, %CurrentDate%, %configFile%, info, LabLoadDate
 }
 
 ;Создание интерфейса с испытаниями

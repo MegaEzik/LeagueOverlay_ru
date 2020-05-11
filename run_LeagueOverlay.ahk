@@ -72,10 +72,12 @@ IniRead, verConfig, %configFile%, info, verConfig, ""
 if (verConfig!=verScript) {
 	showSettings()
 	IniRead, LastImg, %configFile%, settings, lastImg, 1
+	IniRead, LabLoadDate, %configFile%, info, LabLoadDate, %A_Space%
 	FileDelete, %configFile%
 	sleep 25
 	FileCreateDir, %configFolder%\images
 	IniWrite, %LastImg%, %configFile%, settings, lastImg
+	IniWrite, %LabLoadDate%, %configFile%, info, LabLoadDate
 	IniWrite, %verScript%, %configFile%, info, verConfig
 	saveSettings()
 }
@@ -275,8 +277,11 @@ replacerImages(){
 			}
 			FileCopy, %FilePath%, %configFolder%\images\%replaceImgType%.%typeFile1%, true
 			Msgbox, 0x1040, %prjName%, Создана новая замена - %replaceImgType%!, 2
-			If (replaceImgType=="Lab")
+			If (replaceImgType=="Lab") {
+				FormatTime, CurrentDate, %A_NowUTC%, yyyyMMdd
+				IniWrite, %CurrentDate%, %configFile%, info, LabLoadDate
 				ReStart()
+			}
 		}
 	}
 }

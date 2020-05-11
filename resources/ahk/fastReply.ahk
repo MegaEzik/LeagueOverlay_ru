@@ -23,60 +23,28 @@ dndMode(){
 	BlockInput Off
 }
 
-traderHideout(){
-	BlockInput On
-	SendInput, ^{Enter}{Home}{Delete}/hideout {Enter}
-	BlockInput Off
-}
-
-whoIs(){
-	BlockInput On
-	SendInput, ^{Enter}{Home}{Delete}/whois {Enter}
-	BlockInput Off
-}
-
 chatMsg1(){
-	chatReply(textMsg1)
+	commandFastReply("@<last> " textMsg1)
 }
 
 chatMsg2(){
-	chatReply(textMsg2)
+	commandFastReply("@<last> " textMsg2)
 }
 
 chatMsg3(){
-	chatReply(textMsg3)
-}
-
-chatMsg4(){
-	chatReply(textMsg4)
-}
-
-chatMsg5(){
-	chatReply(textMsg5)
-}
-
-chatReply(msg){
-	BlockInput On
-	SendInput, ^{Enter}%msg%{Enter}
-	BlockInput Off
+	commandFastReply("@<last> " textMsg3)
 }
 
 chatInvite(){
-	BlockInput On
-	SendInput, ^{Enter}{Home}{Delete}/invite {Enter}
-	BlockInput Off
+	commandFastReply("/invite <last>")
 }
 
 chatKick(){
-	BlockInput On
-	SendInput, ^{Enter}{Home}{Delete}/kick {Enter}
-	BlockInput Off
+	commandFastReply("/kick <last>")
 }
 
 chatTradeWith(){
-	BlockInput On
-	SendInput, ^{Enter}{Home}{Delete}/tradewith {Enter}
-	BlockInput Off
+	commandFastReply("/tradewith <last>")
 }
 
 customCommandsEdit() {
@@ -97,7 +65,7 @@ createCustomCommandsMenu(){
 		For k, val in FileLines {
 			Line:=FileLines[k]
 			If (RegExMatch(FileLines[k], "/")=1) || (RegExMatch(FileLines[k], "@<last> ")=1) || (RegExMatch(FileLines[k], "run ")=1)
-				Menu, customCommandsMenu, Add, %Line%, commandFromMenu
+				Menu, customCommandsMenu, Add, %Line%, commandFastReply
 			If (RegExMatch(FileLines[k], "-----"))
 				Menu, customCommandsMenu, Add
 		}
@@ -106,7 +74,7 @@ createCustomCommandsMenu(){
 	Menu, customCommandsMenu, Add, Редактировать 'Меню команд', customCommandsEdit
 }
 
-commandFromMenu(Line:="/dance"){
+commandFastReply(Line:="/dance"){
 	DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", 0x50, "UInt", 0x4090409, "UInt", 0x4090409)
 	sleep 50
 	If (RegExMatch(Line, "/")=1) {
@@ -131,7 +99,7 @@ commandFromMenu(Line:="/dance"){
 	}
 	If (RegExMatch(Line, "run ")=1) {
 		Line:=StrReplace(Line, "run ", "")
-		run %Line%
+		Run %Line%
 		return
 	}
 	msgbox, 0x1010, %prjName%, Неизвестная команда!, 2
