@@ -355,7 +355,7 @@ showSettings(){
 	Gui, Settings:Add, Tab, x10 y65 w495 h255, Основные настройки|Быстрые команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
-	Gui, Settings:Add, Checkbox, vautoUpdateS x20 y95 w370 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
+	Gui, Settings:Add, Checkbox, vautoUpdateS x20 y95 w470 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
 	Gui, Settings:Add, Checkbox, vloadLabS x20 yp+22 w270 Checked%loadLabS%, Загружать раскладку убер-лабиринта
 	Gui, Settings:Add, Link, x430 yp+0, <a href="https://www.poelab.com/">POELab.com</a>
 	
@@ -368,7 +368,7 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x20 y+5 w478 h2 0x10
 	
-	Gui, Settings:Add, Checkbox, vlegacyHotkeysS x20 yp+10 w370 Checked%legacyHotkeysS%, Устаревшая раскладка(использовать не рекомендуется)
+	Gui, Settings:Add, Checkbox, vlegacyHotkeysS x20 yp+10 w470 Checked%legacyHotkeysS%, Устаревшая раскладка(использовать не рекомендуется)
 	
 	Gui, Settings:Add, Text, x20 yp+22 w185, Последнее изображение*:
 	Gui, Settings:Add, Hotkey, vhotkeyLastImgS x+2 yp-2 w110 h18, %hotkeyLastImgS%
@@ -417,6 +417,7 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x20 y300 w400 cGray, * Выполняется по отношению к игроку в последнем диалоге
 	
+	Gui, Settings:+AlwaysOnTop
 	Gui, Settings:Show, w515, %prjName% %VerScript% - Информация и настройки ;Отобразить окно настроек
 }
 
@@ -537,7 +538,7 @@ menuCreate(){
 		Menu, Tray, Add, Инструменты разработчика, :devMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить, ReStart
-	Menu, Tray, Add, Завершить работу макроса, closeMacros
+	Menu, Tray, Add, Завершить работу макроса, Exit
 	Menu, Tray, NoStandard
 
 	If FileExist(configFolder "\images\Lab.jpg")
@@ -569,13 +570,6 @@ ReStart(){
 	Gdip_Shutdown(pToken)
 	sleep 250
 	Reload
-}
-
-closeMacros(){
-	MsgBox, 0x1024, %prjName%, Завершить работу %prjName%?
-	IfMsgBox No
-		return
-	Gosub, Exit
 }
 
 ;#################################################

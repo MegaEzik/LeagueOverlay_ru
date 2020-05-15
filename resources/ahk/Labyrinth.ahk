@@ -117,6 +117,7 @@ showLabTrials() {
 	Gui, LabTrials:Add, Checkbox, vtrialDS xp+155 y5 w145 h28 Checked%trialDS%, Пылающей яростью`nBurning Rage
 	Gui, LabTrials:Add, Checkbox, vtrialES xp+0 y+5 w145 h28 Checked%trialES%, Постоянной болью`nLingering Pain
 	Gui, LabTrials:Add, Checkbox, vtrialFS xp+0 y+5 w145 h28 Checked%trialFS%, Жгучим сомнением`nStinging Doubt
+	Gui, LabTrials:+AlwaysOnTop
 	Gui, LabTrials:Show, w320, Испытания лабиринта
 }
 
