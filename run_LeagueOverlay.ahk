@@ -129,6 +129,15 @@ initOverlay()
 
 SplashTextOff
 
+;Иногда при запуске будем предлагать поддержать проект
+Random, randomNum, 1, 20
+if (randomNum=1 && !devMode) {
+	MsgText:="Нравится " prjName ", хотите поддержать автора?"
+	MsgBox, 0x1024, %prjName%, %MsgText%, 10
+	IfMsgBox Yes
+		run https://qiwi.me/megaezik
+}
+
 Return
 
 ;#################################################
