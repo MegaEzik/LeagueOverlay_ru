@@ -127,9 +127,12 @@ menuCreate()
 ;Инициализируем оверлей
 initOverlay()
 
+;Скроем сообщение загрузки и воспроизведем звук, при его наличии в системе
 SplashTextOff
+if FileExist(A_WinDir "\Media\Speech On.wav")
+	SoundPlay, %A_WinDir%\Media\Speech On.wav
 
-;Иногда при запуске будем предлагать поддержать проект
+;Иногда после запуска будем предлагать поддержать проект
 Random, randomNum, 1, 20
 if (randomNum=1 && !devMode) {
 	MsgText:="Нравится " prjName ", хотите поддержать автора?"
