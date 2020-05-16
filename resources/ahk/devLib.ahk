@@ -47,3 +47,11 @@ devRestoreRelease() {
 	verScript:=0
 	CheckUpdateFromMenu()
 }
+
+;Логаут
+cportsLogout(){
+	Run, "%configfolder%\cports.exe" /close * * * * PathOfExile_x64.exe
+	Run, "%configfolder%\cports.exe" /close * * * * PathOfExile_x64Steam.exe
+	Run, "%configfolder%\cports.exe" /close * * * * PathOfExile.exe
+	Run, "%configfolder%\cports.exe" /close * * * * PathOfExileSteam.exe
+}

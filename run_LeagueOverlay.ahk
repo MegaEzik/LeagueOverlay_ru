@@ -206,7 +206,6 @@ textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 	global
 	tfwFilePath:=FilePath
 	Gui, tfwGui:Destroy
-	Gui, tfwGui:Font, s10, Consolas
 	FileRead, tfwContentFile, %tfwFilePath%
 	if ReadOnlyStatus {
 		Gui, tfwGui:Add, Edit, w580 h400 +ReadOnly, %tfwContentFile%
@@ -220,7 +219,7 @@ textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 	Gui, tfwGui:+AlwaysOnTop
 	Gui, tfwGui:Show,, %prjName% - %Title%
 	
-	sleep 25
+	sleep 15
 	BlockInput On
 	if ReadOnlyStatus {
 		SendInput, ^{Home}
@@ -311,7 +310,6 @@ delReplacedImages(){
 showSettings(){
 	global
 	Gui, Settings:Destroy
-	Gui, Settings:Font, s8, Consolas
 	
 	IniRead, autoUpdateS, %configFile%, settings, autoUpdate, 1
 	IniRead, imagesPresetS, %configFile%, settings, imagesPreset, default
@@ -358,7 +356,7 @@ showSettings(){
 	Gui, Settings:Add, Tab, x10 y65 w495 h255, Основные настройки|Быстрые команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
-	Gui, Settings:Add, Checkbox, vautoUpdateS x20 y95 w470 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
+	Gui, Settings:Add, Checkbox, vautoUpdateS x20 y95 w450 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
 	Gui, Settings:Add, Checkbox, vloadLabS x20 yp+22 w270 Checked%loadLabS%, Загружать раскладку убер-лабиринта
 	Gui, Settings:Add, Link, x430 yp+0, <a href="https://www.poelab.com/">POELab.com</a>
 	
@@ -371,7 +369,7 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x20 y+5 w478 h2 0x10
 	
-	Gui, Settings:Add, Checkbox, vlegacyHotkeysS x20 yp+10 w470 Checked%legacyHotkeysS%, Устаревшая раскладка(использовать не рекомендуется)
+	Gui, Settings:Add, Checkbox, vlegacyHotkeysS x20 yp+10 w450 Checked%legacyHotkeysS%, Устаревшая раскладка(использовать не рекомендуется)
 	
 	Gui, Settings:Add, Text, x20 yp+22 w185, Последнее изображение*:
 	Gui, Settings:Add, Hotkey, vhotkeyLastImgS x+2 yp-2 w110 h18, %hotkeyLastImgS%
