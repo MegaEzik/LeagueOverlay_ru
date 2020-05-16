@@ -472,6 +472,8 @@ delConfigFolder(){
 }
 
 setHotkeys(){
+	DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", 0x50, "UInt", 0x4090409, "UInt", 0x4090409)
+	sleep 100
 	IniRead, legacyHotkeys, %configFile%, settings, legacyHotkeys, 0
 	If !legacyHotkeys {
 		IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
