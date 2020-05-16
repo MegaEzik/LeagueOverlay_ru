@@ -202,6 +202,11 @@ shOils(){
 	shOverlay(9)
 }
 
+shRandom(){
+	Random, randomNum, 1, NumImg
+	shOverlay(randomNum)
+}
+
 textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 	global
 	tfwFilePath:=FilePath
@@ -553,6 +558,10 @@ menuCreate(){
 	Menu, mainMenu, Add, Джун - Награды бессмертного Синдиката, shSyndicate
 	Menu, mainMenu, Add, Зана - Карты, shMaps
 	Menu, mainMenu, Add, Кассия - Масла, shOils
+	FormatTime, Month, %A_Now%, MMdd
+	Random, randomNum, 1, 250
+	if (Month==0401 || randomNum=1)
+		Menu, mainMenu, Add, Криллсон - Руководство по рыбалке, shRandom
 	Menu, mainMenu, Add, Навали - Пророчества, shProphecy
 	Menu, mainMenu, Add, Нико - Ископаемые, shFossils
 	Menu, mainMenu, Add
