@@ -1,11 +1,18 @@
 ﻿
 ;Инициализация
 devInit() {
-	If !FileExist(configfolder "\debug.log")
+	if InStr(FileExist(A_ScriptDir "\profile"), "D") {
+		configFolder:=A_ScriptDir "\profile"
+		configFile:=configFolder "\settings.ini"
+	} else if !FileExist(configfolder "\debug.log")
 		return
 	devMode:=1
 	trayUpdate("`nВключен режим отладки")
 	devMenu()
+	if FileExist(configfolder "\WindowGrp.txt") {
+		FileReadLine, WindowLine, %configfolder%\WindowGrp.txt, 1
+		GroupAdd, PoEWindowGrp, %WindowLine%
+	}
 }
 
 ;Создание меню разработчика
