@@ -72,12 +72,10 @@ IniRead, verConfig, %configFile%, info, verConfig, ""
 if (verConfig!=verScript) {
 	showSettings()
 	IniRead, LastImg, %configFile%, settings, lastImg, 1
-	IniRead, LabLoadDate, %configFile%, info, LabLoadDate, %A_Space%
 	FileDelete, %configFile%
 	sleep 25
 	FileCreateDir, %configFolder%\images
 	IniWrite, %LastImg%, %configFile%, settings, lastImg
-	IniWrite, %LabLoadDate%, %configFile%, info, LabLoadDate
 	IniWrite, %verScript%, %configFile%, info, verConfig
 	saveSettings()
 }
@@ -286,18 +284,11 @@ replacerImages(){
 			SplitPath, FilePath, replaceImgName
 			if RegExMatch(replaceImgName, "i)(Fossil|Incursion|Map|Oils|Prophecy|Syndicate)", replaceImgType) {
 				StringLower, replaceImgType, replaceImgType, T
-			} else if RegExMatch(replaceImgName, "i)(Normal|Cruel|Merciless|Uber)") {
-				replaceImgType:="Lab"
 			} else {
 				replaceImgType:="Custom"
 			}
 			FileCopy, %FilePath%, %configFolder%\images\%replaceImgType%.%typeFile1%, true
 			Msgbox, 0x1040, %prjName%, Создана новая замена - %replaceImgType%!, 2
-			If (replaceImgType=="Lab") {
-				FormatTime, CurrentDate, %A_NowUTC%, yyyyMMdd
-				IniWrite, %CurrentDate%, %configFile%, info, LabLoadDate
-				ReStart()
-			}
 		}
 	}
 }
@@ -558,9 +549,9 @@ menuCreate(){
 	Menu, mainMenu, Add, Джун - Награды бессмертного Синдиката, shSyndicate
 	Menu, mainMenu, Add, Зана - Карты, shMaps
 	Menu, mainMenu, Add, Кассия - Масла, shOils
-	FormatTime, Month, %A_Now%, MMdd
-	Random, randomNum, 1, 250
-	if (Month==0401 || randomNum=1)
+	FormatTime, Month, %A_Now%, MM
+	Random, randomNum, 1, 200
+	if (Month=4 || randomNum=1 || devMode)
 		Menu, mainMenu, Add, Криллсон - Руководство по рыбалке, shRandom
 	Menu, mainMenu, Add, Навали - Пророчества, shProphecy
 	Menu, mainMenu, Add, Нико - Ископаемые, shFossils
