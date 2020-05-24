@@ -294,6 +294,7 @@ showSettings(){
 	global
 	Gui, Settings:Destroy
 	
+	;Настройки первой вкладки
 	IniRead, windowLineS, %configFile%, settings, windowLine, ahk_exe GeForceNOWStreamer.exe
 	IniRead, autoUpdateS, %configFile%, settings, autoUpdate, 1
 	IniRead, imagesPresetS, %configFile%, settings, imagesPreset, default
@@ -301,6 +302,8 @@ showSettings(){
 	IniRead, legacyHotkeysS, %configFile%, settings, legacyHotkeys, 0
 	IniRead, hotkeyLastImgS, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenuS, %configFile%, hotkeys, hotkeyMainMenu, !f2
+	
+	;Настройки второй вкладки
 	IniRead, hotkeyForceSyncS, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
 	IniRead, hotkeyDndS, %configFile%, hotkeys, hotkeyDnd, %A_Space%
 	IniRead, hotkeyToCharacterSelectionS, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
@@ -316,6 +319,11 @@ showSettings(){
 	IniRead, hotkeyKickS, %configFile%, hotkeys, hotkeyKick, %A_Space%
 	IniRead, hotkeyTradeWithS, %configFile%, hotkeys, hotkeyTradeWith, %A_Space%
 	
+	;Настройки третьей вкладки
+	IniRead, hotkeyMediaPlayPauseS, %configFile%, hotkeys, hotkeyMediaPlayPause, %A_Space%
+	IniRead, hotkeyMediaNextS, %configFile%, hotkeys, hotkeyMediaNext, %A_Space%
+	IniRead, hotkeyMediaPrevS, %configFile%, hotkeys, hotkeyMediaPrev, %A_Space%
+	
 	legacyHotkeysOldPosition:=legacyHotkeysS
 	
 	Gui, Settings:Add, Text, x10 y10 w330 h28 cGreen, %prjName% - макрос содержащий несколько нужных функций и отображающий полезные изображения.
@@ -326,7 +334,7 @@ showSettings(){
 	
 	Gui, Settings:Add, Button, x317 y325 w190 gsaveSettings, Применить и перезапустить
 
-	Gui, Settings:Add, Tab, x10 y65 w495 h255, Основные настройки|Быстрые команды ;Вкладки
+	Gui, Settings:Add, Tab, x10 y65 w495 h255, Основные настройки|Быстрые команды|Управление плеером ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
 	Gui, Settings:Add, Text, x20 y95 w185, Другое окно для проверки:
@@ -395,6 +403,19 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x20 y300 w400 cGray, * Выполняется по отношению к игроку в последнем диалоге
 	
+	Gui, Settings:Tab, 3 ; Третья вкладка
+	
+	Gui, Settings:Add, Text, x20 y95 w185, Предыдущий трек:*
+	Gui, Settings:Add, Hotkey, vhotkeyMediaPrevS x+2 yp-2 w110 h18, %hotkeyMediaPrevS%
+	
+	Gui, Settings:Add, Text, x20 yp+22 w185, Продолжить/Пауза:*
+	Gui, Settings:Add, Hotkey, vhotkeyMediaPlayPauseS x+2 yp-2 w110 h18, %hotkeyMediaPlayPauseS%
+	
+	Gui, Settings:Add, Text, x20 yp+22 w185, Следующий трек:*
+	Gui, Settings:Add, Hotkey, vhotkeyMediaNextS x+2 yp-2 w110 h18, %hotkeyMediaNextS%
+	
+	Gui, Settings:Add, Text, x20 y300 w400 cGray, * Ваш плеер должен быть запущен и поддерживать мультимедийные клавиши
+	
 	Gui, Settings:+AlwaysOnTop
 	Gui, Settings:Show, w515, %prjName% %VerScript% - Информация и настройки ;Отобразить окно настроек
 }
@@ -408,6 +429,7 @@ saveSettings(){
 	if (imagesPresetS="")
 		imagesPresetS:="default"
 	
+	;Настройки первой вкладки
 	IniWrite, %windowLineS%, %configFile%, settings, windowLine
 	IniWrite, %autoUpdateS%, %configFile%, settings, autoUpdate
 	IniWrite, %imagesPresetS%, %configFile%, settings, imagesPreset
@@ -415,6 +437,8 @@ saveSettings(){
 	IniWrite, %legacyHotkeysS%, %configFile%, settings, legacyHotkeys
 	IniWrite, %hotkeyLastImgS%, %configFile%, hotkeys, hotkeyLastImg
 	IniWrite, %hotkeyMainMenuS%, %configFile%, hotkeys, hotkeyMainMenu
+	
+	;Настройки второй вкладки
 	IniWrite, %hotkeyForceSyncS%, %configFile%, hotkeys, hotkeyForceSync
 	IniWrite, %hotkeyDndS%, %configFile%, hotkeys, hotkeyDnd
 	IniWrite, %hotkeyToCharacterSelectionS%, %configFile%, hotkeys, hotkeyToCharacterSelection
@@ -429,6 +453,11 @@ saveSettings(){
 	IniWrite, %textMsg1S%, %configFile%, settings, textMsg1
 	IniWrite, %textMsg2S%, %configFile%, settings, textMsg2
 	IniWrite, %textMsg3S%, %configFile%, settings, textMsg3
+	
+	;Настройки третьей вкладки
+	IniWrite, %hotkeyMediaPlayPauseS%, %configFile%, hotkeys, hotkeyMediaPlayPause
+	IniWrite, %hotkeyMediaNextS%, %configFile%, hotkeys, hotkeyMediaNext
+	IniWrite, %hotkeyMediaPrevS%, %configFile%, hotkeys, hotkeyMediaPrev
 	
 	if (legacyHotkeysS>legacyHotkeysOldPosition) {
 		msgText:="Устаревшая раскладка имеет следующее управление:`n"
@@ -494,6 +523,17 @@ setHotkeys(){
 		Hotkey, % hotkeyKick, chatKick, On
 	if (hotkeyTradeWith!="")
 		Hotkey, % hotkeyTradeWith, chatTradeWith, On
+		
+	;Медиа-клавиши
+	IniRead, hotkeyMediaPlayPause, %configFile%, hotkeys, hotkeyMediaPlayPause, %A_Space%
+	IniRead, hotkeyMediaNext, %configFile%, hotkeys, hotkeyMediaNext, %A_Space%
+	IniRead, hotkeyMediaPrev, %configFile%, hotkeys, hotkeyMediaPrev, %A_Space%
+	if (hotkeyMediaPlayPause!="")
+		Hotkey, % hotkeyMediaPlayPause, mediaPlayPause, On
+	if (hotkeyMediaNext!="")
+		Hotkey, % hotkeyMediaNext, mediaNext, On
+	if (hotkeyMediaPrev!="")
+		Hotkey, % hotkeyMediaPrev, mediaPrev, On
 }
 
 menuCreate(){
