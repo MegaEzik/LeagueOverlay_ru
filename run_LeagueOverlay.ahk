@@ -105,8 +105,11 @@ Loop %NumImg%{
 
 ;Загружаем раскладку лабиринта, и если изображение получено, то устанавливаем его
 IniRead, loadLab, %configFile%, settings, loadLab, 0
-If loadLab
+If loadLab {
 	downloadLabLayout()
+} else {
+	FileDelete, %configFolder%\Lab.jpg
+}
 If FileExist(configFolder "\Lab.jpg")
 	image1:=configFolder "\Lab.jpg"
 
