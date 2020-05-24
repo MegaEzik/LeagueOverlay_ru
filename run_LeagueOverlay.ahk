@@ -81,10 +81,9 @@ if (verConfig!=verScript) {
 }
 
 ;Добавим возможность подгружать имя своего окна
-if FileExist(configfolder "\WindowGrp.txt") {
-	FileReadLine, WindowLine, %configfolder%\WindowGrp.txt, 1
-	GroupAdd, PoEWindowGrp, %WindowLine%
-}
+IniRead, windowLine, %configFile%, settings, windowLine, %A_Space%
+if (windowLine!="")
+	GroupAdd, PoEWindowGrp, %windowLine%
 
 ;Запуск gdi+
 If !pToken:=Gdip_Startup()
@@ -296,6 +295,7 @@ showSettings(){
 	global
 	Gui, Settings:Destroy
 	
+	IniRead, windowLineS, %configFile%, settings, windowLine, %A_Space%
 	IniRead, autoUpdateS, %configFile%, settings, autoUpdate, 1
 	IniRead, imagesPresetS, %configFile%, settings, imagesPreset, default
 	IniRead, loadLabS, %configFile%, settings, loadLab, 0
@@ -321,7 +321,6 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x10 y10 w330 h28 cGreen, %prjName% - макрос содержащий несколько нужных функций и отображающий полезные изображения.
 	
-	
 	Gui, Settings:Add, Picture, x370 y2 w107 h-1, resources\qiwi-logo.png
 	Gui, Settings:Add, Link, x345 y+2, <a href="https://qiwi.me/megaezik">Поддержать %prjName%</a>
 	Gui, Settings:Add, Link, x10 yp+0 w250, <a href="https://ru.pathofexile.com/forum/view-thread/2694683">Тема на форуме</a> | <a href="https://github.com/MegaEzik/LeagueOverlay_ru/releases">Страница на GitHub</a>
@@ -331,7 +330,11 @@ showSettings(){
 	Gui, Settings:Add, Tab, x10 y65 w495 h255, Основные настройки|Быстрые команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
-	Gui, Settings:Add, Checkbox, vautoUpdateS x20 y95 w450 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
+	Gui, Settings:Add, Text, x20 y95 w185, Другое окно для проверки:
+	Gui, Settings:Add, Edit, vwindowLineS x+2 yp-2 w290 h18, %windowLineS%
+	
+	Gui, Settings:Add, Checkbox, vautoUpdateS x20 yp+22 w450 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
+	
 	Gui, Settings:Add, Checkbox, vloadLabS x20 yp+22 w270 Checked%loadLabS%, Загружать раскладку убер-лабиринта
 	Gui, Settings:Add, Link, x430 yp+0, <a href="https://www.poelab.com/">POELab.com</a>
 	
@@ -406,6 +409,7 @@ saveSettings(){
 	if (imagesPresetS="")
 		imagesPresetS:="default"
 	
+	IniWrite, %windowLineS%, %configFile%, settings, windowLine
 	IniWrite, %autoUpdateS%, %configFile%, settings, autoUpdate
 	IniWrite, %imagesPresetS%, %configFile%, settings, imagesPreset
 	IniWrite, %loadLabS%, %configFile%, settings, loadLab
