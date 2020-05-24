@@ -21,22 +21,22 @@ downloadLabLayout() {
 	;Сравним текущую дату UTC с датой загрузки лабиринта 
 	IniRead, LabLoadDate, %configFile%, info, LabLoadDate, %A_Space%
 	FormatTime, CurrentDate, %A_NowUTC%, yyyyMMdd
-	If (CurrentDate==LabLoadDate && FileExist(configFolder "\images\Lab.jpg"))
+	If (CurrentDate==LabLoadDate && FileExist(configFolder "\Lab.jpg"))
 		return
 	
 	;Если режим разработчика не включен, то откроем сайт
-	If !devMode
+	If !debugMode
 		run, https://www.poelab.com/
 	
 	;Назначение переменных и очистка файлов
 	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36"
-	If FileExist(configfolder "\UserAgent.txt")
-		FileReadLine, UserAgent, %configFolder%\UserAgent.txt, 1
+	If FileExist(configfolder "\CurlUserAgent.txt")
+		FileReadLine, UserAgent, %configFolder%\CurlUserAgent.txt, 1
 	CurlLine.="-L -A """ UserAgent """ -o "
 
 	FileDelete, %A_Temp%\labmain.html
 	FileDelete, %A_Temp%\labpage.html
-	FileDelete, %configFolder%\images\Lab.jpg
+	FileDelete, %configFolder%\Lab.jpg
 
 	sleep 25
 	
@@ -80,13 +80,13 @@ downloadLabLayout() {
 	}
 	
 	;Загружаем изображение убер-лабы
-	CurlLineImg:=CurlLine configFolder "\images\Lab.jpg " URL1
+	CurlLineImg:=CurlLine configFolder "\Lab.jpg " URL1
 	RunWait, %CurlLineImg%
 	
 	;Проверим изображение, чтобы оно не было пустым файлом или веб-страницей
-	FileReadLine, Line, %configFolder%\images\Lab.jpg, 1
+	FileReadLine, Line, %configFolder%\Lab.jpg, 1
 	If (Line="" || (InStr(Line, "<") && InStr(Line, ">")) || InStr(Line, "ban") || InStr(Line, "error")) {
-		FileDelete, %configFolder%\images\Lab.jpg
+		FileDelete, %configFolder%\Lab.jpg
 		MsgBox, 0x1010, %prjName% - Загрузка лабиринта, Получен некорректный файл лабиринта!, 5
 		return
 	}

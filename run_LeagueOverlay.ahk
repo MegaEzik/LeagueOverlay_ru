@@ -33,7 +33,7 @@ if (!A_IsAdmin) {
 #Include, %A_ScriptDir%\resources\ahk\Labyrinth.ahk
 #Include, %A_ScriptDir%\resources\ahk\Updater.ahk
 #Include, %A_ScriptDir%\resources\ahk\fastReply.ahk
-#Include, %A_ScriptDir%\resources\ahk\devLib.ahk
+#Include, %A_ScriptDir%\resources\ahk\debugLib.ahk
 
 ;Список окон Path of Exile
 GroupAdd, PoEWindowGrp, Path of Exile ahk_class POEWindowClass
@@ -43,8 +43,10 @@ GroupAdd, PoEWindowGrp, ahk_exe GeForceNOWStreamer.exe
 global prjName:="LeagueOverlay_ru"
 global githubUser:="MegaEzik"
 global configFolder:=A_MyDocuments "\AutoHotKey\" prjName
+if InStr(FileExist(A_ScriptDir "\profile"), "D")
+	configFolder:=A_ScriptDir "\profile"
 global configFile:=configFolder "\settings.ini"
-global trayMsg, verScript, devMode=0, textMsg1, textMsg2, textMsg3
+global trayMsg, verScript, debugMode=0, textMsg1, textMsg2, textMsg3
 FileReadLine, verScript, resources\Updates.txt, 4
 
 ;Подсказка в области уведомлений и сообщение при запуске
@@ -62,7 +64,7 @@ devInit()
 
 ;Проверка обновлений
 IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
-if autoUpdate && !devMode {
+if autoUpdate && !debugMode {
 	CheckUpdateFromMenu("onStart")
 	SetTimer, CheckUpdate, 10800000
 }
@@ -71,13 +73,17 @@ if autoUpdate && !devMode {
 IniRead, verConfig, %configFile%, info, verConfig, ""
 if (verConfig!=verScript) {
 	showSettings()
-	IniRead, LastImg, %configFile%, settings, lastImg, 1
 	FileDelete, %configFile%
 	sleep 25
-	FileCreateDir, %configFolder%\images
-	IniWrite, %LastImg%, %configFile%, settings, lastImg
+	FileCreateDir, %configFolder%
 	IniWrite, %verScript%, %configFile%, info, verConfig
 	saveSettings()
+}
+
+;Добавим возможность подгружать имя своего окна
+if FileExist(configfolder "\WindowGrp.txt") {
+	FileReadLine, WindowLine, %configfolder%\WindowGrp.txt, 1
+	GroupAdd, PoEWindowGrp, %WindowLine%
 }
 
 ;Запуск gdi+
@@ -89,14 +95,13 @@ If !pToken:=Gdip_Startup()
 OnExit, Exit
 
 ;Глобальные переменные для количества изображений, самих изображений, их статуса и номера последнего
-global GuiOn1, GuiOn2, GuiOn3, GuiOn4, GuiOn5, GuiOn6, GuiOn7, GuiOn8, GuiOn9
 global image1, image2, image3, image4, image5, image6, image7, image8, image9
-global imgNameArray:=["Lab", "", "Custom", "Incursion", "Map", "Fossil", "Syndicate", "Prophecy", "Oils"]
+global OverlayStatus:=0
+global imgNameArray:=["", "", "", "Incursion", "Map", "Fossil", "Syndicate", "Prophecy", "Oils"]
 global NumImg:=imgNameArray.MaxIndex()
-global LastImg
-IniRead, LastImg, %configFile%, settings, lastImg, 1
+global LastImgPath:="resources\images\ImgError.png"
+
 Loop %NumImg%{
-	GuiOn%A_Index%:=0
 	image%A_Index%:="resources\images\ImgError.png"
 }
 
@@ -104,6 +109,8 @@ Loop %NumImg%{
 IniRead, loadLab, %configFile%, settings, loadLab, 0
 If loadLab
 	downloadLabLayout()
+If FileExist(configFolder "\Lab.jpg")
+	image1:=configFolder "\Lab.jpg"
 
 ;Установим изображения
 setPreset("resources\images\")
@@ -114,16 +121,13 @@ if (imagesPreset!="default" && imagesPreset!="") {
 	setPreset("resources\images\" imagesPreset "\")
 }
 
-;Назначим новые пути изображений, если их аналоги есть в папке с настройками
-setPreset(configFolder "\images\")
+;Назначим первичное последнее изображение и установим таймер на проверку активного окна
+LastImgPath:=image1
+SetTimer, checkWindowTimer, 500
 	
 ;Назначим управление и создадим меню
 setHotkeys()
-createCustomCommandsMenu()
 menuCreate()
-
-;Инициализируем оверлей
-initOverlay()
 
 ;Скроем сообщение загрузки и воспроизведем звук, при его наличии в системе
 SplashTextOff
@@ -131,8 +135,8 @@ if FileExist(A_WinDir "\Media\Speech On.wav")
 	SoundPlay, %A_WinDir%\Media\Speech On.wav
 
 ;Иногда после запуска будем предлагать поддержать проект
-Random, randomNum, 1, 20
-if (randomNum=1 && !devMode) {
+Random, randomNum, 1, 15
+if (randomNum=1 && !debugMode) {
 	MsgText:="Нравится " prjName ", хотите поддержать автора?"
 	MsgBox, 0x1024, %prjName%, %MsgText%, 10
 	IfMsgBox Yes
@@ -157,52 +161,65 @@ setPreset(path){
 }
 
 shLastImage(){
-	shOverlay(LastImg)
+	shOverlay(LastImgPath)
 }
 
 shMainMenu(){
-	Loop %NumImg%{
-		Gui, %A_Index%: Hide
-		GuiON%A_Index%:=0
-	}
+	Gui, Overlay:Destroy
+	OverlayStatus:=0
 	Menu, mainMenu, Show
 }
 
 shLabyrinth(){
-	shOverlay(1)
-}
-
-shCustom(){
-	shOverlay(3)
+	shOverlay(image1)
 }
 
 shIncursion(){
-	shOverlay(4)
+	shOverlay(image4)
 }
 
 shMaps(){
-	shOverlay(5)
+	shOverlay(image5)
 }
 
 shFossils(){
-	shOverlay(6)
+	shOverlay(image6)
 }
 
 shSyndicate(){
-	shOverlay(7)
+	shOverlay(image7)
 }
 
 shProphecy(){
-	shOverlay(8)
+	shOverlay(image8)
 }
 
 shOils(){
-	shOverlay(9)
+	shOverlay(image9)
 }
 
 shRandom(){
 	Random, randomNum, 1, NumImg
-	shOverlay(randomNum)
+	shOverlay(image%randomNum%)
+}
+
+shMyImage(imagename){
+	shOverlay(configFolder "\images\" imagename)
+}
+
+openMyImagesFolder(){
+	If !FileExist(configFolder "\images")
+		FileCreateDir, %configFolder%\images
+	sleep 15
+	Run, explorer "%configFolder%\images"
+}
+
+myImagesMenuCreate(){
+	Loop, %configFolder%\images\*.*, 1
+		if RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp)$")
+			Menu, myImagesMenu, Add, %A_LoopFileName%, shMyImage
+	Menu, myImagesMenu, Add
+	Menu, myImagesMenu, Add, Открыть папку, openMyImagesFolder
 }
 
 textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
@@ -275,34 +292,6 @@ clearPoECache(){
 	}
 }
 
-replacerImages(){
-	FileSelectFile, FilePath, , , Укажите путь к новому файлу для создания замены, Изображения (*.jpg;*.png)
-	if (FilePath="" || !FileExist(FilePath) || !RegExMatch(FilePath, "i).(jpg|png|zip)$")) {
-		msgbox, 0x1010, %prjName%, Неподходящий тип файла!, 2
-	} else {
-		if RegExMatch(FilePath, "i).(jpg|png)$", typeFile) {
-			SplitPath, FilePath, replaceImgName
-			if RegExMatch(replaceImgName, "i)(Fossil|Incursion|Map|Oils|Prophecy|Syndicate)", replaceImgType) {
-				StringLower, replaceImgType, replaceImgType, T
-			} else {
-				replaceImgType:="Custom"
-			}
-			FileCopy, %FilePath%, %configFolder%\images\%replaceImgType%.%typeFile1%, true
-			Msgbox, 0x1040, %prjName%, Создана новая замена - %replaceImgType%!, 2
-		}
-	}
-}
-
-delReplacedImages(){
-	FileSelectFile, FilePath, , %configFolder%\images\*.jpg;*.png, Выберите изображение в папке %configFolder%\images\ для удаления замены, Изображения (*.jpg;*.png)
-	if (FilePath="" || !FileExist(FilePath) || !RegExMatch(FilePath, "i).(jpg|png)$") || !inStr(FilePath, configFolder "\images\")) {
-		msgbox, 0x1010, %prjName%, Изображение указано не верно!, 2
-		return
-	} else {
-		FileDelete, %FilePath%
-	}
-}
-
 showSettings(){
 	global
 	Gui, Settings:Destroy
@@ -330,18 +319,8 @@ showSettings(){
 	
 	legacyHotkeysOldPosition:=legacyHotkeysS
 	
-	Menu, settingsSubMenu1, Add
-	Menu, settingsSubMenu1, DeleteAll
-	Menu, settingsSubMenu1, Add, Создать замену указав на новое изображение, replacerImages
-	Menu, settingsSubMenu1, Add, Удалить замену указав на изображение, delReplacedImages
-	Menu, settingsSubMenu1, Add
-	Menu, settingsSubMenu1, Add, Открыть папку настроек, openConfigFolder
-	Menu, settingsSubMenu1, Add, Сбросить, delConfigFolder
-	Menu, settingsMenuBar, Add, Управление, :settingsSubMenu1
-	Menu, settingsMenuBar, Add, История изменений, showUpdateHistory
-	Gui, Settings:Menu, settingsMenuBar
-	
 	Gui, Settings:Add, Text, x10 y10 w330 h28 cGreen, %prjName% - макрос содержащий несколько нужных функций и отображающий полезные изображения.
+	
 	
 	Gui, Settings:Add, Picture, x370 y2 w107 h-1, resources\qiwi-logo.png
 	Gui, Settings:Add, Link, x345 y+2, <a href="https://qiwi.me/megaezik">Поддержать %prjName%</a>
@@ -450,7 +429,7 @@ saveSettings(){
 	
 	if (legacyHotkeysS>legacyHotkeysOldPosition) {
 		msgText:="Устаревшая раскладка имеет следующее управление:`n"
-		msgText.="`t[Alt+F1] - Лабиринт`n`t[Alt+F2] - Синдикат`n`t[Alt+F3] - Вмешательство`n`t[Alt+F4] - Атлас`n`t[Alt+F5] - Масла`n`t[Alt+F6] - Ископаемые`n`t[Alt+F7] - Пророчества`n`t[Alt+F11] - Пользовательское изображение`n"
+		msgText.="`t[Alt+F1] - Лабиринт`n`t[Alt+F2] - Синдикат`n`t[Alt+F3] - Вмешательство`n`t[Alt+F4] - Атлас`n`t[Alt+F6] - Ископаемые`n`t[Alt+F7] - Пророчества`n"
 		msgText.="`nИспользовать не рекомендуется, поскольку заменяется сочетание клавиш [Alt+F4], и вы не сможете выйти из игры используя его!`n"
 		msgText.="`nВы все еще хотите использовать эту раскладку?"
 		MsgBox, 0x1024, %prjName%,  %msgText%
@@ -458,14 +437,6 @@ saveSettings(){
 			IniWrite, 0, %configFile%, settings, legacyHotkeys
 	}
 	ReStart()
-}
-
-delConfigFolder(){
-	MsgBox, 0x1024, %prjName%, Это удалит все настройки макроса и закроет его!`n`nПродолжить?
-	IfMsgBox No
-		return																																	   
-	FileRemoveDir, %configFolder%, 1
-	Gosub, Exit
 }
 
 setHotkeys(){
@@ -484,10 +455,8 @@ setHotkeys(){
 		Hotkey, !f2, shSyndicate, On
 		Hotkey, !f3, shIncursion, On
 		Hotkey, !f4, shMaps, On
-		Hotkey, !f5, shOils, On
 		Hotkey, !f6, shFossils, On
 		Hotkey, !f7, shProphecy, On
-		Hotkey, !f11, shCustom, On
 	}
 	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
 	IniRead, hotkeyToCharacterSelection, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
@@ -525,6 +494,10 @@ setHotkeys(){
 }
 
 menuCreate(){
+	myImagesMenuCreate()
+	createCustomCommandsMenu()
+	
+	Menu, Tray, Add, История изменений, showUpdateHistory
 	Menu, Tray, Add, Информация и настройки, showSettings
 	Menu, Tray, Default, Информация и настройки
 	Menu, Tray, Add, Выполнить обновление, CheckUpdateFromMenu
@@ -532,26 +505,26 @@ menuCreate(){
 	Menu, Tray, Add, Отметить испытания лабиринта, showLabTrials
 	Menu, Tray, Add, Пользовательские заметки, showUserNotes
 	Menu, Tray, Add
+	Menu, Tray, Add, Открыть папку настроек, openConfigFolder
 	Menu, Tray, Add, Очистить кэш Path of Exile, clearPoECache
-	If devMode
+	If debugMode
 		Menu, Tray, Add, Инструменты разработчика, :devMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить, ReStart
 	Menu, Tray, Add, Завершить работу макроса, Exit
 	Menu, Tray, NoStandard
-
-	If FileExist(configFolder "\images\Lab.jpg")
+	
+	If FileExist(configFolder "\Lab.jpg")
 		Menu, mainMenu, Add, Раскладка лабиринта, shLabyrinth
-	If FileExist(configFolder "\images\Custom.jpg") || FileExist(configFolder "\images\Custom.png")
-		Menu, mainMenu, Add, Пользовательское изображение, shCustom
+	Menu, mainMenu, Add, Мои изображения, :myImagesMenu
 	Menu, mainMenu, Add
 	Menu, mainMenu, Add, Альва - Комнаты храма Ацоатль, shIncursion
 	Menu, mainMenu, Add, Джун - Награды бессмертного Синдиката, shSyndicate
 	Menu, mainMenu, Add, Зана - Карты, shMaps
 	Menu, mainMenu, Add, Кассия - Масла, shOils
 	FormatTime, Month, %A_Now%, MM
-	Random, randomNum, 1, 200
-	if (Month=4 || randomNum=1 || devMode)
+	Random, randomNum, 1, 150
+	if (Month=4 || randomNum=1)
 		Menu, mainMenu, Add, Криллсон - Руководство по рыбалке, shRandom
 	Menu, mainMenu, Add, Навали - Пророчества, shProphecy
 	Menu, mainMenu, Add, Нико - Ископаемые, shFossils
