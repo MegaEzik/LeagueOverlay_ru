@@ -37,7 +37,6 @@ if (!A_IsAdmin) {
 
 ;Список окон Path of Exile
 GroupAdd, PoEWindowGrp, Path of Exile ahk_class POEWindowClass
-GroupAdd, PoEWindowGrp, ahk_exe GeForceNOWStreamer.exe
 
 ;Объявление и загрузка основных переменных
 global prjName:="LeagueOverlay_ru"
@@ -295,7 +294,7 @@ showSettings(){
 	global
 	Gui, Settings:Destroy
 	
-	IniRead, windowLineS, %configFile%, settings, windowLine, %A_Space%
+	IniRead, windowLineS, %configFile%, settings, windowLine, ahk_exe GeForceNOWStreamer.exe
 	IniRead, autoUpdateS, %configFile%, settings, autoUpdate, 1
 	IniRead, imagesPresetS, %configFile%, settings, imagesPreset, default
 	IniRead, loadLabS, %configFile%, settings, loadLab, 0
@@ -519,7 +518,7 @@ menuCreate(){
 	Menu, Tray, NoStandard
 	
 	If FileExist(configFolder "\Lab.jpg")
-		Menu, mainMenu, Add, Раскладка лабиринта, shLabyrinth
+		Menu, mainMenu, Add, Раскладка убер-лабиринта, shLabyrinth
 	Menu, mainMenu, Add, Мои изображения, :myImagesMenu
 	Menu, mainMenu, Add
 	Menu, mainMenu, Add, Альва - Комнаты храма Ацоатль, shIncursion
