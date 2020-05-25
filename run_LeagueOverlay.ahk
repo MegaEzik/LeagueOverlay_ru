@@ -1,20 +1,20 @@
 ﻿
 /*
-	Данный скрипт основан на https://github.com/heokor/League-Overlay
-	Данная версия модифицирована MegaEzik
+	Оригинальная идея https://github.com/heokor/League-Overlay
+	Данный скрипт создан MegaEzik
 	
 	Назначение дополнительных библиотек:
-		*Gdip_All.ahk - Библиотека отвечающая за отрисовку оверлея, авторство https://github.com/PoE-TradeMacro/PoE-CustomUIOverlay
+		*Gdip_All.ahk - Библиотека для работы с изображениями, авторство https://www.autohotkey.com/boards/viewtopic.php?t=6517
 		*JSON.ahk - Разбор данных от api, авторство https://github.com/cocobelgica/AutoHotkey-JSON
-		*Overlay.ahk - Набор функций вынесенных из основного скрипта LeagueOverlay
+		*Overlay.ahk - Набор функций для расчета и отображения изображений оверлея
 		*Labyrinth.ahk - Загрузка убер-лабиринта с poelab.com, и создание окна управления испытаниями убер-лабиринта
 		*Updater.ahk - Проверка и установка обновлений
-		*devLib.ahk - Библиотека для функций отладки и тестирования новых функций
-		*fastReply.ahk - Библиотека с функциями 'Быстрых ответов'
+		*debugLib.ahk - Библиотека для функций отладки и тестирования новых функций
+		*fastReply.ahk - Библиотека с функциями для команд
 	
 	Управление:
 		[Alt+F1] - Последнее изображение
-		[Alt+F2] - Меню с изображениями
+		[Alt+F2] - Меню быстрого доступа
 */
 
 #NoEnv
@@ -97,19 +97,16 @@ global image1, image2, image3, image4, image5, image6, image7, image8, image9
 global OverlayStatus:=0
 global imgNameArray:=["", "", "", "Incursion", "Map", "Fossil", "Syndicate", "Prophecy", "Oils"]
 global NumImg:=imgNameArray.MaxIndex()
-global LastImgPath:="resources\images\ImgError.png"
-
 Loop %NumImg%{
 	image%A_Index%:="resources\images\ImgError.png"
 }
+global LastImgPath:="resources\images\ImgError.png"
+IniRead, lastImgPathC, %configFile%, settings, lastImgPath, %A_Space%
+If (lastImgPathC!="" && FileExist(lastImgPathC))
+	LastImgPath:=lastImgPathC
 
 ;Загружаем раскладку лабиринта, и если изображение получено, то устанавливаем его
-IniRead, loadLab, %configFile%, settings, loadLab, 0
-If loadLab {
-	downloadLabLayout()
-} else {
-	FileDelete, %configFolder%\Lab.jpg
-}
+downloadLabLayout()
 If FileExist(configFolder "\Lab.jpg")
 	image1:=configFolder "\Lab.jpg"
 
@@ -122,9 +119,8 @@ if (imagesPreset!="default" && imagesPreset!="") {
 	setPreset("resources\images\" imagesPreset "\")
 }
 
-;Назначим первичное последнее изображение и установим таймер на проверку активного окна
-LastImgPath:=image1
-SetTimer, checkWindowTimer, 500
+;Установим таймер на проверку активного окна
+SetTimer, checkWindowTimer, 250
 	
 ;Назначим управление и создадим меню
 setHotkeys()
@@ -172,6 +168,7 @@ shMainMenu(){
 }
 
 shLabyrinth(){
+	downloadLabLayout()
 	shOverlay(image1)
 }
 
@@ -322,10 +319,12 @@ showSettings(){
 	IniRead, hotkeyKickS, %configFile%, hotkeys, hotkeyKick, %A_Space%
 	IniRead, hotkeyTradeWithS, %configFile%, hotkeys, hotkeyTradeWith, %A_Space%
 	
+	/*
 	;Настройки третьей вкладки
 	IniRead, hotkeyMediaPlayPauseS, %configFile%, hotkeys, hotkeyMediaPlayPause, %A_Space%
 	IniRead, hotkeyMediaNextS, %configFile%, hotkeys, hotkeyMediaNext, %A_Space%
 	IniRead, hotkeyMediaPrevS, %configFile%, hotkeys, hotkeyMediaPrev, %A_Space%
+	*/
 	
 	legacyHotkeysOldPosition:=legacyHotkeysS
 	
@@ -337,7 +336,7 @@ showSettings(){
 	
 	Gui, Settings:Add, Button, x317 y325 w190 gsaveSettings, Применить и перезапустить
 
-	Gui, Settings:Add, Tab, x10 y65 w495 h255, Основные настройки|Быстрые команды|Управление плеером ;Вкладки
+	Gui, Settings:Add, Tab, x10 y65 w495 h255, Основные|Быстрые команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
 	Gui, Settings:Add, Text, x20 y95 w185, Другое окно для проверки:
@@ -345,7 +344,7 @@ showSettings(){
 	
 	Gui, Settings:Add, Checkbox, vautoUpdateS x20 yp+22 w450 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
 	
-	Gui, Settings:Add, Checkbox, vloadLabS x20 yp+22 w270 Checked%loadLabS%, Загружать раскладку убер-лабиринта
+	Gui, Settings:Add, Checkbox, vloadLabS x20 yp+22 w270 Checked%loadLabS%, Обновлять раскладку убер-лабиринта
 	Gui, Settings:Add, Link, x430 yp+0, <a href="https://www.poelab.com/">POELab.com</a>
 	
 	presetListS:="default"
@@ -406,6 +405,7 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x20 y300 w400 cGray, * Выполняется по отношению к игроку в последнем диалоге
 	
+	/*
 	Gui, Settings:Tab, 3 ; Третья вкладка
 	
 	Gui, Settings:Add, Text, x20 y95 w185, Предыдущий трек:*
@@ -418,6 +418,7 @@ showSettings(){
 	Gui, Settings:Add, Hotkey, vhotkeyMediaNextS x+2 yp-2 w110 h18, %hotkeyMediaNextS%
 	
 	Gui, Settings:Add, Text, x20 y300 w400 cGray, * Ваш плеер должен быть запущен и поддерживать мультимедийные клавиши
+	*/
 	
 	Gui, Settings:+AlwaysOnTop
 	Gui, Settings:Show, w515, %prjName% %VerScript% - Информация и настройки ;Отобразить окно настроек
@@ -457,10 +458,12 @@ saveSettings(){
 	IniWrite, %textMsg2S%, %configFile%, settings, textMsg2
 	IniWrite, %textMsg3S%, %configFile%, settings, textMsg3
 	
+	/*
 	;Настройки третьей вкладки
 	IniWrite, %hotkeyMediaPlayPauseS%, %configFile%, hotkeys, hotkeyMediaPlayPause
 	IniWrite, %hotkeyMediaNextS%, %configFile%, hotkeys, hotkeyMediaNext
 	IniWrite, %hotkeyMediaPrevS%, %configFile%, hotkeys, hotkeyMediaPrev
+	*/
 	
 	if (legacyHotkeysS>legacyHotkeysOldPosition) {
 		msgText:="Устаревшая раскладка имеет следующее управление:`n"
@@ -526,7 +529,7 @@ setHotkeys(){
 		Hotkey, % hotkeyKick, chatKick, On
 	if (hotkeyTradeWith!="")
 		Hotkey, % hotkeyTradeWith, chatTradeWith, On
-		
+	/*	
 	;Медиа-клавиши
 	IniRead, hotkeyMediaPlayPause, %configFile%, hotkeys, hotkeyMediaPlayPause, %A_Space%
 	IniRead, hotkeyMediaNext, %configFile%, hotkeys, hotkeyMediaNext, %A_Space%
@@ -537,6 +540,7 @@ setHotkeys(){
 		Hotkey, % hotkeyMediaNext, mediaNext, On
 	if (hotkeyMediaPrev!="")
 		Hotkey, % hotkeyMediaPrev, mediaPrev, On
+	*/
 }
 
 menuCreate(){

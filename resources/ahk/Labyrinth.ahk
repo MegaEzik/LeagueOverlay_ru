@@ -1,6 +1,30 @@
 ﻿
 ;Загрузка изображения с раскладкой лабиринта соответствующего уровня
 downloadLabLayout() {
+	;Проверим нужно ли загружать лабиринт
+	IniRead, loadLab, %configFile%, settings, loadLab, 0
+	If !loadLab {
+		FileDelete, %configFolder%\Lab.jpg
+		return
+	}
+
+	;Сравним текущую дату UTC с датой загрузки лабиринта 
+	IniRead, labLoadDate, %configFile%, info, labLoadDate, %A_Space%
+	FormatTime, CurrentDate, %A_NowUTC%, yyyyMMdd
+	If (CurrentDate==labLoadDate && FileExist(configFolder "\Lab.jpg"))
+		return
+	
+	;В это время раскладка лабиринта может быть недоступной
+	FormatTime, Hour, %A_NowUTC%, H
+	If (Hour<2) {
+		TrayTip, %prjName% - Загрузка лабиринта, Сейчас неподходящее время)
+		return
+	}
+	
+	;Если режим разработчика не включен, то откроем сайт
+	If !debugMode
+		run, https://www.poelab.com/
+		
 	;Проверка наличия утилиты Curl
 	If FileExist(A_WinDir "\System32\curl.exe") {
 		CurlLine:="curl "
@@ -10,23 +34,6 @@ downloadLabLayout() {
 		msgbox, 0x1040, %prjName% - Загрузка лабиринта, В вашей системе не найдена утилита Curl!`nБез нее загрузка изображения лабиринта невозможна!`n`nРешение этой проблемы есть в теме на форуме), 10
 		return
 	}
-	
-	;В это время раскладка лабиринта может быть недоступной
-	FormatTime, Hour, %A_NowUTC%, H
-	If (Hour<2) {
-		TrayTip, %prjName% - Загрузка лабиринта, Сейчас неподходящее время)
-		return
-	}
-	
-	;Сравним текущую дату UTC с датой загрузки лабиринта 
-	IniRead, LabLoadDate, %configFile%, info, LabLoadDate, %A_Space%
-	FormatTime, CurrentDate, %A_NowUTC%, yyyyMMdd
-	If (CurrentDate==LabLoadDate && FileExist(configFolder "\Lab.jpg"))
-		return
-	
-	;Если режим разработчика не включен, то откроем сайт
-	If !debugMode
-		run, https://www.poelab.com/
 	
 	;Назначение переменных и очистка файлов
 	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36"
@@ -92,7 +99,8 @@ downloadLabLayout() {
 	}
 	
 	;Запишем дату загрузки лабиринта
-	IniWrite, %CurrentDate%, %configFile%, info, LabLoadDate
+	IniWrite, %CurrentDate%, %configFile%, info, labLoadDate
+	sleep 100
 }
 
 ;Создание интерфейса с испытаниями

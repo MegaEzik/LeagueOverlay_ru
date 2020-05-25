@@ -2,7 +2,7 @@
 shOverlay(ImgPath){
 	if !OverlayStatus {
 		Gui, Overlay:Destroy
-		Gui, Overlay:-Caption -Border +E0x80000 +LastFound +AlwaysOnTop
+		Gui, Overlay:-Caption -Border +E0x80000 +LastFound +AlwaysOnTop +ToolWindow +OwnDialogs
 		Gui, Overlay:Show, NA
 		Gui, Overlay:Hide
 		hwndImg:=WinExist()
@@ -29,10 +29,13 @@ shOverlay(ImgPath){
 		Gdip_DeleteGraphics(GImg)
 		Gdip_DisposeImage(pBitmapImg)
 		sleep 50 ;Нужна для корректной работы с GeForce NOW
-		LastImgPath:=ImgPath
 		Gui, Overlay:Show, NA
-		
 		OverlayStatus:=1
+		
+		if (LastImgPath!=ImgPath) {
+			LastImgPath:=ImgPath
+			IniWrite, %ImgPath%, %configFile%, settings, lastImgPath
+		}
 	} else {
 		OverlayStatus:=0
 		Gui, Overlay:Destroy
