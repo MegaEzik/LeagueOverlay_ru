@@ -273,10 +273,13 @@ clearPoECache(){
 		SplashTextOn, 300, 20, %prjName%, Очистка кэша, пожалуйста подождите...
 		
 		SplitPath, FilePath, , PoEFolderPath
-		FileRemoveDir, %PoEFolderPath%\CachedHLSLShaders, 1
 		FileRemoveDir, %PoEFolderPath%\logs, 1
+		;DirectX11
+		FileRemoveDir, %PoEFolderPath%\CachedHLSLShaders, 1
 		FileRemoveDir, %PoEFolderPath%\ShaderCacheD3D11, 1
 		FileRemoveDir, %PoEFolderPath%\ShaderCacheD3D11_GI, 1
+		;Vulkan
+		FileRemoveDir, %PoEFolderPath%\ShaderCacheVulkan, 1
 		
 		PoEConfigFolderPath:=A_MyDocuments "\My Games\Path of Exile"
 		FileRemoveDir, %PoEConfigFolderPath%\Countdown, 1

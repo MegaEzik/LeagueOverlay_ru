@@ -36,7 +36,7 @@ downloadLabLayout() {
 	}
 	
 	;Назначение переменных и очистка файлов
-	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36"
+	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36"
 	If FileExist(configfolder "\UserAgent.txt")
 		FileReadLine, UserAgent, %configFolder%\UserAgent.txt, 1
 	CurlLine.="-L -A """ UserAgent """ -o "
