@@ -265,11 +265,8 @@ showUserNotes(){
 }
 
 clearPoECache(){
-	FileSelectFile, FilePath, , C:\Program Files (x86)\Grinding Gear Games\Path of Exile\PathOfExile.exe, Укажите путь к исполняемому файлу игры(PathOfExile.exe или PathOfExileSteam.exe), (PathOfExile.exe;PathOfExileSteam.exe)
-	if (FilePath="") {
-		msgbox, 0x1010, %prjName%, Операция прервана пользователем!, 2
-		return
-	} else {
+	FileSelectFile, FilePath, , C:\Program Files (x86)\Grinding Gear Games\Path of Exile\Content.ggpk, Укажите путь к файлу Content.ggpk в папке с игрой, (Content.ggpk)
+	if (FilePath!="" && FileExist(FilePath)) {
 		SplashTextOn, 300, 20, %prjName%, Очистка кэша, пожалуйста подождите...
 		
 		SplitPath, FilePath, , PoEFolderPath
@@ -290,6 +287,9 @@ clearPoECache(){
 		FileRemoveDir, %PoEConfigFolderPath%\OnlineFilters, 1
 		
 		SplashTextOff
+	} else {
+		msgbox, 0x1010, %prjName%, Файл не найден или операция прервана пользователем!, 3
+		return		
 	}
 }
 
