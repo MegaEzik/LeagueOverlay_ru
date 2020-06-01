@@ -60,7 +60,7 @@ downloadLabLayout() {
 			break
 	}
 	FileDelete, %A_Temp%\labmain.html
-	debugMsg(URL1)
+	;debugMsg(URL1)
 	If (StrLen(URL1)<23 || StrLen(URL1)>100) {
 		msgbox, 0x1010, %prjName% - Загрузка лабиринта, Не удалось скачать основную страницу!, 3
 		return
@@ -80,7 +80,7 @@ downloadLabLayout() {
 			break
 	}
 	FileDelete, %A_Temp%\labpage.html
-	debugMsg(URL1)
+	;debugMsg(URL1)
 	If (StrLen(URL1)<23 || StrLen(URL1)>100) {
 		msgbox, 0x1010, %prjName% - Загрузка лабиринта, Не удалось скачать страницу с раскладкой!, 3
 		return
@@ -109,9 +109,6 @@ showLabTrials() {
 	Gui, LabTrials:Destroy
 	trialsFile:=configFolder "\trials.ini"
 	
-	Menu, ltMenuBar, Add, Сохранить `tCtrl+S, saveLabTrials
-	Gui, LabTrials:Menu, ltMenuBar
-	
 	IniRead, trialAS, %trialsFile%, LabTrials, trialA, 0
 	IniRead, trialBS, %trialsFile%, LabTrials, trialB, 0
 	IniRead, trialCS, %trialsFile%, LabTrials, trialC, 0
@@ -119,25 +116,37 @@ showLabTrials() {
 	IniRead, trialES, %trialsFile%, LabTrials, trialE, 0
 	IniRead, trialFS, %trialsFile%, LabTrials, trialF, 0
 	
-	Gui, LabTrials:Add, Checkbox, vtrialAS x20 y5 w150 h28 Checked%trialAS%, Пронзающей истинной`nPiercing Truth
-	Gui, LabTrials:Add, Checkbox, vtrialBS xp+0 y+5 w150 h28 Checked%trialBS%, Крутящимся страхом`nSwirling Fear
-	Gui, LabTrials:Add, Checkbox, vtrialCS xp+0 y+5 w150 h28 Checked%trialCS%, Калечащей печалью`nCrippling Grief
-	Gui, LabTrials:Add, Checkbox, vtrialDS xp+160 y5 w150 h28 Checked%trialDS%, Пылающей яростью`nBurning Rage
-	Gui, LabTrials:Add, Checkbox, vtrialES xp+0 y+5 w150 h28 Checked%trialES%, Постоянной болью`nLingering Pain
-	Gui, LabTrials:Add, Checkbox, vtrialFS xp+0 y+5 w150 h28 Checked%trialFS%, Жгучим сомнением`nStinging Doubt
-	Gui, LabTrials:+AlwaysOnTop
-	Gui, LabTrials:Show, w320, Испытания лабиринта
+	Gui, LabTrials:Add, Checkbox, vtrialAS x5 y0 w140 h28 Checked%trialAS% +Center, Пронзающей истинной`nPiercing Truth
+	Gui, LabTrials:Add, Checkbox, vtrialBS xp+0 y+28 w140 h28 Checked%trialBS% +Center, Крутящимся страхом`nSwirling Fear
+	Gui, LabTrials:Add, Checkbox, vtrialCS xp+0 y+28 w140 h28 Checked%trialCS% +Center, Калечащей печалью`nCrippling Grief
+	
+	Gui, LabTrials:Add, Checkbox, vtrialDS xp+140 y0 w140 h28 Checked%trialDS% +Center, Пылающей яростью`nBurning Rage
+	Gui, LabTrials:Add, Checkbox, vtrialES xp+0 y+28 w140 h28 Checked%trialES% +Center, Постоянной болью`nLingering Pain
+	Gui, LabTrials:Add, Checkbox, vtrialFS xp+0 y+28 w140 h28 Checked%trialFS% +Center, Жгучим сомнением`nStinging Doubt
+	
+	Gui, LabTrials:+AlwaysOnTop -Border -Caption
+	Gui, LabTrials:Show, w285 h225, Испытания лабиринта
+	
+	Gui, LabTrials:Color, B57D42
+	WinSet, Transparent, 215, Испытания лабиринта
+	WinMove,Испытания лабиринта,,,,,145
+	sleep 50
+	SetTimer, autoSaveLabTrials, 250
 }
 
 ;Сохранение информации и удаление интерфейса
-saveLabTrials() {
+autoSaveLabTrials() {
 	global
-	Gui, LabTrials:Submit
-	IniWrite, %trialAS%, %trialsFile%, LabTrials, trialA
-	IniWrite, %trialBS%, %trialsFile%, LabTrials, trialB
-	IniWrite, %trialCS%, %trialsFile%, LabTrials, trialC
-	IniWrite, %trialDS%, %trialsFile%, LabTrials, trialD
-	IniWrite, %trialES%, %trialsFile%, LabTrials, trialE
-	IniWrite, %trialFS%, %trialsFile%, LabTrials, trialF
-	Gui, LabTrials:Destroy
+	IfWinNotActive Испытания лабиринта
+	{
+		SetTimer, autoSaveLabTrials, Delete
+		Gui, LabTrials:Submit
+		IniWrite, %trialAS%, %trialsFile%, LabTrials, trialA
+		IniWrite, %trialBS%, %trialsFile%, LabTrials, trialB
+		IniWrite, %trialCS%, %trialsFile%, LabTrials, trialC
+		IniWrite, %trialDS%, %trialsFile%, LabTrials, trialD
+		IniWrite, %trialES%, %trialsFile%, LabTrials, trialE
+		IniWrite, %trialFS%, %trialsFile%, LabTrials, trialF
+		Gui, LabTrials:Destroy
+	}
 }
