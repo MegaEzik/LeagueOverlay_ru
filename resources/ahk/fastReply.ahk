@@ -104,22 +104,3 @@ commandFastReply(Line:="/dance"){
 	}
 	msgbox, 0x1010, %prjName%, Неизвестная команда!, 2
 }
-
-;Клавиши для управления плеером
-mediaPlayPause(){
-	BlockInput On
-	SendInput, {Media_Play_Pause}
-	BlockInput Off
-}
-
-mediaNext(){
-	BlockInput On
-	SendInput, {Media_Next}
-	BlockInput Off
-}
-
-mediaPrev(){
-	BlockInput On
-	SendInput, {Media_Prev}
-	BlockInput Off
-}

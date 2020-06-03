@@ -4,14 +4,14 @@ downloadLabLayout() {
 	;Проверим нужно ли загружать лабиринт
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	If !loadLab {
-		FileDelete, %configFolder%\Lab.jpg
+		FileDelete, %configFolder%\images\Labyrinth.jpg
 		return
 	}
 
 	;Сравним текущую дату UTC с датой загрузки лабиринта 
 	IniRead, labLoadDate, %configFile%, info, labLoadDate, %A_Space%
 	FormatTime, CurrentDate, %A_NowUTC%, yyyyMMdd
-	If (CurrentDate==labLoadDate && FileExist(configFolder "\Lab.jpg"))
+	If (CurrentDate==labLoadDate && FileExist(configFolder "\images\Labyrinth.jpg"))
 		return
 	
 	;В это время раскладка лабиринта может быть недоступной
@@ -43,7 +43,7 @@ downloadLabLayout() {
 
 	FileDelete, %A_Temp%\labmain.html
 	FileDelete, %A_Temp%\labpage.html
-	FileDelete, %configFolder%\Lab.jpg
+	FileDelete, %configFolder%\images\Labyrinth.jpg
 
 	sleep 25
 	
@@ -87,13 +87,13 @@ downloadLabLayout() {
 	}
 	
 	;Загружаем изображение убер-лабы
-	CurlLineImg:=CurlLine configFolder "\Lab.jpg " URL1
+	CurlLineImg:=CurlLine configFolder "\images\Labyrinth.jpg " URL1
 	RunWait, %CurlLineImg%
 	
 	;Проверим изображение, чтобы оно не было пустым файлом или веб-страницей
-	FileReadLine, Line, %configFolder%\Lab.jpg, 1
+	FileReadLine, Line, %configFolder%\images\Labyrinth.jpg, 1
 	If (Line="" || (InStr(Line, "<") && InStr(Line, ">")) || InStr(Line, "ban") || InStr(Line, "error")) {
-		FileDelete, %configFolder%\Lab.jpg
+		FileDelete, %configFolder%\images\Labyrinth.jpg
 		MsgBox, 0x1010, %prjName% - Загрузка лабиринта, Получен некорректный файл лабиринта!, 5
 		return
 	}

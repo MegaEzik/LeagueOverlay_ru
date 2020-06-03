@@ -74,7 +74,7 @@ if (verConfig!=verScript) {
 	showSettings()
 	FileDelete, %configFile%
 	sleep 25
-	FileCreateDir, %configFolder%
+	FileCreateDir, %configFolder%\images
 	IniWrite, %verScript%, %configFile%, info, verConfig
 	saveSettings()
 }
@@ -93,9 +93,9 @@ If !pToken:=Gdip_Startup()
 OnExit, Exit
 
 ;Глобальные переменные для количества изображений, самих изображений, их статуса и номера последнего
-global image1, image2, image3, image4, image5, image6, image7, image8, image9
+global image1, image2, image3, image4, image5, image6
 global OverlayStatus:=0
-global imgNameArray:=["", "", "", "Incursion", "Map", "Fossil", "Syndicate", "Prophecy", "Oils"]
+global imgNameArray:=["Incursion", "Map", "Fossil", "Syndicate", "Prophecy", "Oils"]
 global NumImg:=imgNameArray.MaxIndex()
 Loop %NumImg%{
 	image%A_Index%:="resources\images\ImgError.png"
@@ -105,10 +105,8 @@ IniRead, lastImgPathC, %configFile%, settings, lastImgPath, %A_Space%
 If (lastImgPathC!="" && FileExist(lastImgPathC))
 	LastImgPath:=lastImgPathC
 
-;Загружаем раскладку лабиринта, и если изображение получено, то устанавливаем его
+;Загружаем раскладку лабиринта
 downloadLabLayout()
-If FileExist(configFolder "\Lab.jpg")
-	image1:=configFolder "\Lab.jpg"
 
 ;Установим изображения
 setPreset("resources\images\")
@@ -132,7 +130,7 @@ if FileExist(A_WinDir "\Media\Speech On.wav")
 	SoundPlay, %A_WinDir%\Media\Speech On.wav
 
 ;Иногда после запуска будем предлагать поддержать проект
-Random, randomNum, 1, 15
+Random, randomNum, 1, 10
 if (randomNum=1 && !debugMode) {
 	MsgText:="Нравится " prjName ", хотите поддержать автора?"
 	MsgBox, 0x1024, %prjName%, %MsgText%, 10
@@ -167,33 +165,28 @@ shMainMenu(){
 	Menu, mainMenu, Show
 }
 
-shLabyrinth(){
-	downloadLabLayout()
+shIncursion(){
 	shOverlay(image1)
 }
 
-shIncursion(){
-	shOverlay(image4)
-}
-
 shMaps(){
-	shOverlay(image5)
+	shOverlay(image2)
 }
 
 shFossils(){
-	shOverlay(image6)
+	shOverlay(image3)
 }
 
 shSyndicate(){
-	shOverlay(image7)
+	shOverlay(image4)
 }
 
 shProphecy(){
-	shOverlay(image8)
+	shOverlay(image5)
 }
 
 shOils(){
-	shOverlay(image9)
+	shOverlay(image6)
 }
 
 shRandom(){
@@ -322,13 +315,6 @@ showSettings(){
 	IniRead, hotkeyKickS, %configFile%, hotkeys, hotkeyKick, %A_Space%
 	IniRead, hotkeyTradeWithS, %configFile%, hotkeys, hotkeyTradeWith, %A_Space%
 	
-	/*
-	;Настройки третьей вкладки
-	IniRead, hotkeyMediaPlayPauseS, %configFile%, hotkeys, hotkeyMediaPlayPause, %A_Space%
-	IniRead, hotkeyMediaNextS, %configFile%, hotkeys, hotkeyMediaNext, %A_Space%
-	IniRead, hotkeyMediaPrevS, %configFile%, hotkeys, hotkeyMediaPrev, %A_Space%
-	*/
-	
 	legacyHotkeysOldPosition:=legacyHotkeysS
 	
 	Gui, Settings:Add, Text, x10 y10 w330 h28 cGreen, %prjName% - макрос содержащий несколько нужных функций и отображающий полезные изображения.
@@ -347,7 +333,7 @@ showSettings(){
 	
 	Gui, Settings:Add, Checkbox, vautoUpdateS x20 yp+22 w450 Checked%autoUpdateS%, Автоматически проверять и уведомлять о наличии обновлений
 	
-	Gui, Settings:Add, Checkbox, vloadLabS x20 yp+22 w270 Checked%loadLabS%, Обновлять раскладку убер-лабиринта
+	Gui, Settings:Add, Checkbox, vloadLabS x20 yp+22 w350 Checked%loadLabS%, Загружать изображение раскладки убер-лабиринта
 	Gui, Settings:Add, Link, x430 yp+0, <a href="https://www.poelab.com/">POELab.com</a>
 	
 	presetListS:="default"
@@ -408,21 +394,6 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x20 y300 w400 cGray, * Выполняется по отношению к игроку в последнем диалоге
 	
-	/*
-	Gui, Settings:Tab, 3 ; Третья вкладка
-	
-	Gui, Settings:Add, Text, x20 y95 w185, Предыдущий трек:*
-	Gui, Settings:Add, Hotkey, vhotkeyMediaPrevS x+2 yp-2 w110 h18, %hotkeyMediaPrevS%
-	
-	Gui, Settings:Add, Text, x20 yp+22 w185, Продолжить/Пауза:*
-	Gui, Settings:Add, Hotkey, vhotkeyMediaPlayPauseS x+2 yp-2 w110 h18, %hotkeyMediaPlayPauseS%
-	
-	Gui, Settings:Add, Text, x20 yp+22 w185, Следующий трек:*
-	Gui, Settings:Add, Hotkey, vhotkeyMediaNextS x+2 yp-2 w110 h18, %hotkeyMediaNextS%
-	
-	Gui, Settings:Add, Text, x20 y300 w400 cGray, * Ваш плеер должен быть запущен и поддерживать мультимедийные клавиши
-	*/
-	
 	Gui, Settings:+AlwaysOnTop
 	Gui, Settings:Show, w515, %prjName% %VerScript% - Информация и настройки ;Отобразить окно настроек
 }
@@ -461,16 +432,9 @@ saveSettings(){
 	IniWrite, %textMsg2S%, %configFile%, settings, textMsg2
 	IniWrite, %textMsg3S%, %configFile%, settings, textMsg3
 	
-	/*
-	;Настройки третьей вкладки
-	IniWrite, %hotkeyMediaPlayPauseS%, %configFile%, hotkeys, hotkeyMediaPlayPause
-	IniWrite, %hotkeyMediaNextS%, %configFile%, hotkeys, hotkeyMediaNext
-	IniWrite, %hotkeyMediaPrevS%, %configFile%, hotkeys, hotkeyMediaPrev
-	*/
-	
 	if (legacyHotkeysS>legacyHotkeysOldPosition) {
 		msgText:="Устаревшая раскладка имеет следующее управление:`n"
-		msgText.="`t[Alt+F1] - Лабиринт`n`t[Alt+F2] - Синдикат`n`t[Alt+F3] - Вмешательство`n`t[Alt+F4] - Атлас`n`t[Alt+F6] - Ископаемые`n`t[Alt+F7] - Пророчества`n"
+		msgText.="`t[Alt+F2] - Синдикат`n`t[Alt+F3] - Вмешательство`n`t[Alt+F4] - Атлас`n`t[Alt+F6] - Ископаемые`n`t[Alt+F7] - Пророчества`n"
 		msgText.="`nИспользовать не рекомендуется, поскольку заменяется сочетание клавиш [Alt+F4], и вы не сможете выйти из игры используя его!`n"
 		msgText.="`nВы все еще хотите использовать эту раскладку?"
 		MsgBox, 0x1024, %prjName%,  %msgText%
@@ -492,7 +456,6 @@ setHotkeys(){
 		if (hotkeyMainMenu!="")
 			Hotkey, % hotkeyMainMenu, shMainMenu, On
 	} Else {
-		Hotkey, !f1, shLabyrinth, On
 		Hotkey, !f2, shSyndicate, On
 		Hotkey, !f3, shIncursion, On
 		Hotkey, !f4, shMaps, On
@@ -532,18 +495,6 @@ setHotkeys(){
 		Hotkey, % hotkeyKick, chatKick, On
 	if (hotkeyTradeWith!="")
 		Hotkey, % hotkeyTradeWith, chatTradeWith, On
-	/*	
-	;Медиа-клавиши
-	IniRead, hotkeyMediaPlayPause, %configFile%, hotkeys, hotkeyMediaPlayPause, %A_Space%
-	IniRead, hotkeyMediaNext, %configFile%, hotkeys, hotkeyMediaNext, %A_Space%
-	IniRead, hotkeyMediaPrev, %configFile%, hotkeys, hotkeyMediaPrev, %A_Space%
-	if (hotkeyMediaPlayPause!="")
-		Hotkey, % hotkeyMediaPlayPause, mediaPlayPause, On
-	if (hotkeyMediaNext!="")
-		Hotkey, % hotkeyMediaNext, mediaNext, On
-	if (hotkeyMediaPrev!="")
-		Hotkey, % hotkeyMediaPrev, mediaPrev, On
-	*/
 }
 
 menuCreate(){
@@ -567,8 +518,6 @@ menuCreate(){
 	Menu, Tray, Add, Завершить работу макроса, Exit
 	Menu, Tray, NoStandard
 	
-	If FileExist(configFolder "\Lab.jpg")
-		Menu, mainMenu, Add, Раскладка убер-лабиринта, shLabyrinth
 	Menu, mainMenu, Add, Мои изображения, :myImagesMenu
 	Menu, mainMenu, Add
 	Menu, mainMenu, Add, Альва - Комнаты храма Ацоатль, shIncursion
@@ -576,7 +525,7 @@ menuCreate(){
 	Menu, mainMenu, Add, Зана - Карты, shMaps
 	Menu, mainMenu, Add, Кассия - Масла, shOils
 	FormatTime, Month, %A_Now%, MM
-	Random, randomNum, 1, 150
+	Random, randomNum, 1, 100
 	if (Month=4 || randomNum=1)
 		Menu, mainMenu, Add, Криллсон - Руководство по рыбалке, shRandom
 	Menu, mainMenu, Add, Навали - Пророчества, shProphecy
