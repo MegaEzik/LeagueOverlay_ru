@@ -101,12 +101,12 @@ Loop %NumImg%{
 	image%A_Index%:="resources\images\ImgError.png"
 }
 global LastImgPath:="resources\images\ImgError.png"
+;Загружаем раскладку лабиринта
+downloadLabLayout()
+;Назначим последнее изображение
 IniRead, lastImgPathC, %configFile%, settings, lastImgPath, %A_Space%
 If (lastImgPathC!="" && FileExist(lastImgPathC))
 	LastImgPath:=lastImgPathC
-
-;Загружаем раскладку лабиринта
-downloadLabLayout()
 
 ;Установим изображения
 setPreset("resources\images\")
