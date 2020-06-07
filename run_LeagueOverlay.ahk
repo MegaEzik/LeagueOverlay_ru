@@ -333,7 +333,7 @@ showSettings(){
 	
 	Gui, Settings:Add, Checkbox, vautoUpdate x20 yp+22 w450 Checked%autoUpdate%, Автоматически проверять и уведомлять о наличии обновлений
 	
-	Gui, Settings:Add, Checkbox, vloadLab x20 yp+22 w350 Checked%loadLab%, Загружать изображение раскладки убер-лабиринта
+	Gui, Settings:Add, Checkbox, vloadLab x20 yp+22 w370 Checked%loadLab%, Скачивать убер-лабиринт(Labyrinth.jpg) в 'Мои изображения'
 	Gui, Settings:Add, Link, x430 yp+0, <a href="https://www.poelab.com/">POELab.com</a>
 	
 	presetList:="default"
