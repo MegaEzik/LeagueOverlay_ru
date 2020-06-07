@@ -14,16 +14,17 @@ downloadLabLayout() {
 	If (CurrentDate==labLoadDate && FileExist(configFolder "\images\Labyrinth.jpg"))
 		return
 	
+	;Очистка файлов
+	FileDelete, %A_Temp%\labmain.html
+	FileDelete, %A_Temp%\labpage.html
+	FileDelete, %configFolder%\images\Labyrinth.jpg
+	
 	;В это время раскладка лабиринта может быть недоступной
 	FormatTime, Hour, %A_NowUTC%, H
 	If (Hour<2) {
-		TrayTip, %prjName% - Загрузка лабиринта, Сейчас неподходящее время)
+		msgbox, 0x1040, %prjName% - Загрузка лабиринта, Повторите попытку после 5:00 по МСК), 3
 		return
 	}
-	
-	;Если режим разработчика не включен, то откроем сайт
-	If !debugMode
-		run, https://www.poelab.com/
 		
 	;Проверка наличия утилиты Curl
 	If FileExist(A_WinDir "\System32\curl.exe") {
@@ -35,15 +36,15 @@ downloadLabLayout() {
 		return
 	}
 	
-	;Назначение переменных и очистка файлов
+	;Если режим разработчика не включен, то откроем сайт
+	If !debugMode
+		run, https://www.poelab.com/
+	
+	;Назначение переменных
 	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36"
 	If FileExist(configfolder "\UserAgent.txt")
 		FileReadLine, UserAgent, %configFolder%\UserAgent.txt, 1
 	CurlLine.="-L -A """ UserAgent """ -o "
-
-	FileDelete, %A_Temp%\labmain.html
-	FileDelete, %A_Temp%\labpage.html
-	FileDelete, %configFolder%\images\Labyrinth.jpg
 
 	sleep 25
 	
@@ -60,7 +61,6 @@ downloadLabLayout() {
 			break
 	}
 	FileDelete, %A_Temp%\labmain.html
-	;debugMsg(URL1)
 	If (StrLen(URL1)<23 || StrLen(URL1)>100) {
 		msgbox, 0x1010, %prjName% - Загрузка лабиринта, Не удалось скачать основную страницу!, 3
 		return
@@ -80,7 +80,6 @@ downloadLabLayout() {
 			break
 	}
 	FileDelete, %A_Temp%\labpage.html
-	;debugMsg(URL1)
 	If (StrLen(URL1)<23 || StrLen(URL1)>100) {
 		msgbox, 0x1010, %prjName% - Загрузка лабиринта, Не удалось скачать страницу с раскладкой!, 3
 		return
