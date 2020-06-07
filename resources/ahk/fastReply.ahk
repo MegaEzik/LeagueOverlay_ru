@@ -99,7 +99,7 @@ commandFastReply(Line:="/dance"){
 	}
 	If (RegExMatch(Line, "run ")=1) {
 		Line:=StrReplace(Line, "run ", "")
-		Run %Line%
+		run, %Line%
 		return
 	}
 	msgbox, 0x1010, %prjName%, Неизвестная команда!, 2

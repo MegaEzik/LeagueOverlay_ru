@@ -46,7 +46,7 @@ if InStr(FileExist(A_ScriptDir "\profile"), "D")
 	configFolder:=A_ScriptDir "\profile"
 global configFile:=configFolder "\settings.ini"
 global trayMsg, verScript, debugMode=0, textMsg1, textMsg2, textMsg3
-FileReadLine, verScript, resources\Updates.txt, 4
+FileReadLine, verScript, resources\Updates.txt, 1
 
 ;Подсказка в области уведомлений и сообщение при запуске
 trayUpdate(prjName " " verScript " | AHK " A_AhkVersion)
@@ -103,6 +103,9 @@ Loop %NumImg%{
 global LastImgPath:="resources\images\ImgError.png"
 ;Загружаем раскладку лабиринта
 downloadLabLayout()
+;Выполним myloader.cmd
+If FileExist(configFolder "\myloader.cmd")
+	runwait, "%configFolder%\myloader.cmd"
 ;Назначим последнее изображение
 IniRead, lastImgPathC, %configFile%, settings, lastImgPath, %A_Space%
 If (lastImgPathC!="" && FileExist(lastImgPathC))
@@ -135,7 +138,7 @@ if (randomNum=1 && !debugMode) {
 	MsgText:="Нравится " prjName ", хотите поддержать автора?"
 	MsgBox, 0x1024, %prjName%, %MsgText%, 10
 	IfMsgBox Yes
-		run https://qiwi.me/megaezik
+		run, https://qiwi.me/megaezik
 }
 
 Return
