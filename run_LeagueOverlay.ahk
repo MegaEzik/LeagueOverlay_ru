@@ -295,6 +295,7 @@ showSettings(){
 	
 	;Настройки первой вкладки
 	IniRead, windowLine, %configFile%, settings, windowLine, ahk_exe GeForceNOWStreamer.exe
+	IniRead, alternativeRender, %configFile%, settings, alternativeRender, 0
 	IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
 	IniRead, imagesPreset, %configFile%, settings, imagesPreset, default
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
@@ -334,9 +335,11 @@ showSettings(){
 	Gui, Settings:Add, Text, x20 y95 w185, Другое окно для проверки:
 	Gui, Settings:Add, Edit, vwindowLine x+2 yp-2 w290 h18, %windowLine%
 	
+	Gui, Settings:Add, Checkbox, valternativeRender x20 yp+22 w450 Checked%alternativeRender%, Альтернативная отрисовка(используйте при проблемах с Vulkan)
+	
 	Gui, Settings:Add, Checkbox, vautoUpdate x20 yp+22 w450 Checked%autoUpdate%, Автоматически проверять и уведомлять о наличии обновлений
 	
-	Gui, Settings:Add, Checkbox, vloadLab x20 yp+22 w370 Checked%loadLab%, Скачивать убер-лабиринт(Labyrinth.jpg) в 'Мои изображения'
+	Gui, Settings:Add, Checkbox, vloadLab x20 yp+22 w370 Checked%loadLab%, Загружать убер-лабиринт(Labyrinth.jpg) в 'Мои изображения'
 	Gui, Settings:Add, Link, x430 yp+0, <a href="https://www.poelab.com/">POELab.com</a>
 	
 	presetList:="default"
@@ -348,7 +351,7 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x20 y+5 w478 h2 0x10
 	
-	Gui, Settings:Add, Checkbox, vlegacyHotkeys x20 yp+10 w450 Checked%legacyHotkeys%, Устаревшая раскладка(использовать не рекомендуется)
+	Gui, Settings:Add, Checkbox, vlegacyHotkeys x20 yp+10 w450 Checked%legacyHotkeys%, Устаревшая раскладка(не рекомендуется использовать)
 	
 	Gui, Settings:Add, Text, x20 yp+22 w185, Последнее изображение*:
 	Gui, Settings:Add, Hotkey, vhotkeyLastImg x+2 yp-2 w110 h18, %hotkeyLastImg%
@@ -409,9 +412,12 @@ saveSettings(){
 	
 	if (imagesPreset="")
 		imagesPreset:="default"
+	if alternativeRender
+		windowLine:=prjName " - Overlay"
 	
 	;Настройки первой вкладки
 	IniWrite, %windowLine%, %configFile%, settings, windowLine
+	IniWrite, %alternativeRender%, %configFile%, settings, alternativeRender
 	IniWrite, %autoUpdate%, %configFile%, settings, autoUpdate
 	IniWrite, %imagesPreset%, %configFile%, settings, imagesPreset
 	IniWrite, %loadLab%, %configFile%, settings, loadLab

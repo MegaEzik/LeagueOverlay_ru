@@ -10,6 +10,7 @@ shOverlay(ImgPath){
 		pBitmapImg:=Gdip_CreateBitmapFromFile(ImgPath)
 		
 		If !pBitmapImg{
+			Gdip_DisposeImage(pBitmapImg)
 			msgbox, 0x1010, %prjName%, Некорректный файл изображения!, 3
 			return
 		}
@@ -28,8 +29,13 @@ shOverlay(ImgPath){
 		DeleteDC(hdcImg)
 		Gdip_DeleteGraphics(GImg)
 		Gdip_DisposeImage(pBitmapImg)
+		IniRead, alternativeRender, %configFile%, settings, alternativeRender, 0
 		sleep 50 ;Нужна для корректной работы с GeForce NOW
-		Gui, Overlay:Show, NA
+		if alternativeRender {
+			Gui, Overlay:Show, , %prjName% - Overlay
+		} else {
+			Gui, Overlay:Show, NA
+		}
 		OverlayStatus:=1
 		
 		if (LastImgPath!=ImgPath) {
