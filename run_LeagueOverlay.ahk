@@ -413,7 +413,7 @@ saveSettings(){
 	if (imagesPreset="")
 		imagesPreset:="default"
 	if alternativeRender
-		windowLine:=prjName " - Overlay"
+		windowLine:=prjName " - Overlay ahk_class AutoHotkeyGUI"
 	
 	;Настройки первой вкладки
 	IniWrite, %windowLine%, %configFile%, settings, windowLine
