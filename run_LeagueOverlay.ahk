@@ -332,12 +332,12 @@ showSettings(){
 	Gui, Settings:Add, Tab, x10 y65 w495 h255, Основные|Быстрые команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
-	Gui, Settings:Add, Text, x20 y95 w185, Другое окно для проверки:
+	Gui, Settings:Add, Checkbox, vautoUpdate x20 y92 w450 Checked%autoUpdate%, Автоматически проверять и уведомлять о наличии обновлений
+	
+	Gui, Settings:Add, Text, x20 yp+20 w185, Другое окно для проверки:
 	Gui, Settings:Add, Edit, vwindowLine x+2 yp-2 w290 h18, %windowLine%
 	
 	Gui, Settings:Add, Checkbox, valternativeRender x20 yp+22 w450 Checked%alternativeRender%, Альтернативная отрисовка(используйте при проблемах с Vulkan)
-	
-	Gui, Settings:Add, Checkbox, vautoUpdate x20 yp+22 w450 Checked%autoUpdate%, Автоматически проверять и уведомлять о наличии обновлений
 	
 	Gui, Settings:Add, Checkbox, vloadLab x20 yp+22 w370 Checked%loadLab%, Загружать убер-лабиринт(Labyrinth.jpg) в 'Мои изображения'
 	Gui, Settings:Add, Link, x430 yp+0, <a href="https://www.poelab.com/">POELab.com</a>
@@ -353,7 +353,7 @@ showSettings(){
 	
 	Gui, Settings:Add, Checkbox, vlegacyHotkeys x20 yp+10 w450 Checked%legacyHotkeys%, Устаревшая раскладка(не рекомендуется использовать)
 	
-	Gui, Settings:Add, Text, x20 yp+22 w185, Последнее изображение*:
+	Gui, Settings:Add, Text, x20 yp+20 w185, Последнее изображение*:
 	Gui, Settings:Add, Hotkey, vhotkeyLastImg x+2 yp-2 w110 h18, %hotkeyLastImg%
 	
 	Gui, Settings:Add, Text, x20 yp+22 w185, Меню быстрого доступа*:
