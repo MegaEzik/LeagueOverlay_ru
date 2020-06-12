@@ -98,9 +98,9 @@ global OverlayStatus:=0
 global imgNameArray:=["Incursion", "Map", "Fossil", "Syndicate", "Prophecy", "Oils"]
 global NumImg:=imgNameArray.MaxIndex()
 Loop %NumImg%{
-	image%A_Index%:="resources\images\ImgError.png"
+	image%A_Index%:="resources\ImgError.png"
 }
-global LastImgPath:="resources\images\ImgError.png"
+global LastImgPath:="resources\ImgError.png"
 ;Загружаем раскладку лабиринта
 downloadLabLayout()
 ;Выполним myloader.cmd
