@@ -51,10 +51,12 @@ FileReadLine, verScript, resources\Updates.txt, 1
 ;Подсказка в области уведомлений и сообщение при запуске
 trayUpdate(prjName " " verScript " | AHK " A_AhkVersion)
 Menu, Tray, Icon, resources\Syndicate.ico
-initMsgs := ["Подготовка макроса к работе)"
-			,"Поприветствуем Кассию)"
-			,"Поддержи LeagueOverlay_ru)"
-			,"https://qiwi.me/megaezik"]
+initMsgs := ["Подготовка макроса к работе..."
+			,"Поддержи LeagueOverlay_ru..."
+			
+			,"Спасибо, AbyssSPIRIT)"
+			,"Спасибо, milcart)"
+			,"Спасибо, Pip4ik)"]
 Random, randomNum, 1, initMsgs.MaxIndex()
 initMsg:=initMsgs[randomNum]
 SplashTextOn, 300, 20, %prjName%, %initMsg%
@@ -128,9 +130,9 @@ setHotkeys()
 menuCreate()
 
 ;Скроем сообщение загрузки и воспроизведем звук, при его наличии в системе
-SplashTextOff
 if FileExist(A_WinDir "\Media\Speech On.wav")
 	SoundPlay, %A_WinDir%\Media\Speech On.wav
+SplashTextOff
 
 ;Иногда после запуска будем предлагать поддержать проект
 Random, randomNum, 1, 10

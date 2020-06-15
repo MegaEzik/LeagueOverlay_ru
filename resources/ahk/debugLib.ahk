@@ -1,7 +1,6 @@
 ﻿
 ;Инициализация
 devInit() {
-	;Hotkey, !f, highlightItem, On
 	IniRead, debugMode, %configFile%, settings, debugMode, 0
 	if !debugMode
 		return
@@ -39,37 +38,4 @@ openDebugFile() {
 devRestoreRelease() {
 	verScript:=0
 	CheckUpdateFromMenu()
-}
-
-;Логаут
-cportsLogout(){
-	Run, "%configfolder%\cports.exe" /close * * * * PathOfExile_x64.exe
-	Run, "%configfolder%\cports.exe" /close * * * * PathOfExile_x64Steam.exe
-	Run, "%configfolder%\cports.exe" /close * * * * PathOfExile.exe
-	Run, "%configfolder%\cports.exe" /close * * * * PathOfExileSteam.exe
-}
-
-;Подсветить предмет
-highlightItem() {
-	BlockInput On
-	SendInput, ^c
-	BlockInput Off
-
-	sleep 50
-	itemText:=Clipboard
-	itemText:=StrReplace(itemText, "`r", "")
-	itemText:=StrReplace(itemText, "You cannot use this item. Its stats will be ignored`n--------`n", "")
-	itemText:=StrReplace(itemText, "Вы не можете использовать этот предмет, его параметры не будут учтены`n--------`n", "")
-	itemText:=StrReplace(itemText, "Superior ", "")
-	itemText:=StrReplace(itemText, " высокого качества", "")
-	itemSplit:=StrSplit(itemText, "`n")
-
-	resultString:=itemSplit[2]
-	If ((inStr(itemText, "Rarity: Rare") && !inStr(itemText, "Unidentified")) || (inStr(itemText, "Редкость: Редкий") && !inStr(itemText, "Неопознано")))
-		resultString:=itemSplit[3]
-
-	sleep 50
-	BlockInput On
-	SendInput, ^f"%resultString%"{Enter}
-	BlockInput Off
 }
