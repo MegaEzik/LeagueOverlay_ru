@@ -118,9 +118,8 @@ setPreset("resources\images\")
 
 ;Если установлен пресет, то установим его изображения
 IniRead, imagesPreset, %configFile%, settings, imagesPreset, default
-if (imagesPreset!="default" && imagesPreset!="") {
+if (imagesPreset!="default" && imagesPreset!="")
 	setPreset("resources\images\" imagesPreset "\")
-}
 
 ;Установим таймер на проверку активного окна
 SetTimer, checkWindowTimer, 250
@@ -295,6 +294,9 @@ showSettings(){
 	global
 	Gui, Settings:Destroy
 	
+	IniRead, lastImgPath, %configFile%, settings, lastImgPath, %A_Space%
+	IniRead, debugMode, %configFile%, settings, debugMode, 0
+	
 	;Настройки первой вкладки
 	IniRead, windowLine, %configFile%, settings, windowLine, ahk_exe GeForceNOWStreamer.exe
 	IniRead, alternativeRender, %configFile%, settings, alternativeRender, 0
@@ -416,6 +418,9 @@ saveSettings(){
 		imagesPreset:="default"
 	if alternativeRender
 		windowLine:=prjName " - Overlay ahk_class AutoHotkeyGUI"
+		
+	IniWrite, %lastImgPath%, %configFile%, settings, lastImgPath
+	IniWrite, %debugMode%, %configFile%, settings, debugMode
 	
 	;Настройки первой вкладки
 	IniWrite, %windowLine%, %configFile%, settings, windowLine
