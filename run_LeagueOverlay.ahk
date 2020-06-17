@@ -541,7 +541,7 @@ menuCreate(){
 	Menu, mainMenu, Add, Зана - Карты, shMaps
 	Menu, mainMenu, Add, Кассия - Масла, shOils
 	FormatTime, Month, %A_Now%, MM
-	Random, randomNum, 1, 100
+	Random, randomNum, 1, 35
 	if (Month=4 || randomNum=1)
 		Menu, mainMenu, Add, Криллсон - Руководство по рыбалке, shRandom
 	Menu, mainMenu, Add, Навали - Пророчества, shProphecy
