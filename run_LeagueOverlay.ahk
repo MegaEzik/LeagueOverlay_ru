@@ -450,8 +450,8 @@ saveSettings(){
 	
 	if (legacyHotkeys>legacyHotkeysOldPosition) {
 		msgText:="Устаревшая раскладка имеет следующее управление:`n"
-		msgText.="`t[Alt+F2] - Синдикат`n`t[Alt+F3] - Вмешательство`n`t[Alt+F4] - Атлас`n`t[Alt+F6] - Ископаемые`n`t[Alt+F7] - Пророчества`n"
-		msgText.="`nИспользовать не рекомендуется, поскольку заменяется сочетание клавиш [Alt+F4], и вы не сможете выйти из игры используя его!`n"
+		msgText.="`t[Alt+F2] - Синдикат`n`t[Alt+F3] - Вмешательство`n`t[Alt+F6] - Ископаемые`n`t[Alt+F7] - Пророчества`n"
+		;msgText.="`nИспользовать не рекомендуется, поскольку заменяется сочетание клавиш [Alt+F4], и вы не сможете выйти из игры используя его!`n"
 		msgText.="`nВы все еще хотите использовать эту раскладку?"
 		MsgBox, 0x1024, %prjName%,  %msgText%
 		IfMsgBox No
@@ -474,7 +474,7 @@ setHotkeys(){
 	} Else {
 		Hotkey, !f2, shSyndicate, On
 		Hotkey, !f3, shIncursion, On
-		Hotkey, !f4, shMaps, On
+		;Hotkey, !f4, shMaps, On
 		Hotkey, !f6, shFossils, On
 		Hotkey, !f7, shProphecy, On
 	}
@@ -538,7 +538,7 @@ menuCreate(){
 	Menu, mainMenu, Add
 	Menu, mainMenu, Add, Альва - Комнаты храма Ацоатль, shIncursion
 	Menu, mainMenu, Add, Джун - Награды бессмертного Синдиката, shSyndicate
-	Menu, mainMenu, Add, Зана - Карты, shMaps
+	;Menu, mainMenu, Add, Зана - Карты, shMaps
 	Menu, mainMenu, Add, Кассия - Масла, shOils
 	FormatTime, Month, %A_Now%, MM
 	Random, randomNum, 1, 35
