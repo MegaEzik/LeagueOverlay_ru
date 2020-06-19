@@ -31,10 +31,10 @@ shOverlay(ImgPath){
 		Gdip_DisposeImage(pBitmapImg)
 		IniRead, alternativeRender, %configFile%, settings, alternativeRender, 0
 		sleep 50 ;Нужна для корректной работы с GeForce NOW
-		if alternativeRender {
-			Gui, Overlay:Show, , %prjName% - Overlay
-		} else {
+		if !alternativeRender {
 			Gui, Overlay:Show, NA
+		} else {
+			Gui, Overlay:Show, , %prjName% - Overlay
 		}
 		OverlayStatus:=1
 		
@@ -43,18 +43,18 @@ shOverlay(ImgPath){
 			IniWrite, %ImgPath%, %configFile%, settings, lastImgPath
 		}
 	} else {
-		OverlayStatus:=0
-		Gui, Overlay:Destroy
+		destroyOverlay()
 	}
+}
+
+destroyOverlay(){
+	Gui, Overlay:Destroy
+	OverlayStatus:=0
 }
 
 checkWindowTimer(){
 	IfWinNotActive ahk_group PoEWindowGrp
-	{
-		Gui, Overlay:Destroy
-		OverlayStatus:=0
-	}
-	
+		destroyOverlay()
 }
 
 ;Рассчитываем множитель для уменьшения изображения

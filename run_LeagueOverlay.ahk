@@ -95,9 +95,9 @@ If !pToken:=Gdip_Startup()
 OnExit, Exit
 
 ;Глобальные переменные для количества изображений, самих изображений, их статуса и номера последнего
-global image1, image2, image3, image4, image5, image6
+global image1, image2, image3, image4, image5
 global OverlayStatus:=0
-global imgNameArray:=["Incursion", "Map", "Fossil", "Syndicate", "Prophecy", "Oils"]
+global imgNameArray:=["Incursion", "Fossil", "Syndicate", "Prophecy", "Oils"]
 global NumImg:=imgNameArray.MaxIndex()
 Loop %NumImg%{
 	image%A_Index%:="resources\ImgError.png"
@@ -164,8 +164,7 @@ shLastImage(){
 }
 
 shMainMenu(){
-	Gui, Overlay:Destroy
-	OverlayStatus:=0
+	destroyOverlay()
 	Menu, mainMenu, Show
 }
 
@@ -173,24 +172,20 @@ shIncursion(){
 	shOverlay(image1)
 }
 
-shMaps(){
+shFossils(){
 	shOverlay(image2)
 }
 
-shFossils(){
+shSyndicate(){
 	shOverlay(image3)
 }
 
-shSyndicate(){
+shProphecy(){
 	shOverlay(image4)
 }
 
-shProphecy(){
-	shOverlay(image5)
-}
-
 shOils(){
-	shOverlay(image6)
+	shOverlay(image5)
 }
 
 shRandom(){
@@ -451,7 +446,6 @@ saveSettings(){
 	if (legacyHotkeys>legacyHotkeysOldPosition) {
 		msgText:="Устаревшая раскладка имеет следующее управление:`n"
 		msgText.="`t[Alt+F2] - Синдикат`n`t[Alt+F3] - Вмешательство`n`t[Alt+F6] - Ископаемые`n`t[Alt+F7] - Пророчества`n"
-		;msgText.="`nИспользовать не рекомендуется, поскольку заменяется сочетание клавиш [Alt+F4], и вы не сможете выйти из игры используя его!`n"
 		msgText.="`nВы все еще хотите использовать эту раскладку?"
 		MsgBox, 0x1024, %prjName%,  %msgText%
 		IfMsgBox No
@@ -474,7 +468,6 @@ setHotkeys(){
 	} Else {
 		Hotkey, !f2, shSyndicate, On
 		Hotkey, !f3, shIncursion, On
-		;Hotkey, !f4, shMaps, On
 		Hotkey, !f6, shFossils, On
 		Hotkey, !f7, shProphecy, On
 	}
@@ -538,7 +531,6 @@ menuCreate(){
 	Menu, mainMenu, Add
 	Menu, mainMenu, Add, Альва - Комнаты храма Ацоатль, shIncursion
 	Menu, mainMenu, Add, Джун - Награды бессмертного Синдиката, shSyndicate
-	;Menu, mainMenu, Add, Зана - Карты, shMaps
 	Menu, mainMenu, Add, Кассия - Масла, shOils
 	FormatTime, Month, %A_Now%, MM
 	Random, randomNum, 1, 35
