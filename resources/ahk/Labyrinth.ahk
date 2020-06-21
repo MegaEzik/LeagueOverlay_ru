@@ -120,14 +120,14 @@ showLabTrials() {
 	Gui, LabTrials:Add, Checkbox, vtrialCS xp+0 y+28 w140 h28 Checked%trialCS% +Center, Калечащей печалью`nCrippling Grief
 	
 	Gui, LabTrials:Add, Checkbox, vtrialDS xp+140 y0 w140 h28 Checked%trialDS% +Center, Пылающей яростью`nBurning Rage
-	Gui, LabTrials:Add, Checkbox, vtrialES xp+0 y+28 w140 h28 Checked%trialES% +Center, Постоянной болью`nLingering Pain
-	Gui, LabTrials:Add, Checkbox, vtrialFS xp+0 y+28 w140 h28 Checked%trialFS% +Center, Жгучим сомнением`nStinging Doubt
+	Gui, LabTrials:Add, Checkbox, vtrialES xp+0 y+28 w140 h28 Checked%trialES% +Center, Томительной болью`nLingering Pain
+	Gui, LabTrials:Add, Checkbox, vtrialFS xp+0 y+28 w140 h28 Checked%trialFS% +Center, Жалящим сомнением`nStinging Doubt
 	
 	Gui, LabTrials:+AlwaysOnTop -Border -Caption
 	Gui, LabTrials:Show, w285 h225, Испытания лабиринта
 	
-	Gui, LabTrials:Color, B57D42
-	WinSet, Transparent, 215, Испытания лабиринта
+	Gui, LabTrials:Color, 6BCA94
+	WinSet, Transparent, 210, Испытания лабиринта
 	WinMove,Испытания лабиринта,,,,,145
 	sleep 50
 	SetTimer, autoSaveLabTrials, 250

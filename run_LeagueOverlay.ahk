@@ -252,10 +252,6 @@ showUpdateHistory(){
 	textFileWindow("История изменений", "resources\Updates.txt")
 }
 
-showUserNotes(){
-	textFileWindow("Пользовательские заметки", configFolder "\notes.txt", false, "Здесь вы можете оставить для себя заметки)")
-}
-
 clearPoECache(){
 	FileSelectFile, FilePath, , C:\Program Files (x86)\Grinding Gear Games\Path of Exile\Content.ggpk, Укажите путь к файлу Content.ggpk в папке с игрой, (Content.ggpk)
 	if (FilePath!="" && FileExist(FilePath)) {
@@ -515,9 +511,6 @@ menuCreate(){
 	Menu, Tray, Default, Информация и настройки
 	Menu, Tray, Add, Выполнить обновление, CheckUpdateFromMenu
 	Menu, Tray, Add
-	Menu, Tray, Add, Отметить испытания лабиринта, showLabTrials
-	Menu, Tray, Add, Пользовательские заметки, showUserNotes
-	Menu, Tray, Add
 	Menu, Tray, Add, Открыть папку настроек, openConfigFolder
 	Menu, Tray, Add, Очистить кэш Path of Exile, clearPoECache
 	If debugMode
@@ -540,6 +533,8 @@ menuCreate(){
 	Menu, mainMenu, Add, Нико - Ископаемые, shFossils
 	Menu, mainMenu, Add
 	Menu, mainMenu, Add, Меню команд, :customCommandsMenu
+	Menu, mainMenu, Add, Отметить испытания лабиринта, showLabTrials
+	Menu, mainMenu, Add
 	Menu, mainMenu, Add, Меню области уведомлений, :Tray
 }
 
