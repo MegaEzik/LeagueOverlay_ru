@@ -19,6 +19,11 @@ downloadLabLayout() {
 	FileDelete, %A_Temp%\labpage.html
 	FileDelete, %configFolder%\images\Labyrinth.jpg
 	
+	FileDelete, %configFolder%\images\*_normal.jpg
+	FileDelete, %configFolder%\images\*_cruel.jpg
+	FileDelete, %configFolder%\images\*_merciless.jpg
+	FileDelete, %configFolder%\images\*_uber.jpg
+	
 	;В это время раскладка лабиринта может быть недоступной
 	FormatTime, Hour, %A_NowUTC%, H
 	If (Hour<2) {
