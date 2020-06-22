@@ -29,15 +29,9 @@ shOverlay(ImgPath){
 		DeleteDC(hdcImg)
 		Gdip_DeleteGraphics(GImg)
 		Gdip_DisposeImage(pBitmapImg)
-		IniRead, alternativeRender, %configFile%, settings, alternativeRender, 0
 		sleep 50 ;Нужна для корректной работы с GeForce NOW
-		if !alternativeRender {
-			Gui, Overlay:Show, NA
-		} else {
-			Gui, Overlay:Show, , %prjName% - Overlay
-		}
+		Gui, Overlay:Show, NA
 		OverlayStatus:=1
-		
 		if (LastImgPath!=ImgPath) {
 			LastImgPath:=ImgPath
 			IniWrite, %ImgPath%, %configFile%, settings, lastImgPath

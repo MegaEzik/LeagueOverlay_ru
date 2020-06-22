@@ -290,7 +290,6 @@ showSettings(){
 	
 	;Настройки первой вкладки
 	IniRead, windowLine, %configFile%, settings, windowLine, ahk_exe GeForceNOWStreamer.exe
-	IniRead, alternativeRender, %configFile%, settings, alternativeRender, 0
 	IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
 	IniRead, imagesPreset, %configFile%, settings, imagesPreset, default
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
@@ -331,8 +330,6 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x20 yp+20 w185, Другое окно для проверки:
 	Gui, Settings:Add, Edit, vwindowLine x+2 yp-2 w290 h18, %windowLine%
-	
-	Gui, Settings:Add, Checkbox, valternativeRender x20 yp+22 w450 Checked%alternativeRender%, Альтернативная отрисовка(используйте при проблемах с Vulkan)
 	
 	Gui, Settings:Add, Checkbox, vloadLab x20 yp+22 w370 Checked%loadLab%, Загружать убер-лабиринт(Labyrinth.jpg) в 'Мои изображения'
 	Gui, Settings:Add, Link, x430 yp+0, <a href="https://www.poelab.com/">POELab.com</a>
@@ -407,15 +404,12 @@ saveSettings(){
 	
 	if (imagesPreset="")
 		imagesPreset:="default"
-	if alternativeRender
-		windowLine:=prjName " - Overlay ahk_class AutoHotkeyGUI"
 		
 	IniWrite, %lastImgPath%, %configFile%, settings, lastImgPath
 	IniWrite, %debugMode%, %configFile%, settings, debugMode
 	
 	;Настройки первой вкладки
 	IniWrite, %windowLine%, %configFile%, settings, windowLine
-	IniWrite, %alternativeRender%, %configFile%, settings, alternativeRender
 	IniWrite, %autoUpdate%, %configFile%, settings, autoUpdate
 	IniWrite, %imagesPreset%, %configFile%, settings, imagesPreset
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
@@ -535,7 +529,7 @@ menuCreate(){
 	Menu, mainMenu, Add, Меню команд, :customCommandsMenu
 	Menu, mainMenu, Add, Испытания лабиринта, showLabTrials
 	Menu, mainMenu, Add
-	Menu, mainMenu, Add, Меню области уведомлений, :Tray
+	Menu, mainMenu, Add, Область уведомлений, :Tray
 }
 
 openConfigFolder(){
