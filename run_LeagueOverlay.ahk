@@ -533,7 +533,7 @@ menuCreate(){
 	Menu, mainMenu, Add, Нико - Ископаемые, shFossils
 	Menu, mainMenu, Add
 	Menu, mainMenu, Add, Меню команд, :customCommandsMenu
-	Menu, mainMenu, Add, Отметить испытания лабиринта, showLabTrials
+	Menu, mainMenu, Add, Испытания лабиринта, showLabTrials
 	Menu, mainMenu, Add
 	Menu, mainMenu, Add, Меню области уведомлений, :Tray
 }
