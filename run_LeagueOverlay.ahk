@@ -34,9 +34,11 @@ if (!A_IsAdmin) {
 #Include, %A_ScriptDir%\resources\ahk\Updater.ahk
 #Include, %A_ScriptDir%\resources\ahk\fastReply.ahk
 #Include, %A_ScriptDir%\resources\ahk\debugLib.ahk
+#Include, %A_ScriptDir%\resources\ahk\ItemDataConverterLib.ahk
 
 ;Список окон Path of Exile
 GroupAdd, PoEWindowGrp, Path of Exile ahk_class POEWindowClass
+GroupAdd, PoEWindowGrp, ahk_exe GeForceNOWStreamer.exe
 
 ;Объявление и загрузка основных переменных
 global prjName:="LeagueOverlay_ru"
@@ -45,7 +47,8 @@ global configFolder:=A_MyDocuments "\AutoHotKey\" prjName
 if InStr(FileExist(A_ScriptDir "\profile"), "D")
 	configFolder:=A_ScriptDir "\profile"
 global configFile:=configFolder "\settings.ini"
-global trayMsg, verScript, debugMode=0, textMsg1, textMsg2, textMsg3
+global trayMsg, verScript, debugMode=0
+global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, cmdNum=10
 FileReadLine, verScript, resources\Updates.txt, 1
 
 ;Подсказка в области уведомлений и сообщение при запуске
@@ -105,9 +108,9 @@ Loop %NumImg%{
 global LastImgPath:="resources\ImgError.png"
 ;Загружаем раскладку лабиринта
 downloadLabLayout()
-;Выполним myloader.cmd
-If FileExist(configFolder "\myloader.cmd")
-	runwait, "%configFolder%\myloader.cmd"
+;Выполним myloader.ahk
+If FileExist(configFolder "\myloader.ahk")
+	runwait, "%configFolder%\myloader.ahk"
 ;Назначим последнее изображение
 IniRead, lastImgPathC, %configFile%, settings, lastImgPath, %A_Space%
 If (lastImgPathC!="" && FileExist(lastImgPathC))
@@ -166,6 +169,10 @@ shLastImage(){
 shMainMenu(){
 	destroyOverlay()
 	Menu, mainMenu, Show
+}
+
+shLabyrinth(){
+	shOverlay(configFolder "\images\Labyrinth.jpg")
 }
 
 shIncursion(){
@@ -289,111 +296,101 @@ showSettings(){
 	IniRead, debugMode, %configFile%, settings, debugMode, 0
 	
 	;Настройки первой вкладки
-	IniRead, windowLine, %configFile%, settings, windowLine, ahk_exe GeForceNOWStreamer.exe
+	IniRead, windowLine, %configFile%, settings, windowLine, %A_Space%
 	IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
 	IniRead, imagesPreset, %configFile%, settings, imagesPreset, default
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	IniRead, legacyHotkeys, %configFile%, settings, legacyHotkeys, 0
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
+	IniRead, hotkeyConverter, %configFile%, hotkeys, hotkeyConverter, %A_Space%
 	
 	;Настройки второй вкладки
 	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
-	IniRead, hotkeyDnd, %configFile%, hotkeys, hotkeyDnd, %A_Space%
 	IniRead, hotkeyToCharacterSelection, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
-	IniRead, hotkeyHideout, %configFile%, hotkeys, hotkeyHideout, %A_Space%
-	
-	IniRead, hotkeyMsg1, %configFile%, hotkeys, hotkeyMsg1, %A_Space%
-	IniRead, hotkeyMsg2, %configFile%, hotkeys, hotkeyMsg2, %A_Space%
-	IniRead, hotkeyMsg3, %configFile%, hotkeys, hotkeyMsg3, %A_Space%
-	IniRead, textMsg1, %configFile%, settings, textMsg1, sold(
-	IniRead, textMsg2, %configFile%, settings, textMsg2, 2 minutes
-	IniRead, textMsg3, %configFile%, settings, textMsg3, ty & gl exile)
-	IniRead, hotkeyInvite, %configFile%, hotkeys, hotkeyInvite, %A_Space%
-	IniRead, hotkeyKick, %configFile%, hotkeys, hotkeyKick, %A_Space%
-	IniRead, hotkeyTradeWith, %configFile%, hotkeys, hotkeyTradeWith, %A_Space%
 	
 	legacyHotkeysOldPosition:=legacyHotkeys
 	
-	Gui, Settings:Add, Text, x10 y10 w330 h28 cGreen, %prjName% - макрос содержащий несколько нужных функций и отображающий полезные изображения.
+	Gui, Settings:Add, Text, x10 y10 w300 h28 cGreen, %prjName% - макрос содержащий несколько нужных функций и отображающий полезные изображения.
 	
-	Gui, Settings:Add, Picture, x370 y2 w107 h-1, resources\qiwi-logo.png
-	Gui, Settings:Add, Link, x345 y+2, <a href="https://qiwi.me/megaezik">Поддержать %prjName%</a>
+	Gui, Settings:Add, Picture, x340 y2 w107 h-1, resources\qiwi-logo.png
+	Gui, Settings:Add, Link, x315 y+2, <a href="https://qiwi.me/megaezik">Поддержать %prjName%</a>
 	Gui, Settings:Add, Link, x10 yp+0 w250, <a href="https://ru.pathofexile.com/forum/view-thread/2694683">Тема на форуме</a> | <a href="https://github.com/MegaEzik/LeagueOverlay_ru/releases">Страница на GitHub</a>
 	
-	Gui, Settings:Add, Button, x317 y325 w190 gsaveSettings, Применить и перезапустить
+	Gui, Settings:Add, Button, x315 y345 w162 gsaveSettings, Применить и перезапустить
 
-	Gui, Settings:Add, Tab, x10 y65 w495 h255, Основные|Быстрые команды ;Вкладки
+	Gui, Settings:Add, Tab, x10 y65 w465 h275, Основные|Быстрые команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
 	Gui, Settings:Add, Checkbox, vautoUpdate x20 y92 w450 Checked%autoUpdate%, Автоматически проверять и уведомлять о наличии обновлений
 	
-	Gui, Settings:Add, Text, x20 yp+20 w185, Другое окно для проверки:
+	Gui, Settings:Add, Text, x20 yp+20 w155, Другое окно для проверки:
 	Gui, Settings:Add, Edit, vwindowLine x+2 yp-2 w290 h18, %windowLine%
 	
 	Gui, Settings:Add, Checkbox, vloadLab x20 yp+22 w370 Checked%loadLab%, Загружать убер-лабиринт(Labyrinth.jpg) в 'Мои изображения'
-	Gui, Settings:Add, Link, x430 yp+0, <a href="https://www.poelab.com/">POELab.com</a>
+	Gui, Settings:Add, Link, x400 yp+0, <a href="https://www.poelab.com/">POELab.com</a>
 	
 	presetList:="default"
 	Loop, resources\images\*, 2
 		presetList.="|" A_LoopFileName
-	Gui, Settings:Add, Text, x20 yp+22 w185, Набор изображений:
-	Gui, Settings:Add, DropDownList, vimagesPreset x+2 yp-3 w110, %presetList%
+	Gui, Settings:Add, Text, x20 yp+22 w295, Набор изображений:
+	Gui, Settings:Add, DropDownList, vimagesPreset x+2 yp-3 w150, %presetList%
 	GuiControl,Settings:ChooseString, imagesPreset, %imagesPreset%
 	
-	Gui, Settings:Add, Text, x20 y+5 w478 h2 0x10
+	Gui, Settings:Add, Text, x20 y+4 w450 h2 0x10
 	
-	Gui, Settings:Add, Checkbox, vlegacyHotkeys x20 yp+10 w450 Checked%legacyHotkeys%, Устаревшая раскладка(не рекомендуется использовать)
+	Gui, Settings:Add, Checkbox, vlegacyHotkeys x20 yp+7 w450 Checked%legacyHotkeys%, Устаревшая раскладка(использовать не рекомендуется)
 	
-	Gui, Settings:Add, Text, x20 yp+20 w185, Последнее изображение*:
-	Gui, Settings:Add, Hotkey, vhotkeyLastImg x+2 yp-2 w110 h18, %hotkeyLastImg%
+	Gui, Settings:Add, Text, x20 yp+20 w295, Последнее изображение*:
+	Gui, Settings:Add, Hotkey, vhotkeyLastImg x+2 yp-2 w150 h18, %hotkeyLastImg%
 	
-	Gui, Settings:Add, Text, x20 yp+22 w185, Меню быстрого доступа*:
-	Gui, Settings:Add, Hotkey, vhotkeyMainMenu x+2 yp-2 w110 h18, %hotkeyMainMenu%
+	Gui, Settings:Add, Text, x20 yp+22 w295, Меню быстрого доступа*:
+	Gui, Settings:Add, Hotkey, vhotkeyMainMenu x+2 yp-2 w150 h18, %hotkeyMainMenu%
 	
-	Gui, Settings:Add, Text, x20 y300 w400 cGray, * Недоступно в режиме Устаревшей раскладки
+	Gui, Settings:Add, Text, x20 y+4 w450 h2 0x10
+	
+	Gui, Settings:Add, Text, x20 yp+7 w295, Конвертировать описание предмета Ru>En:
+	Gui, Settings:Add, Hotkey, vhotkeyConverter x+2 yp-2 w150 h18, %hotkeyConverter%
+	
+	Gui, Settings:Add, Text, x20 y320 w400 cGray, * Недоступно в режиме Устаревшей раскладки
 	
 	Gui, Settings:Tab, 2 ; Вторая вкладка
 	
-	Gui, Settings:Add, Text, x20 y95 w185, Синхронизировать(/oos):
-	Gui, Settings:Add, Hotkey, vhotkeyForceSync x+2 yp-2 w110 h18, %hotkeyForceSync%
+	Gui, Settings:Add, Text, x20 y95 w295, Синхронизировать(/oos):
+	Gui, Settings:Add, Hotkey, vhotkeyForceSync x+2 yp-2 w150 h18, %hotkeyForceSync%
 	
-	Gui, Settings:Add, Text, x20 yp+22 w185, К выбору персонажа(/exit):
-	Gui, Settings:Add, Hotkey, vhotkeyToCharacterSelection x+2 yp-2 w110 h18, %hotkeyToCharacterSelection%
+	Gui, Settings:Add, Text, x20 yp+22 w295, К выбору персонажа(/exit):
+	Gui, Settings:Add, Hotkey, vhotkeyToCharacterSelection x+2 yp-2 w150 h18, %hotkeyToCharacterSelection%
 	
-	Gui, Settings:Add, Text, x20 yp+22 w185, В свое убежище(/hideout):
-	Gui, Settings:Add, Hotkey, vhotkeyHideout x+2 yp-2 w110 h18, %hotkeyHideout%
-	
-	Gui, Settings:Add, Text, x20 yp+22 w185, Не беспокоить(/dnd):
-	Gui, Settings:Add, Hotkey, vhotkeyDnd x+2 yp-2 w110 h18, %hotkeyDnd%
-	
-	Gui, Settings:Add, Text, x20 y+2 w478 h2 0x10
-	
-	Gui, Settings:Add, Text, x20 yp+5 w185, Пригласить(/invite)*:
-	Gui, Settings:Add, Hotkey, vhotkeyInvite x+2 yp-2 w110 h18, %hotkeyInvite%
-	
-	Gui, Settings:Add, Text, x20 yp+22 w185, Выгнать(/kick)*:
-	Gui, Settings:Add, Hotkey, vhotkeyKick x+2 yp-2 w110 h18, %hotkeyKick%
-	
-	Gui, Settings:Add, Text, x20 yp+22 w185, Торговать(/tradewith)*:
-	Gui, Settings:Add, Hotkey, vhotkeyTradeWith x+2 yp-2 w110 h18, %hotkeyTradeWith%
-	
-	Gui, Settings:Add, Text, x20 yp+22 w185, Быстрый ответ 1*:
-	Gui, Settings:Add, Hotkey, vhotkeyMsg1 x+2 yp-2 w110 h18, %hotkeyMsg1%
-	Gui, Settings:Add, Edit, vtextMsg1 x+2 w178 h18, %textMsg1%
-	
-	Gui, Settings:Add, Text, x20 yp+22 w185, Быстрый ответ 2*:
-	Gui, Settings:Add, Hotkey, vhotkeyMsg2 x+2 yp-2 w110 h18, %hotkeyMsg2%
-	Gui, Settings:Add, Edit, vtextMsg2 x+2 w178 h18, %textMsg2%
-	
-	Gui, Settings:Add, Text, x20 yp+22 w185, Быстрый ответ 3*:
-	Gui, Settings:Add, Hotkey, vhotkeyMsg3 x+2 yp-2 w110 h18, %hotkeyMsg3%
-	Gui, Settings:Add, Edit, vtextMsg3 x+2 w178 h18, %textMsg3%
-	
-	Gui, Settings:Add, Text, x20 y300 w400 cGray, * Выполняется по отношению к игроку в последнем диалоге
+	;Настраиваемые команды fastReply
+	Loop %cmdNum% {
+		IniRead, tempVar, %configFile%, fastReply, textCmd%A_Index%, %A_Space%
+		if (tempVar="") {
+			If A_Index=1
+				tempVar:="/hideout"
+			If A_Index=2
+				tempVar:="/dnd"
+			If A_Index=3
+				tempVar:="/invite <last>"
+			If A_Index=4
+				tempVar:="/kick <last>"
+			If A_Index=5
+				tempVar:="/tradewith <last>"
+			If A_Index=6
+				tempVar:="@<last> sold("
+			If A_Index=7
+				tempVar:="@<last> 2 minutes("
+			If A_Index=8
+				tempVar:="@<last> ty & gl, exile)"
+		}
+		Gui, Settings:Add, Edit, vtextCmd%A_Index% x20 yp+20 w295 h18, %tempVar%
+		
+		IniRead, tempVar, %configFile%, fastReply, hotkeyCmd%A_Index%, %A_Space%
+		Gui, Settings:Add, Hotkey, vhotkeyCmd%A_Index% x+2 w150 h18, %tempVar%
+	}
 	
 	Gui, Settings:+AlwaysOnTop
-	Gui, Settings:Show, w515, %prjName% %VerScript% - Информация и настройки ;Отобразить окно настроек
+	Gui, Settings:Show, w485, %prjName% %VerScript% - Информация и настройки ;Отобразить окно настроек
 }
 
 saveSettings(){
@@ -416,26 +413,24 @@ saveSettings(){
 	IniWrite, %legacyHotkeys%, %configFile%, settings, legacyHotkeys
 	IniWrite, %hotkeyLastImg%, %configFile%, hotkeys, hotkeyLastImg
 	IniWrite, %hotkeyMainMenu%, %configFile%, hotkeys, hotkeyMainMenu
+	IniWrite, %hotkeyConverter%, %configFile%, hotkeys, hotkeyConverter
 	
 	;Настройки второй вкладки
 	IniWrite, %hotkeyForceSync%, %configFile%, hotkeys, hotkeyForceSync
-	IniWrite, %hotkeyDnd%, %configFile%, hotkeys, hotkeyDnd
 	IniWrite, %hotkeyToCharacterSelection%, %configFile%, hotkeys, hotkeyToCharacterSelection
-	IniWrite, %hotkeyHideout%, %configFile%, hotkeys, hotkeyHideout
 	
-	IniWrite, %hotkeyKick%, %configFile%, hotkeys, hotkeyKick
-	IniWrite, %hotkeyInvite%, %configFile%, hotkeys, hotkeyInvite
-	IniWrite, %hotkeyTradeWith%, %configFile%, hotkeys, hotkeyTradeWith
-	IniWrite, %hotkeyMsg1%, %configFile%, hotkeys, hotkeyMsg1
-	IniWrite, %hotkeyMsg2%, %configFile%, hotkeys, hotkeyMsg2
-	IniWrite, %hotkeyMsg3%, %configFile%, hotkeys, hotkeyMsg3
-	IniWrite, %textMsg1%, %configFile%, settings, textMsg1
-	IniWrite, %textMsg2%, %configFile%, settings, textMsg2
-	IniWrite, %textMsg3%, %configFile%, settings, textMsg3
+	;Настраиваемые команды fastReply
+	Loop %cmdNum% {
+		tempVar:=hotkeyCmd%A_Index%
+		IniWrite, %tempVar%, %configFile%, fastReply, hotkeyCmd%A_Index%
+		
+		tempVar:=textCmd%A_Index%
+		IniWrite, %tempVar%, %configFile%, fastReply, textCmd%A_Index%
+	}
 	
 	if (legacyHotkeys>legacyHotkeysOldPosition) {
 		msgText:="Устаревшая раскладка имеет следующее управление:`n"
-		msgText.="`t[Alt+F2] - Синдикат`n`t[Alt+F3] - Вмешательство`n`t[Alt+F6] - Ископаемые`n`t[Alt+F7] - Пророчества`n"
+		msgText.="`t[Alt+F1] - Лабиринт`n`t[Alt+F2] - Синдикат`n`t[Alt+F3] - Вмешательство`n`t[Alt+F6] - Ископаемые`n`t[Alt+F7] - Пророчества`n`t[Alt+F8] - Масла`n"
 		msgText.="`nВы все еще хотите использовать эту раскладку?"
 		MsgBox, 0x1024, %prjName%,  %msgText%
 		IfMsgBox No
@@ -447,6 +442,7 @@ saveSettings(){
 setHotkeys(){
 	DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", 0x50, "UInt", 0x4090409, "UInt", 0x4090409)
 	sleep 100
+	;Инициализация основных клавиш макроса
 	IniRead, legacyHotkeys, %configFile%, settings, legacyHotkeys, 0
 	If !legacyHotkeys {
 		IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
@@ -456,44 +452,37 @@ setHotkeys(){
 		if (hotkeyMainMenu!="")
 			Hotkey, % hotkeyMainMenu, shMainMenu, On
 	} Else {
+		Hotkey, !f1, shLabyrinth, On
 		Hotkey, !f2, shSyndicate, On
 		Hotkey, !f3, shIncursion, On
 		Hotkey, !f6, shFossils, On
 		Hotkey, !f7, shProphecy, On
+		Hotkey, !f8, shOils, On
 	}
+	
+	;Инициализация ItemDataConverterLib
+	IniRead, hotkeyConverter, %configFile%, hotkeys, hotkeyConverter, %A_Space%
+	if (hotkeyConverter!="") {
+		IDCL_Init()
+		Hotkey, % hotkeyConverter, IDCL_ConvertFromGame, On
+	}
+	
+	;Инициализация встроенных команд fastReply
 	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
 	IniRead, hotkeyToCharacterSelection, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
-	IniRead, hotkeyHideout, %configFile%, hotkeys, hotkeyHideout, %A_Space%
-	IniRead, hotkeyDnd, %configFile%, hotkeys, hotkeyDnd, %A_Space%
-	IniRead, hotkeyMsg1, %configFile%, hotkeys, hotkeyMsg1, %A_Space%
-	IniRead, hotkeyMsg2, %configFile%, hotkeys, hotkeyMsg2, %A_Space%
-	IniRead, hotkeyMsg3, %configFile%, hotkeys, hotkeyMsg3, %A_Space%
-	IniRead, textMsg1, %configFile%, settings, textMsg1, %A_Space%
-	IniRead, textMsg2, %configFile%, settings, textMsg2, %A_Space%
-	IniRead, textMsg3, %configFile%, settings, textMsg3, %A_Space%
-	IniRead, hotkeyInvite, %configFile%, hotkeys, hotkeyInvite, %A_Space%
-	IniRead, hotkeyKick, %configFile%, hotkeys, hotkeyKick, %A_Space%
-	IniRead, hotkeyTradeWith, %configFile%, hotkeys, hotkeyTradeWith, %A_Space%
 	if (hotkeyForceSync!="")
-		Hotkey, % hotkeyForceSync, forceSync, On
+		Hotkey, % hotkeyForceSync, fastCmdForceSync, On
 	if (hotkeyToCharacterSelection!="")
-		Hotkey, % hotkeyToCharacterSelection, toCharacterSelection, On
-	if (hotkeyHideout!="")
-		Hotkey, % hotkeyHideout, goHideout, On
-	if (hotkeyDnd!="")
-		Hotkey, % hotkeyDnd, dndMode, On
-	if (hotkeyMsg1!="")
-		Hotkey, % hotkeyMsg1, chatMsg1, On
-	if (hotkeyMsg2!="")
-		Hotkey, % hotkeyMsg2, chatMsg2, On
-	if (hotkeyMsg3!="")
-		Hotkey, % hotkeyMsg3, chatMsg3, On
-	if (hotkeyInvite!="")
-		Hotkey, % hotkeyInvite, chatInvite, On
-	if (hotkeyKick!="")
-		Hotkey, % hotkeyKick, chatKick, On
-	if (hotkeyTradeWith!="")
-		Hotkey, % hotkeyTradeWith, chatTradeWith, On
+		Hotkey, % hotkeyToCharacterSelection, fastCmdExit, On
+	
+	;Инициализация настраиваемых команд fastReply
+	Loop %cmdNum% {
+		IniRead, tempvar, %configFile%, fastReply, textCmd%A_Index%, %A_Space%
+		textCmd%A_Index%:=tempvar
+		IniRead, tempVar, %configFile%, fastReply, hotkeyCmd%A_Index%, %A_Space%
+		if (textCmd%A_Index%!="" && tempVar!="")
+			Hotkey, % tempVar, fastCmd%A_Index%, On
+	}
 }
 
 menuCreate(){
@@ -520,7 +509,7 @@ menuCreate(){
 	Menu, mainMenu, Add, Джун - Награды бессмертного Синдиката, shSyndicate
 	Menu, mainMenu, Add, Кассия - Масла, shOils
 	FormatTime, Month, %A_Now%, MM
-	Random, randomNum, 1, 35
+	Random, randomNum, 1, 50
 	if (Month=4 || randomNum=1)
 		Menu, mainMenu, Add, Криллсон - Руководство по рыбалке, shRandom
 	Menu, mainMenu, Add, Навали - Пророчества, shProphecy
@@ -555,3 +544,17 @@ Exit:
 	sleep 250
 	ExitApp
 Return
+
+;Нужно для работы с ItemDataConverter
+class Globals {
+	Set(name, value) {
+		Globals[name] := value
+	}
+	Get(name, value_default="") {
+		result := Globals[name]
+		If (result == "") {
+			result := value_default
+		}
+		return result
+	}
+}

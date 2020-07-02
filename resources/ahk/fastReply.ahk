@@ -1,50 +1,54 @@
 ﻿
-forceSync(){
+fastCmdForceSync(){
 	BlockInput On
 	SendInput, {Enter}{/}oos{Enter}
 	BlockInput Off
 }
 
-toCharacterSelection(){
+fastCmdExit(){
 	BlockInput On
 	SendInput, {Enter}{/}exit{Enter}
 	BlockInput Off
 }
 
-goHideout(){
-	BlockInput On
-	SendInput, {Enter}{/}hideout{Enter}
-	BlockInput Off
+fastCmd1(){
+	commandFastReply(textCmd1)
 }
 
-dndMode(){
-	BlockInput On
-	SendInput, {Enter}{/}dnd{Enter}
-	BlockInput Off
+fastCmd2(){
+	commandFastReply(textCmd2)
 }
 
-chatMsg1(){
-	commandFastReply("@<last> " textMsg1)
+fastCmd3(){
+	commandFastReply(textCmd3)
 }
 
-chatMsg2(){
-	commandFastReply("@<last> " textMsg2)
+fastCmd4(){
+	commandFastReply(textCmd4)
 }
 
-chatMsg3(){
-	commandFastReply("@<last> " textMsg3)
+fastCmd5(){
+	commandFastReply(textCmd5)
 }
 
-chatInvite(){
-	commandFastReply("/invite <last>")
+fastCmd6(){
+	commandFastReply(textCmd6)
 }
 
-chatKick(){
-	commandFastReply("/kick <last>")
+fastCmd7(){
+	commandFastReply(textCmd7)
 }
 
-chatTradeWith(){
-	commandFastReply("/tradewith <last>")
+fastCmd8(){
+	commandFastReply(textCmd8)
+}
+
+fastCmd9(){
+	commandFastReply(textCmd9)
+}
+
+fastCmd10(){
+	commandFastReply(textCmd10)
 }
 
 customCommandsEdit() {
@@ -79,7 +83,7 @@ createCustomCommandsMenu(){
 
 commandFastReply(Line:="/dance"){
 	DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", 0x50, "UInt", 0x4090409, "UInt", 0x4090409)
-	sleep 50
+	sleep 25
 	If (RegExMatch(Line, "/")=1) {
 		If (RegExMatch(Line, " <last>$")) {
 			Line:=StrReplace(Line, " <last>", "")
