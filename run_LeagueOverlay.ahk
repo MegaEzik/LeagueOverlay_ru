@@ -379,7 +379,7 @@ showSettings(){
 			If A_Index=6
 				tempVar:="@<last> sold("
 			If A_Index=7
-				tempVar:="@<last> 2 minutes("
+				tempVar:="@<last> 2 minutes"
 			If A_Index=8
 				tempVar:="@<last> ty & gl, exile)"
 		}
