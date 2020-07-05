@@ -48,7 +48,7 @@ if InStr(FileExist(A_ScriptDir "\profile"), "D")
 	configFolder:=A_ScriptDir "\profile"
 global configFile:=configFolder "\settings.ini"
 global trayMsg, verScript, debugMode=0
-global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, cmdNum=10
+global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, textCmd11, textCmd12, cmdNum=12
 FileReadLine, verScript, resources\Updates.txt, 1
 
 ;Подсказка в области уведомлений и сообщение при запуске
@@ -317,9 +317,9 @@ showSettings(){
 	Gui, Settings:Add, Link, x315 y+2, <a href="https://qiwi.me/megaezik">Поддержать %prjName%</a>
 	Gui, Settings:Add, Link, x10 yp+0 w300, <a href="https://www.autohotkey.com/download/">AutoHotkey</a> | <a href="https://ru.pathofexile.com/forum/view-thread/2694683">Тема на форуме</a> | <a href="https://github.com/MegaEzik/LeagueOverlay_ru/releases">Страница на GitHub</a>
 	
-	Gui, Settings:Add, Button, x315 y345 w162 gsaveSettings, Применить и перезапустить
+	Gui, Settings:Add, Button, x315 y385 w162 gsaveSettings, Применить и перезапустить
 
-	Gui, Settings:Add, Tab, x10 y65 w465 h275, Основные|Быстрые команды ;Вкладки
+	Gui, Settings:Add, Tab, x10 y65 w465 h315, Основные|Быстрые команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
 	Gui, Settings:Add, Checkbox, vautoUpdate x20 y92 w450 Checked%autoUpdate%, Автоматически проверять и уведомлять о наличии обновлений
@@ -352,7 +352,7 @@ showSettings(){
 	Gui, Settings:Add, Text, x20 yp+7 w295, Конвертировать описание предмета Ru>En:
 	Gui, Settings:Add, Hotkey, vhotkeyConverter x+2 yp-2 w150 h18, %hotkeyConverter%
 	
-	Gui, Settings:Add, Text, x20 y320 w400 cGray, * Недоступно в режиме Устаревшей раскладки
+	Gui, Settings:Add, Text, x20 y360 w400 cGray, * Недоступно в режиме Устаревшей раскладки
 	
 	Gui, Settings:Tab, 2 ; Вторая вкладка
 	
