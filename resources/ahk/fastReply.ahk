@@ -51,6 +51,14 @@ fastCmd10(){
 	commandFastReply(textCmd10)
 }
 
+fastCmd11(){
+	commandFastReply(textCmd11)
+}
+
+fastCmd12(){
+	commandFastReply(textCmd12)
+}
+
 customCommandsEdit() {
 	textFileWindow("Редактирование 'Меню команд'", configFolder "\commands.txt", false, "run https://pathofexile.gamepedia.com/Chat_console`n---`n@<last> sure`n/global 820`n/whois <last>`n/deaths`n/passives")
 	SetTimer, timerCommandsEdit, 500
