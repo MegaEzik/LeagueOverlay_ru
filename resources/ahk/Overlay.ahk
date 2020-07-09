@@ -11,7 +11,9 @@ shOverlay(ImgPath){
 		
 		If !pBitmapImg{
 			Gdip_DisposeImage(pBitmapImg)
-			msgbox, 0x1010, %prjName%, Некорректный файл изображения!, 3
+			SplashTextOn, 300, 20, %prjName%, Некорректный файл изображения!
+			Sleep 1500
+			SplashTextOff
 			return
 		}
 		
