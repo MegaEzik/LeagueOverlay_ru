@@ -128,8 +128,8 @@ if (imagesPreset!="default" && imagesPreset!="")
 SetTimer, checkWindowTimer, 250
 	
 ;Назначим управление и создадим меню
-setHotkeys()
 menuCreate()
+setHotkeys()
 
 ;Скроем сообщение загрузки и воспроизведем звук, при его наличии в системе
 if FileExist(A_WinDir "\Media\Speech On.wav")
@@ -211,12 +211,20 @@ openMyImagesFolder(){
 	Run, explorer "%configFolder%\images"
 }
 
-myImagesMenuCreate(){
-	Loop, %configFolder%\images\*.*, 1
-		if RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp)$")
-			Menu, myImagesMenu, Add, %A_LoopFileName%, shMyImage
-	Menu, myImagesMenu, Add
-	Menu, myImagesMenu, Add, Открыть папку, openMyImagesFolder
+myImagesMenuCreate(selfMenu=true){
+	if selfMenu {
+		Loop, %configFolder%\images\*.*, 1
+			if RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp)$")
+				Menu, myImagesMenu, Add, %A_LoopFileName%, shMyImage
+			Menu, myImagesMenu, Add
+			Menu, myImagesMenu, Add, Открыть папку, openMyImagesFolder
+			
+			Menu, mainMenu, Add, Мои изображения, :myImagesMenu
+	} else {
+		Loop, %configFolder%\images\*.*, 1
+			if RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp)$")
+				Menu, mainMenu, Add, %A_LoopFileName%, shMyImage
+	}
 }
 
 textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
@@ -301,9 +309,11 @@ showSettings(){
 	IniRead, imagesPreset, %configFile%, settings, imagesPreset, default
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	IniRead, legacyHotkeys, %configFile%, settings, legacyHotkeys, 0
+	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 0
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
 	IniRead, hotkeyConverter, %configFile%, hotkeys, hotkeyConverter, %A_Space%
+	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
 	
 	;Настройки второй вкладки
 	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
@@ -317,9 +327,9 @@ showSettings(){
 	Gui, Settings:Add, Link, x315 y+2, <a href="https://qiwi.me/megaezik">Поддержать %prjName%</a>
 	Gui, Settings:Add, Link, x10 yp+0 w300, <a href="https://www.autohotkey.com/download/">AutoHotkey</a> | <a href="https://ru.pathofexile.com/forum/view-thread/2694683">Тема на форуме</a> | <a href="https://github.com/MegaEzik/LeagueOverlay_ru/releases">Страница на GitHub</a>
 	
-	Gui, Settings:Add, Button, x315 y385 w162 gsaveSettings, Применить и перезапустить
+	Gui, Settings:Add, Button, x315 y412 w162 gsaveSettings, Применить и перезапустить
 
-	Gui, Settings:Add, Tab, x10 y65 w465 h315, Основные|Быстрые команды ;Вкладки
+	Gui, Settings:Add, Tab, x10 y65 w465 h342, Основные|Команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
 	Gui, Settings:Add, Checkbox, vautoUpdate x20 y92 w450 Checked%autoUpdate%, Автоматически проверять и уведомлять о наличии обновлений
@@ -337,7 +347,10 @@ showSettings(){
 	Gui, Settings:Add, DropDownList, vimagesPreset x+2 yp-3 w150, %presetList%
 	GuiControl,Settings:ChooseString, imagesPreset, %imagesPreset%
 	
-	Gui, Settings:Add, Text, x20 y+4 w450 h2 0x10
+	Gui, Settings:Add, Checkbox, vexpandMyImages x20 yp+25 w295 Checked%expandMyImages%, Развернуть 'Мои изображения'
+	Gui, Settings:Add, Button, x+1 yp-2 w152 h22 gopenMyImagesFolder, Открыть папку
+	
+	Gui, Settings:Add, Text, x20 y+3 w450 h2 0x10
 	
 	Gui, Settings:Add, Checkbox, vlegacyHotkeys x20 yp+7 w450 Checked%legacyHotkeys%, Устаревшая раскладка(использовать не рекомендуется)
 	
@@ -352,11 +365,16 @@ showSettings(){
 	Gui, Settings:Add, Text, x20 yp+7 w295, Конвертировать описание предмета Ru>En:
 	Gui, Settings:Add, Hotkey, vhotkeyConverter x+2 yp-2 w150 h18, %hotkeyConverter%
 	
-	Gui, Settings:Add, Text, x20 y360 w400 cGray, * Недоступно в режиме Устаревшей раскладки
+	Gui, Settings:Add, Text, x20 y387 w400 cGray, * Недоступно в режиме Устаревшей раскладки
 	
 	Gui, Settings:Tab, 2 ; Вторая вкладка
 	
-	Gui, Settings:Add, Text, x20 y95 w295, Синхронизировать(/oos):
+	Gui, Settings:Add, Text, x20 y95 w295, Меню команд:
+	Gui, Settings:Add, Hotkey, vhotkeyCustomCommandsMenu x+2 yp-2 w150 h18, %hotkeyCustomCommandsMenu%
+	
+	Gui, Settings:Add, Text, x20 y+4 w450 h2 0x10
+	
+	Gui, Settings:Add, Text, x20 yp+7 w295, Синхронизировать(/oos):
 	Gui, Settings:Add, Hotkey, vhotkeyForceSync x+2 yp-2 w150 h18, %hotkeyForceSync%
 	
 	Gui, Settings:Add, Text, x20 yp+22 w295, К выбору персонажа(/exit):
@@ -411,6 +429,7 @@ saveSettings(){
 	IniWrite, %imagesPreset%, %configFile%, settings, imagesPreset
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
 	IniWrite, %legacyHotkeys%, %configFile%, settings, legacyHotkeys
+	IniWrite, %expandMyImages%, %configFile%, settings, expandMyImages
 	IniWrite, %hotkeyLastImg%, %configFile%, hotkeys, hotkeyLastImg
 	IniWrite, %hotkeyMainMenu%, %configFile%, hotkeys, hotkeyMainMenu
 	IniWrite, %hotkeyConverter%, %configFile%, hotkeys, hotkeyConverter
@@ -418,6 +437,7 @@ saveSettings(){
 	;Настройки второй вкладки
 	IniWrite, %hotkeyForceSync%, %configFile%, hotkeys, hotkeyForceSync
 	IniWrite, %hotkeyToCharacterSelection%, %configFile%, hotkeys, hotkeyToCharacterSelection
+	IniWrite, %hotkeyCustomCommandsMenu%, %configFile%, hotkeys, hotkeyCustomCommandsMenu
 	
 	;Настраиваемые команды fastReply
 	Loop %cmdNum% {
@@ -470,10 +490,13 @@ setHotkeys(){
 	;Инициализация встроенных команд fastReply
 	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
 	IniRead, hotkeyToCharacterSelection, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
+	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
 	if (hotkeyForceSync!="")
 		Hotkey, % hotkeyForceSync, fastCmdForceSync, On
 	if (hotkeyToCharacterSelection!="")
 		Hotkey, % hotkeyToCharacterSelection, fastCmdExit, On
+	if (hotkeyCustomCommandsMenu!="")
+		Hotkey, % hotkeyCustomCommandsMenu, showCustomCommandsMenu, On
 	
 	;Инициализация настраиваемых команд fastReply
 	Loop %cmdNum% {
@@ -486,7 +509,7 @@ setHotkeys(){
 }
 
 menuCreate(){
-	myImagesMenuCreate()
+	
 	createCustomCommandsMenu()
 	
 	Menu, Tray, Add, История изменений, showUpdateHistory
@@ -494,6 +517,7 @@ menuCreate(){
 	Menu, Tray, Default, Информация и настройки
 	Menu, Tray, Add, Выполнить обновление, CheckUpdateFromMenu
 	Menu, Tray, Add
+	Menu, Tray, Add, Испытания лабиринта, showLabTrials
 	Menu, Tray, Add, Открыть папку настроек, openConfigFolder
 	Menu, Tray, Add, Очистить кэш Path of Exile, clearPoECache
 	If debugMode
@@ -503,7 +527,9 @@ menuCreate(){
 	Menu, Tray, Add, Завершить работу макроса, Exit
 	Menu, Tray, NoStandard
 	
-	Menu, mainMenu, Add, Мои изображения, :myImagesMenu
+	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 0
+	myImagesMenuCreate(!expandMyImages)
+	
 	Menu, mainMenu, Add
 	Menu, mainMenu, Add, Альва - Комнаты храма Ацоатль, shIncursion
 	Menu, mainMenu, Add, Джун - Награды бессмертного Синдиката, shSyndicate
@@ -514,10 +540,16 @@ menuCreate(){
 		Menu, mainMenu, Add, Криллсон - Руководство по рыбалке, shRandom
 	Menu, mainMenu, Add, Навали - Пророчества, shProphecy
 	Menu, mainMenu, Add, Нико - Ископаемые, shFossils
+	
 	Menu, mainMenu, Add
-	Menu, mainMenu, Add, Меню команд, :customCommandsMenu
-	Menu, mainMenu, Add, Испытания лабиринта, showLabTrials
-	Menu, mainMenu, Add
+	
+	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
+	if (hotkeyCustomCommandsMenu="")
+		Menu, mainMenu, Add, Меню команд, :customCommandsMenu
+	
+	if !сompletionLabTrials()
+		Menu, mainMenu, Add, Испытания лабиринта, showLabTrials
+		
 	Menu, mainMenu, Add, Область уведомлений, :Tray
 }
 

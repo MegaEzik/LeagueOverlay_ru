@@ -116,20 +116,20 @@ showLabTrials() {
 	Gui, LabTrials:Destroy
 	trialsFile:=configFolder "\trials.ini"
 	
-	IniRead, trialAS, %trialsFile%, LabTrials, trialA, 0
-	IniRead, trialBS, %trialsFile%, LabTrials, trialB, 0
-	IniRead, trialCS, %trialsFile%, LabTrials, trialC, 0
-	IniRead, trialDS, %trialsFile%, LabTrials, trialD, 0
-	IniRead, trialES, %trialsFile%, LabTrials, trialE, 0
-	IniRead, trialFS, %trialsFile%, LabTrials, trialF, 0
+	IniRead, trialA, %trialsFile%, LabTrials, trialA, 0
+	IniRead, trialB, %trialsFile%, LabTrials, trialB, 0
+	IniRead, trialC, %trialsFile%, LabTrials, trialC, 0
+	IniRead, trialD, %trialsFile%, LabTrials, trialD, 0
+	IniRead, trialE, %trialsFile%, LabTrials, trialE, 0
+	IniRead, trialF, %trialsFile%, LabTrials, trialF, 0
 	
-	Gui, LabTrials:Add, Checkbox, vtrialAS x5 y0 w140 h28 Checked%trialAS% +Center, Пронзающей истинной`nPiercing Truth
-	Gui, LabTrials:Add, Checkbox, vtrialBS xp+0 y+28 w140 h28 Checked%trialBS% +Center, Крутящимся страхом`nSwirling Fear
-	Gui, LabTrials:Add, Checkbox, vtrialCS xp+0 y+28 w140 h28 Checked%trialCS% +Center, Калечащей печалью`nCrippling Grief
+	Gui, LabTrials:Add, Checkbox, vtrialA x5 y0 w140 h28 Checked%trialA% +Center, Пронзающей истинной`nPiercing Truth
+	Gui, LabTrials:Add, Checkbox, vtrialB xp+0 y+28 w140 h28 Checked%trialB% +Center, Крутящимся страхом`nSwirling Fear
+	Gui, LabTrials:Add, Checkbox, vtrialC xp+0 y+28 w140 h28 Checked%trialC% +Center, Калечащей печалью`nCrippling Grief
 	
-	Gui, LabTrials:Add, Checkbox, vtrialDS xp+140 y0 w140 h28 Checked%trialDS% +Center, Пылающей яростью`nBurning Rage
-	Gui, LabTrials:Add, Checkbox, vtrialES xp+0 y+28 w140 h28 Checked%trialES% +Center, Томительной болью`nLingering Pain
-	Gui, LabTrials:Add, Checkbox, vtrialFS xp+0 y+28 w140 h28 Checked%trialFS% +Center, Жалящим сомнением`nStinging Doubt
+	Gui, LabTrials:Add, Checkbox, vtrialD xp+140 y0 w140 h28 Checked%trialD% +Center, Пылающей яростью`nBurning Rage
+	Gui, LabTrials:Add, Checkbox, vtrialE xp+0 y+28 w140 h28 Checked%trialE% +Center, Томительной болью`nLingering Pain
+	Gui, LabTrials:Add, Checkbox, vtrialF xp+0 y+28 w140 h28 Checked%trialF% +Center, Жалящим сомнением`nStinging Doubt
 	
 	Gui, LabTrials:+AlwaysOnTop -Border -Caption
 	Gui, LabTrials:Show, w285 h225, Испытания лабиринта
@@ -148,12 +148,25 @@ autoSaveLabTrials() {
 	{
 		SetTimer, autoSaveLabTrials, Delete
 		Gui, LabTrials:Submit
-		IniWrite, %trialAS%, %trialsFile%, LabTrials, trialA
-		IniWrite, %trialBS%, %trialsFile%, LabTrials, trialB
-		IniWrite, %trialCS%, %trialsFile%, LabTrials, trialC
-		IniWrite, %trialDS%, %trialsFile%, LabTrials, trialD
-		IniWrite, %trialES%, %trialsFile%, LabTrials, trialE
-		IniWrite, %trialFS%, %trialsFile%, LabTrials, trialF
+		IniWrite, %trialA%, %trialsFile%, LabTrials, trialA
+		IniWrite, %trialB%, %trialsFile%, LabTrials, trialB
+		IniWrite, %trialC%, %trialsFile%, LabTrials, trialC
+		IniWrite, %trialD%, %trialsFile%, LabTrials, trialD
+		IniWrite, %trialE%, %trialsFile%, LabTrials, trialE
+		IniWrite, %trialF%, %trialsFile%, LabTrials, trialF
 		Gui, LabTrials:Destroy
 	}
+}
+
+сompletionLabTrials() {
+	trialsFile:=configFolder "\trials.ini"
+	IniRead, trialA, %trialsFile%, LabTrials, trialA, 0
+	IniRead, trialB, %trialsFile%, LabTrials, trialB, 0
+	IniRead, trialC, %trialsFile%, LabTrials, trialC, 0
+	IniRead, trialD, %trialsFile%, LabTrials, trialD, 0
+	IniRead, trialE, %trialsFile%, LabTrials, trialE, 0
+	IniRead, trialF, %trialsFile%, LabTrials, trialF, 0
+	if (trialA && trialB && trialC && trialD && trialE && trialF)
+		return true
+	return false
 }

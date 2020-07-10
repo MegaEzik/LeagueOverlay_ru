@@ -126,3 +126,7 @@ commandFastReply(Line:="/dance"){
 	}
 	msgbox, 0x1010, %prjName%, Неизвестная команда!, 2
 }
+
+showCustomCommandsMenu(){
+	Menu, customCommandsMenu, Show
+}
