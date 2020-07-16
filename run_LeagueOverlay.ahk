@@ -49,6 +49,7 @@ if InStr(FileExist(A_ScriptDir "\profile"), "D")
 global configFile:=configFolder "\settings.ini"
 global trayMsg, verScript, debugMode=0
 global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, textCmd11, textCmd12, cmdNum=12
+global presetData
 FileReadLine, verScript, resources\Updates.txt, 1
 
 ;Подсказка в области уведомлений и сообщение при запуске
@@ -75,6 +76,12 @@ if autoUpdate && !debugMode {
 
 ;Проверим файл конфигурации
 IniRead, verConfig, %configFile%, info, verConfig, ""
+If (verConfig<200716) {
+	IniRead, legacyHotkeys, %configFile%, settings, legacyHotkeys, 0
+	if legacyHotkeys
+		msgbox, 0x1040, %prjName% - Предупреждение, Поддержка 'Устаревшей раскладки' прекращена!
+}
+;Если версия скрипта и конфига не совпадают, то пересоздадим файл и по возможности перенесем настройки
 if (verConfig!=verScript) {
 	showSettings()
 	FileDelete, %configFile%
@@ -98,14 +105,9 @@ If !pToken:=Gdip_Startup()
 OnExit, Exit
 
 ;Глобальные переменные для количества изображений, самих изображений, их статуса и номера последнего
-global image1, image2, image3, image4, image5
 global OverlayStatus:=0
-global imgNameArray:=["Incursion", "Fossil", "Syndicate", "Prophecy", "Oils"]
-global NumImg:=imgNameArray.MaxIndex()
-Loop %NumImg%{
-	image%A_Index%:="resources\ImgError.png"
-}
-global LastImgPath:="resources\ImgError.png"
+global LastImgPath
+
 ;Загружаем раскладку лабиринта
 downloadLabLayout()
 ;Выполним myloader.ahk
@@ -115,14 +117,6 @@ If FileExist(configFolder "\myloader.ahk")
 IniRead, lastImgPathC, %configFile%, settings, lastImgPath, %A_Space%
 If (lastImgPathC!="" && FileExist(lastImgPathC))
 	LastImgPath:=lastImgPathC
-
-;Установим изображения
-setPreset("resources\images\")
-
-;Если установлен пресет, то установим его изображения
-IniRead, imagesPreset, %configFile%, settings, imagesPreset, default
-if (imagesPreset!="default" && imagesPreset!="")
-	setPreset("resources\images\" imagesPreset "\")
 
 ;Установим таймер на проверку активного окна
 SetTimer, checkWindowTimer, 250
@@ -151,17 +145,6 @@ Return
 
 #IfWinActive ahk_group PoEWindowGrp
 
-setPreset(path){
-	Loop %NumImg% {
-		If imgNameArray[A_Index]!="" {
-			If FileExist(path imgNameArray[A_Index] ".jpg")
-				image%A_Index%:=path imgNameArray[A_Index] ".jpg"
-			If FileExist(path imgNameArray[A_Index] ".png")
-				image%A_Index%:=path imgNameArray[A_Index] ".png"
-		}
-	}
-}
-
 shLastImage(){
 	shOverlay(LastImgPath)
 }
@@ -171,33 +154,35 @@ shMainMenu(){
 	Menu, mainMenu, Show
 }
 
-shLabyrinth(){
-	shOverlay(configFolder "\images\Labyrinth.jpg")
-}
-
-shIncursion(){
-	shOverlay(image1)
-}
-
-shFossils(){
-	shOverlay(image2)
-}
-
-shSyndicate(){
-	shOverlay(image3)
-}
-
-shProphecy(){
-	shOverlay(image4)
-}
-
-shOils(){
-	shOverlay(image5)
-}
-
+/*
 shRandom(){
 	Random, randomNum, 1, NumImg
 	shOverlay(image%randomNum%)
+}
+*/
+
+presetInMenu(imagesPreset){
+	if FileExist("resources\presets\" imagesPreset ".preset") {
+		FileRead, presetData, resources\presets\%imagesPreset%.preset
+		presetData:=StrReplace(presetData, "`r", "")
+		presetDataSplit:=StrSplit(presetData, "`n")
+		For k, val in presetDataSplit {
+			imageInfo:=StrSplit(presetDataSplit[k], "|")
+			ImgName:=imageInfo[1]
+			if FileExist(imageInfo[2])
+				Menu, mainMenu, Add, %ImgName%, presetImgShow
+		}
+	}
+}
+
+presetImgShow(ImgName){
+	presetDataSplit:=StrSplit(presetData, "`n")
+	For k, val in presetDataSplit {
+		imageInfo:=StrSplit(presetDataSplit[k], "|")
+		if (ImgName=imageInfo[1]) {
+			shOverlay(imageInfo[2])
+		}
+	}
 }
 
 shMyImage(imagename){
@@ -308,7 +293,6 @@ showSettings(){
 	IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
 	IniRead, imagesPreset, %configFile%, settings, imagesPreset, default
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
-	IniRead, legacyHotkeys, %configFile%, settings, legacyHotkeys, 0
 	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 0
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
@@ -318,8 +302,6 @@ showSettings(){
 	;Настройки второй вкладки
 	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
 	IniRead, hotkeyToCharacterSelection, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
-	
-	legacyHotkeysOldPosition:=legacyHotkeys
 	
 	Gui, Settings:Add, Text, x10 y10 w300 h28 cGreen, %prjName% - макрос содержащий несколько нужных функций и отображающий полезные изображения.
 	
@@ -340,9 +322,14 @@ showSettings(){
 	Gui, Settings:Add, Checkbox, vloadLab x20 yp+22 w370 Checked%loadLab%, Загружать убер-лабиринт(Мои изображения>Labyrinth.jpg)
 	Gui, Settings:Add, Link, x400 yp+0, <a href="https://www.poelab.com/">POELab.com</a>
 	
-	presetList:="default"
-	Loop, resources\images\*, 2
-		presetList.="|" A_LoopFileName
+	presetList:=""	
+	Loop, resources\presets\*.preset, 1
+		if (presetList!="") {
+			presetList.="|" StrReplace(A_LoopFileName, ".preset", "")
+		} else {
+			presetList.=StrReplace(A_LoopFileName, ".preset", "")
+		}
+	
 	Gui, Settings:Add, Text, x20 yp+22 w295, Набор изображений:
 	Gui, Settings:Add, DropDownList, vimagesPreset x+2 yp-3 w150, %presetList%
 	GuiControl,Settings:ChooseString, imagesPreset, %imagesPreset%
@@ -352,9 +339,7 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x20 y+3 w450 h2 0x10
 	
-	Gui, Settings:Add, Checkbox, vlegacyHotkeys x20 yp+7 w450 Checked%legacyHotkeys%, Устаревшая раскладка(использовать не рекомендуется)
-	
-	Gui, Settings:Add, Text, x20 yp+20 w295, Последнее изображение*:
+	Gui, Settings:Add, Text, x20 yp+7 w295, Последнее изображение*:
 	Gui, Settings:Add, Hotkey, vhotkeyLastImg x+2 yp-2 w150 h18, %hotkeyLastImg%
 	
 	Gui, Settings:Add, Text, x20 yp+22 w295, Меню быстрого доступа*:
@@ -364,9 +349,7 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x20 yp+7 w295, Конвертировать описание предмета Ru>En:
 	Gui, Settings:Add, Hotkey, vhotkeyConverter x+2 yp-2 w150 h18, %hotkeyConverter%
-	
-	Gui, Settings:Add, Text, x20 y387 w400 cGray, * Недоступно в режиме Устаревшей раскладки
-	
+		
 	Gui, Settings:Tab, 2 ; Вторая вкладка
 	
 	Gui, Settings:Add, Text, x20 y95 w295, Меню команд:
@@ -428,7 +411,6 @@ saveSettings(){
 	IniWrite, %autoUpdate%, %configFile%, settings, autoUpdate
 	IniWrite, %imagesPreset%, %configFile%, settings, imagesPreset
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
-	IniWrite, %legacyHotkeys%, %configFile%, settings, legacyHotkeys
 	IniWrite, %expandMyImages%, %configFile%, settings, expandMyImages
 	IniWrite, %hotkeyLastImg%, %configFile%, hotkeys, hotkeyLastImg
 	IniWrite, %hotkeyMainMenu%, %configFile%, hotkeys, hotkeyMainMenu
@@ -448,14 +430,6 @@ saveSettings(){
 		IniWrite, %tempVar%, %configFile%, fastReply, textCmd%A_Index%
 	}
 	
-	if (legacyHotkeys>legacyHotkeysOldPosition) {
-		msgText:="Устаревшая раскладка имеет следующее управление:`n"
-		msgText.="`t[Alt+F1] - Лабиринт`n`t[Alt+F2] - Синдикат`n`t[Alt+F3] - Вмешательство`n`t[Alt+F6] - Ископаемые`n`t[Alt+F7] - Пророчества`n`t[Alt+F8] - Масла`n"
-		msgText.="`nВы все еще хотите использовать эту раскладку?"
-		MsgBox, 0x1024, %prjName%,  %msgText%
-		IfMsgBox No
-			IniWrite, 0, %configFile%, settings, legacyHotkeys
-	}
 	ReStart()
 }
 
@@ -463,23 +437,13 @@ setHotkeys(){
 	DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", 0x50, "UInt", 0x4090409, "UInt", 0x4090409)
 	sleep 100
 	;Инициализация основных клавиш макроса
-	IniRead, legacyHotkeys, %configFile%, settings, legacyHotkeys, 0
-	If !legacyHotkeys {
-		IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
-		IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
-		if (hotkeyLastImg!="")
-			Hotkey, % hotkeyLastImg, shLastImage, On
-		if (hotkeyMainMenu!="")
-			Hotkey, % hotkeyMainMenu, shMainMenu, On
-	} Else {
-		Hotkey, !f1, shLabyrinth, On
-		Hotkey, !f2, shSyndicate, On
-		Hotkey, !f3, shIncursion, On
-		Hotkey, !f6, shFossils, On
-		Hotkey, !f7, shProphecy, On
-		Hotkey, !f8, shOils, On
-	}
-	
+	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
+	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
+	if (hotkeyLastImg!="")
+		Hotkey, % hotkeyLastImg, shLastImage, On
+	if (hotkeyMainMenu!="")
+		Hotkey, % hotkeyMainMenu, shMainMenu, On
+
 	;Инициализация ItemDataConverterLib
 	IniRead, hotkeyConverter, %configFile%, hotkeys, hotkeyConverter, %A_Space%
 	if (hotkeyConverter!="") {
@@ -531,15 +495,15 @@ menuCreate(){
 	myImagesMenuCreate(!expandMyImages)
 	
 	Menu, mainMenu, Add
-	Menu, mainMenu, Add, Альва - Комнаты храма Ацоатль, shIncursion
-	Menu, mainMenu, Add, Джун - Награды бессмертного Синдиката, shSyndicate
-	Menu, mainMenu, Add, Кассия - Масла, shOils
-	FormatTime, Month, %A_Now%, MM
+	
+	IniRead, imagesPreset, %configFile%, settings, imagesPreset, default
+	presetInMenu(imagesPreset)
+	
+	/*
 	Random, randomNum, 1, 50
 	if (Month=4 || randomNum=1)
 		Menu, mainMenu, Add, Криллсон - Руководство по рыбалке, shRandom
-	Menu, mainMenu, Add, Навали - Пророчества, shProphecy
-	Menu, mainMenu, Add, Нико - Ископаемые, shFossils
+	*/
 	
 	Menu, mainMenu, Add
 	
