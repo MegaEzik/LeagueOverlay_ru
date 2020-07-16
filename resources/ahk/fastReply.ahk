@@ -124,6 +124,11 @@ commandFastReply(Line:="/dance"){
 		run, %Line%
 		return
 	}
+	If (RegExMatch(Line, "img ")=1) {
+		Line:=StrReplace(Line, "img ", "")
+		shOverlay(Line)
+		return
+	}
 	msgbox, 0x1010, %prjName%, Неизвестная команда!, 2
 }
 
