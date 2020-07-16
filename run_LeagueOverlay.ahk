@@ -76,12 +76,6 @@ if autoUpdate && !debugMode {
 
 ;Проверим файл конфигурации
 IniRead, verConfig, %configFile%, info, verConfig, ""
-If (verConfig<200716) {
-	IniRead, legacyHotkeys, %configFile%, settings, legacyHotkeys, 0
-	if legacyHotkeys
-		msgbox, 0x1040, %prjName% - Предупреждение, Поддержка 'Устаревшей раскладки' прекращена!
-}
-;Если версия скрипта и конфига не совпадают, то пересоздадим файл и по возможности перенесем настройки
 if (verConfig!=verScript) {
 	showSettings()
 	FileDelete, %configFile%
@@ -339,10 +333,10 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x20 y+3 w450 h2 0x10
 	
-	Gui, Settings:Add, Text, x20 yp+7 w295, Последнее изображение*:
+	Gui, Settings:Add, Text, x20 yp+7 w295, Последнее изображение:
 	Gui, Settings:Add, Hotkey, vhotkeyLastImg x+2 yp-2 w150 h18, %hotkeyLastImg%
 	
-	Gui, Settings:Add, Text, x20 yp+22 w295, Меню быстрого доступа*:
+	Gui, Settings:Add, Text, x20 yp+22 w295, Меню быстрого доступа:
 	Gui, Settings:Add, Hotkey, vhotkeyMainMenu x+2 yp-2 w150 h18, %hotkeyMainMenu%
 	
 	Gui, Settings:Add, Text, x20 y+4 w450 h2 0x10
