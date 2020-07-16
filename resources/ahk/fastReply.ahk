@@ -119,6 +119,8 @@ commandFastReply(Line:="/dance"){
 		BlockInput Off
 		return
 	}
+	If RegExMatch(Line, "<configFolder>")
+		Line:=StrReplace(Line, "<configFolder>", configFolder)
 	If (RegExMatch(Line, "run ")=1) {
 		Line:=StrReplace(Line, "run ", "")
 		run, %Line%

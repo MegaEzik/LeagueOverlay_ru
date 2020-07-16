@@ -81,6 +81,7 @@ if (verConfig!=verScript) {
 	FileDelete, %configFile%
 	sleep 25
 	FileCreateDir, %configFolder%\images
+	FileCreateDir, %configFolder%\presets
 	IniWrite, %verScript%, %configFile%, info, verConfig
 	saveSettings()
 }
@@ -156,14 +157,18 @@ shRandom(){
 */
 
 presetInMenu(imagesPreset){
-	if FileExist("resources\presets\" imagesPreset ".preset") {
-		FileRead, presetData, resources\presets\%imagesPreset%.preset
+	presetPath:="resources\presets\" imagesPreset ".preset"
+	If RegExMatch(imagesPreset, "> ")=1
+		presetPath:=configFolder "\presets\" StrReplace(imagesPreset, "> ", "") ".preset"
+	
+	if FileExist(presetPath) {
+		FileRead, presetData, %presetPath%
 		presetData:=StrReplace(presetData, "`r", "")
 		presetDataSplit:=StrSplit(presetData, "`n")
 		For k, val in presetDataSplit {
 			imageInfo:=StrSplit(presetDataSplit[k], "|")
 			ImgName:=imageInfo[1]
-			if FileExist(imageInfo[2])
+			if FileExist(StrReplace(imageInfo[2], "<configFolder>", configFolder))
 				Menu, mainMenu, Add, %ImgName%, presetImgShow
 		}
 	}
@@ -174,7 +179,7 @@ presetImgShow(ImgName){
 	For k, val in presetDataSplit {
 		imageInfo:=StrSplit(presetDataSplit[k], "|")
 		if (ImgName=imageInfo[1]) {
-			shOverlay(imageInfo[2])
+			shOverlay(StrReplace(imageInfo[2], "<configFolder>", configFolder))
 		}
 	}
 }
@@ -322,6 +327,12 @@ showSettings(){
 			presetList.="|" StrReplace(A_LoopFileName, ".preset", "")
 		} else {
 			presetList.=StrReplace(A_LoopFileName, ".preset", "")
+		}
+	Loop, %configFolder%\presets\*.preset, 1
+		if (presetList!="") {
+			presetList.="|> " StrReplace(A_LoopFileName, ".preset", "")
+		} else {
+			presetList.="> " StrReplace(A_LoopFileName, ".preset", "")
 		}
 	
 	Gui, Settings:Add, Text, x20 yp+22 w295, Набор изображений:
