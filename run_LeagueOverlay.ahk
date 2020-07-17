@@ -49,7 +49,7 @@ if InStr(FileExist(A_ScriptDir "\profile"), "D")
 global configFile:=configFolder "\settings.ini"
 global trayMsg, verScript, debugMode=0
 global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, textCmd11, textCmd12, cmdNum=12
-global presetData
+global presetData, LastImgPath, OverlayStatus=0
 FileReadLine, verScript, resources\Updates.txt, 1
 
 ;Подсказка в области уведомлений и сообщение при запуске
@@ -99,15 +99,13 @@ If !pToken:=Gdip_Startup()
 	}
 OnExit, Exit
 
-;Глобальные переменные для количества изображений, самих изображений, их статуса и номера последнего
-global OverlayStatus:=0
-global LastImgPath
-
 ;Загружаем раскладку лабиринта
 downloadLabLayout()
-;Выполним myloader.ahk
+
+;Выполним myloader.ahk, передав ему папку расположения скрипта
 If FileExist(configFolder "\myloader.ahk")
-	runwait, "%configFolder%\myloader.ahk"
+	RunWait *RunAs "%A_AhkPath%" "%configFolder%\myloader.ahk" "%A_ScriptDir%"
+	
 ;Назначим последнее изображение
 IniRead, lastImgPathC, %configFile%, settings, lastImgPath, %A_Space%
 If (lastImgPathC!="" && FileExist(lastImgPathC))
@@ -149,18 +147,8 @@ shMainMenu(){
 	Menu, mainMenu, Show
 }
 
-/*
-shRandom(){
-	Random, randomNum, 1, NumImg
-	shOverlay(image%randomNum%)
-}
-*/
-
 presetInMenu(imagesPreset){
 	presetPath:="resources\presets\" imagesPreset ".preset"
-	If RegExMatch(imagesPreset, "> ")=1
-		presetPath:=configFolder "\presets\" StrReplace(imagesPreset, "> ", "") ".preset"
-	
 	if FileExist(presetPath) {
 		FileRead, presetData, %presetPath%
 		presetData:=StrReplace(presetData, "`r", "")
@@ -327,12 +315,6 @@ showSettings(){
 			presetList.="|" StrReplace(A_LoopFileName, ".preset", "")
 		} else {
 			presetList.=StrReplace(A_LoopFileName, ".preset", "")
-		}
-	Loop, %configFolder%\presets\*.preset, 1
-		if (presetList!="") {
-			presetList.="|> " StrReplace(A_LoopFileName, ".preset", "")
-		} else {
-			presetList.="> " StrReplace(A_LoopFileName, ".preset", "")
 		}
 	
 	Gui, Settings:Add, Text, x20 yp+22 w295, Набор изображений:
@@ -501,14 +483,13 @@ menuCreate(){
 	
 	Menu, mainMenu, Add
 	
+	FormatTime, CurrentDate, %A_NowUTC%, MMdd
+	Random, randomNum, 1, 100
+	if (CurrentDate==0401 || randomNum=1)
+		Menu, mainMenu, Add, Krillson, shLastImage
+	
 	IniRead, imagesPreset, %configFile%, settings, imagesPreset, default
 	presetInMenu(imagesPreset)
-	
-	/*
-	Random, randomNum, 1, 50
-	if (Month=4 || randomNum=1)
-		Menu, mainMenu, Add, Криллсон - Руководство по рыбалке, shRandom
-	*/
 	
 	Menu, mainMenu, Add
 	
