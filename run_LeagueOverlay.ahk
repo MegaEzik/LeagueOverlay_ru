@@ -305,8 +305,7 @@ showSettings(){
 	Gui, Settings:Add, Text, x20 yp+20 w155, Другое окно для проверки:
 	Gui, Settings:Add, Edit, vwindowLine x+2 yp-2 w290 h18, %windowLine%
 	
-	Gui, Settings:Add, Checkbox, vloadLab x20 yp+22 w370 Checked%loadLab%, Загружать убер-лабиринт(Мои изображения>Labyrinth.jpg)
-	Gui, Settings:Add, Link, x400 yp+0, <a href="https://www.poelab.com/">POELab.com</a>
+	Gui, Settings:Add, Text, x20 y+4 w450 h2 0x10
 	
 	presetList:=""	
 	Loop, resources\presets\*.preset, 1
@@ -316,14 +315,17 @@ showSettings(){
 			presetList.=StrReplace(A_LoopFileName, ".preset", "")
 		}
 	
-	Gui, Settings:Add, Text, x20 yp+22 w295, Набор изображений:
+	Gui, Settings:Add, Text, x20 yp+8 w295, Набор изображений:
 	Gui, Settings:Add, DropDownList, vimagesPreset x+2 yp-3 w150, %presetList%
 	GuiControl,Settings:ChooseString, imagesPreset, %imagesPreset%
 	
 	Gui, Settings:Add, Checkbox, vexpandMyImages x20 yp+25 w295 Checked%expandMyImages%, Развернуть 'Мои изображения'
 	Gui, Settings:Add, Button, x+1 yp-2 w152 h22 gopenMyImagesFolder, Открыть папку
 	
-	Gui, Settings:Add, Text, x20 y+3 w450 h2 0x10
+	Gui, Settings:Add, Checkbox, vloadLab x20 yp+25 w370 Checked%loadLab%, Загружать убер-лабиринт(Мои изображения>Labyrinth.jpg)
+	Gui, Settings:Add, Link, x400 yp+0, <a href="https://www.poelab.com/">POELab.com</a>
+	
+	Gui, Settings:Add, Text, x20 y+4 w450 h2 0x10
 	
 	Gui, Settings:Add, Text, x20 yp+7 w295, Последнее изображение:
 	Gui, Settings:Add, Hotkey, vhotkeyLastImg x+2 yp-2 w150 h18, %hotkeyLastImg%
