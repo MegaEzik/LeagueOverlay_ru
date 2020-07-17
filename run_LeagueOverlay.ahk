@@ -81,7 +81,6 @@ if (verConfig!=verScript) {
 	FileDelete, %configFile%
 	sleep 25
 	FileCreateDir, %configFolder%\images
-	FileCreateDir, %configFolder%\presets
 	IniWrite, %verScript%, %configFile%, info, verConfig
 	saveSettings()
 }
