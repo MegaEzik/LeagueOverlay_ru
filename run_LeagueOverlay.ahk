@@ -280,6 +280,22 @@ editPreset(){
 	textFileWindow("Редактирование " namePreset ".preset", configFolder "\presets\" namePreset ".preset", false, presetData)
 }
 
+delPresetMenuShow(){
+	Menu, delPresetMenu, Add
+	Menu, delPresetMenu, DeleteAll
+	Menu, delPresetMenu, Add
+	Loop, %configFolder%\presets\*.preset, 1
+		Menu, delPresetMenu, Add, %A_LoopFileName%, delPreset
+	Menu, delPresetMenu, Show
+}
+
+delPreset(presetName){
+	FileDelete, %configFolder%\presets\%presetName%
+	Gui, Settings:Destroy
+	Sleep 25
+	showSettings()
+}
+
 showSettings(){
 	global
 	Gui, Settings:Destroy
@@ -322,13 +338,14 @@ showSettings(){
 	
 	presetList:=""
 	Loop, resources\presets\*.preset, 1
-			presetList.="|" StrReplace(A_LoopFileName, ".preset", "")
+		presetList.="|" StrReplace(A_LoopFileName, ".preset", "")
 	Loop, %configFolder%\presets\*.preset, 1
-			presetList.="|<" StrReplace(A_LoopFileName, ".preset", "") ">"
+		presetList.="|<" StrReplace(A_LoopFileName, ".preset", "") ">"
 	presetList:=SubStr(presetList, 2)
 	
-	Gui, Settings:Add, Text, x20 yp+8 w272, Набор изображений:
+	Gui, Settings:Add, Text, x20 yp+8 w249, Набор изображений:
 	Gui, Settings:Add, Button, x+1 yp-4 w23 h23 geditPreset, ✏
+	Gui, Settings:Add, Button, x+0 w23 h23 gdelPresetMenuShow, ✕
 	Gui, Settings:Add, DropDownList, vimagesPreset x+1 yp+1 w150, %presetList%
 	GuiControl,Settings:ChooseString, imagesPreset, %imagesPreset%
 	
