@@ -102,8 +102,8 @@ OnExit, Exit
 downloadLabLayout()
 
 ;Выполним myloader.ahk, передав ему папку расположения скрипта
-If FileExist(configFolder "\myloader.ahk")
-	RunWait *RunAs "%A_AhkPath%" "%configFolder%\myloader.ahk" "%A_ScriptDir%"
+Loop, %configFolder%\*loader.ahk, 1
+	RunWait *RunAs "%A_AhkPath%" "%configFolder%\%A_LoopFileName%" "%A_ScriptDir%"
 	
 ;Назначим последнее изображение
 IniRead, lastImgPathC, %configFile%, settings, lastImgPath, %A_Space%
@@ -500,10 +500,8 @@ menuCreate(){
 	Menu, Tray, Add, Выполнить обновление, CheckUpdateFromMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Испытания лабиринта, showLabTrials
-	Menu, Tray, Add, Открыть папку настроек, openConfigFolder
 	Menu, Tray, Add, Очистить кэш Path of Exile, clearPoECache
-	If debugMode
-		Menu, Tray, Add, Инструменты разработчика, :devMenu
+	Menu, Tray, Add, Инструменты разработчика, :devMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить, ReStart
 	Menu, Tray, Add, Завершить работу макроса, Exit
@@ -532,6 +530,12 @@ menuCreate(){
 		Menu, mainMenu, Add, Испытания лабиринта, showLabTrials
 		
 	Menu, mainMenu, Add, Область уведомлений, :Tray
+}
+
+addPlugin(){
+	FileSelectFile, ArcPath, ,,,(*.zip)
+	If FileExist(ArcPath)
+		unZipArchive(ArcPath, configFolder)
 }
 
 openConfigFolder(){

@@ -1,17 +1,19 @@
 ﻿
 ;Инициализация
 devInit() {
+	devMenu()
 	IniRead, debugMode, %configFile%, settings, debugMode, 0
 	if !debugMode
 		return
 	trayUpdate("`nВключен режим отладки")
-	devMenu()
 }
 
 ;Создание меню разработчика
 devMenu() {
 	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
 	Menu, devMenu, Add, Открыть файл отладки, openDebugFile
+	Menu, devMenu, Add, Открыть папку настроек, openConfigFolder
+	Menu, devMenu, Add, Добавить плагин, addPlugin
 	Menu, devMenu, Add
 	Menu, devMenu, Standard
 }
