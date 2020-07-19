@@ -148,6 +148,8 @@ shMainMenu(){
 
 presetInMenu(imagesPreset){
 	presetPath:="resources\presets\" imagesPreset ".preset"
+	If RegExMatch(imagesPreset, "<(.*)>", imagesPreset)
+		presetPath:=configFolder "\presets\" imagesPreset1 ".preset"
 	if FileExist(presetPath) {
 		FileRead, presetData, %presetPath%
 		presetData:=StrReplace(presetData, "`r", "")
@@ -176,6 +178,7 @@ shMyImage(imagename){
 }
 
 openMyImagesFolder(){
+	Gui, Settings:Destroy
 	If !FileExist(configFolder "\images")
 		FileCreateDir, %configFolder%\images
 	sleep 15
@@ -267,6 +270,16 @@ clearPoECache(){
 	}
 }
 
+editPreset(){
+	Gui, Settings:Destroy
+	FileCreateDir, %configFolder%\presets
+	InputBox, namePreset, Укажите имя набора,,, 300, 100,,,,, custom
+	namePreset:=StrReplace(namePreset, ".preset", "")
+	if (namePreset="" || ErrorLevel)
+		return
+	textFileWindow("Редактирование " namePreset ".preset", configFolder "\presets\" namePreset ".preset", false, presetData)
+}
+
 showSettings(){
 	global
 	Gui, Settings:Destroy
@@ -307,22 +320,22 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x20 y+4 w450 h2 0x10
 	
-	presetList:=""	
+	presetList:=""
 	Loop, resources\presets\*.preset, 1
-		if (presetList!="") {
 			presetList.="|" StrReplace(A_LoopFileName, ".preset", "")
-		} else {
-			presetList.=StrReplace(A_LoopFileName, ".preset", "")
-		}
+	Loop, %configFolder%\presets\*.preset, 1
+			presetList.="|<" StrReplace(A_LoopFileName, ".preset", "") ">"
+	presetList:=SubStr(presetList, 2)
 	
 	Gui, Settings:Add, Text, x20 yp+8 w295, Набор изображений:
-	Gui, Settings:Add, DropDownList, vimagesPreset x+2 yp-3 w150, %presetList%
+	Gui, Settings:Add, DropDownList, vimagesPreset x+2 yp-3 w127, %presetList%
 	GuiControl,Settings:ChooseString, imagesPreset, %imagesPreset%
+	Gui, Settings:Add, Button, x+1 yp-1 w23 h23 geditPreset, ✏
 	
-	Gui, Settings:Add, Checkbox, vexpandMyImages x20 yp+25 w295 Checked%expandMyImages%, Развернуть 'Мои изображения'
-	Gui, Settings:Add, Button, x+1 yp-2 w152 h22 gopenMyImagesFolder, Открыть папку
+	Gui, Settings:Add, Checkbox, vexpandMyImages x20 yp+26 w295 Checked%expandMyImages%, Развернуть 'Мои изображения'
+	Gui, Settings:Add, Button, x+1 yp-2 w152 h23 gopenMyImagesFolder, Открыть папку
 	
-	Gui, Settings:Add, Checkbox, vloadLab x20 yp+25 w370 Checked%loadLab%, Загружать убер-лабиринт(Мои изображения>Labyrinth.jpg)
+	Gui, Settings:Add, Checkbox, vloadLab x20 yp+26 w370 Checked%loadLab%, Загружать убер-лабиринт(Мои изображения>Labyrinth.jpg)
 	Gui, Settings:Add, Link, x400 yp+0, <a href="https://www.poelab.com/">POELab.com</a>
 	
 	Gui, Settings:Add, Text, x20 y+4 w450 h2 0x10
@@ -461,7 +474,6 @@ setHotkeys(){
 }
 
 menuCreate(){
-	
 	createCustomCommandsMenu()
 	
 	Menu, Tray, Add, История изменений, showUpdateHistory
