@@ -327,15 +327,16 @@ showSettings(){
 			presetList.="|<" StrReplace(A_LoopFileName, ".preset", "") ">"
 	presetList:=SubStr(presetList, 2)
 	
-	Gui, Settings:Add, Text, x20 yp+8 w295, Набор изображений:
-	Gui, Settings:Add, DropDownList, vimagesPreset x+2 yp-3 w127, %presetList%
+	Gui, Settings:Add, Text, x20 yp+8 w272, Набор изображений:
+	Gui, Settings:Add, Button, x+1 yp-4 w23 h23 geditPreset, ✏
+	Gui, Settings:Add, DropDownList, vimagesPreset x+1 yp+1 w150, %presetList%
 	GuiControl,Settings:ChooseString, imagesPreset, %imagesPreset%
-	Gui, Settings:Add, Button, x+1 yp-1 w23 h23 geditPreset, ✏
 	
-	Gui, Settings:Add, Checkbox, vexpandMyImages x20 yp+26 w295 Checked%expandMyImages%, Развернуть 'Мои изображения'
+	
+	Gui, Settings:Add, Checkbox, vexpandMyImages x20 yp+25 w295 Checked%expandMyImages%, Развернуть 'Мои изображения'
 	Gui, Settings:Add, Button, x+1 yp-2 w152 h23 gopenMyImagesFolder, Открыть папку
 	
-	Gui, Settings:Add, Checkbox, vloadLab x20 yp+26 w370 Checked%loadLab%, Загружать убер-лабиринт(Мои изображения>Labyrinth.jpg)
+	Gui, Settings:Add, Checkbox, vloadLab x20 yp+25 w370 Checked%loadLab%, Загружать убер-лабиринт(Мои изображения>Labyrinth.jpg)
 	Gui, Settings:Add, Link, x400 yp+0, <a href="https://www.poelab.com/">POELab.com</a>
 	
 	Gui, Settings:Add, Text, x20 y+4 w450 h2 0x10
