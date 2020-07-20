@@ -13,7 +13,7 @@ devMenu() {
 	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
 	Menu, devMenu, Add, Открыть файл отладки, openDebugFile
 	Menu, devMenu, Add, Открыть папку настроек, openConfigFolder
-	Menu, devMenu, Add, Добавить плагин, addPlugin
+	Menu, devMenu, Add, Установить пакет, installPack
 	Menu, devMenu, Add
 	Menu, devMenu, Standard
 }
@@ -40,4 +40,10 @@ openDebugFile() {
 devRestoreRelease() {
 	verScript:=0
 	CheckUpdateFromMenu()
+}
+;Установить пакет
+installPack(){
+	FileSelectFile, ArcPath, ,,,(*.pack)
+	If FileExist(ArcPath)
+		unZipArchive(ArcPath, configFolder)
 }

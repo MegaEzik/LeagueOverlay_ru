@@ -532,12 +532,6 @@ menuCreate(){
 	Menu, mainMenu, Add, Область уведомлений, :Tray
 }
 
-addPlugin(){
-	FileSelectFile, ArcPath, ,,,(*.zip)
-	If FileExist(ArcPath)
-		unZipArchive(ArcPath, configFolder)
-}
-
 openConfigFolder(){
 	Run, explorer "%configFolder%"
 }
