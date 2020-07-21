@@ -22,7 +22,9 @@
 SetWorkingDir %A_ScriptDir%
 
 if (!A_IsAdmin) {
-	Run *RunAs "%A_AhkPath%" "%A_ScriptFullPath%"
+	Loop, %0%
+		arguments.=" " %A_Index%
+	Run *RunAs "%A_AhkPath%" "%A_ScriptFullPath%" %arguments%
 	ExitApp
 }
 
@@ -117,9 +119,9 @@ SetTimer, checkWindowTimer, 250
 menuCreate()
 setHotkeys()
 
-;Скроем сообщение загрузки и воспроизведем звук, при его наличии в системе
-if FileExist(A_WinDir "\Media\Speech On.wav")
-	SoundPlay, %A_WinDir%\Media\Speech On.wav
+;Скроем сообщение загрузки
+;If FileExist(A_WinDir "\Media\Speech On.wav")
+;	SoundPlay, %A_WinDir%\Media\Speech On.wav
 SplashTextOff
 
 ;Иногда после запуска будем предлагать поддержать проект

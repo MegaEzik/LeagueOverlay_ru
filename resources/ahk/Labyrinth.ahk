@@ -41,7 +41,7 @@ downloadLabLayout() {
 		run, https://www.poelab.com/
 	
 	;Назначение переменных
-	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36"
+	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36"
 	If FileExist(configfolder "\UserAgent.txt")
 		FileReadLine, UserAgent, %configFolder%\UserAgent.txt, 1
 	CurlLine.="-L -A """ UserAgent """ -o "
@@ -76,7 +76,7 @@ downloadLabLayout() {
 	For k, val in LabDataSplit {
 		If RegExMatch(LabDataSplit[k], "<img id=""notesImg"" style=""width: margin: 0 auto; display: inline-block; cursor: zoom-in;"" src=""(.*)"" />", URL)
 			break
-		If RegExMatch(LabDataSplit[k], "data-mfp-src=""(.*)"" data-mfp-type=", URL)
+		If RegExMatch(LabDataSplit[k], "<img id=""light-notesImg"" style=""width: margin: 0 auto; display: inline-block; cursor: zoom-in;"" src=""(.*)"" /", URL)
 			break
 	}
 	FileDelete, %A_Temp%\labpage.html
