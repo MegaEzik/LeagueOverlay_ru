@@ -43,7 +43,7 @@ devRestoreRelease() {
 }
 ;Установить пакет
 installPack(){
-	FileSelectFile, ArcPath, ,,,(*.pack)
+	FileSelectFile, ArcPath, ,,,(*.zip)
 	If FileExist(ArcPath)
 		unZipArchive(ArcPath, configFolder)
 }
