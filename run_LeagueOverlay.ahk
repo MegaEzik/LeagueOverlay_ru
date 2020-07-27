@@ -22,9 +22,7 @@
 SetWorkingDir %A_ScriptDir%
 
 if (!A_IsAdmin) {
-	Loop, %0%
-		arguments.=" " %A_Index%
-	Run *RunAs "%A_AhkPath%" "%A_ScriptFullPath%" %arguments%
+	Run *RunAs "%A_AhkPath%" "%A_ScriptFullPath%"
 	ExitApp
 }
 
@@ -106,6 +104,11 @@ downloadLabLayout()
 ;Выполним myloader.ahk, передав ему папку расположения скрипта
 Loop, %configFolder%\*loader.ahk, 1
 	RunWait *RunAs "%A_AhkPath%" "%configFolder%\%A_LoopFileName%" "%A_ScriptDir%"
+
+;Запустим LutTools Lite
+IniRead, runLutTools, %configFile%, settings, runLutTools, 0
+If FileExist(A_MyDocuments "\AutoHotKey\LutTools\lite.ahk") && runLutTools
+	Run *RunAs "%A_AhkPath%" "%A_MyDocuments%\AutoHotKey\LutTools\lite.ahk"
 	
 ;Назначим последнее изображение
 IniRead, lastImgPathC, %configFile%, settings, lastImgPath, %A_Space%
@@ -311,6 +314,7 @@ showSettings(){
 	IniRead, imagesPreset, %configFile%, settings, imagesPreset, default
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 0
+	IniRead, runLutTools, %configFile%, settings, runLutTools, 0
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
 	IniRead, hotkeyConverter, %configFile%, hotkeys, hotkeyConverter, %A_Space%
@@ -355,8 +359,8 @@ showSettings(){
 	Gui, Settings:Add, Checkbox, vexpandMyImages x20 yp+25 w295 Checked%expandMyImages%, Развернуть 'Мои изображения'
 	Gui, Settings:Add, Button, x+1 yp-2 w152 h23 gopenMyImagesFolder, Открыть папку
 	
-	Gui, Settings:Add, Checkbox, vloadLab x20 yp+25 w370 Checked%loadLab%, Загружать убер-лабиринт(Мои изображения>Labyrinth.jpg)
-	Gui, Settings:Add, Link, x400 yp+0, <a href="https://www.poelab.com/">POELab.com</a>
+	Gui, Settings:Add, Checkbox, vloadLab x20 yp+25 w295 Checked%loadLab%, Скачивать лабиринт(Мои изображения>Labyrinth.jpg)
+	Gui, Settings:Add, Link, x+2 yp+0, <a href="https://www.poelab.com/">POELab.com</a>
 	
 	Gui, Settings:Add, Text, x20 y+4 w450 h2 0x10
 	
@@ -373,7 +377,13 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x20 yp+22 w295, Конвертировать описание предмета Ru>En:
 	Gui, Settings:Add, Hotkey, vhotkeyConverter x+2 yp-2 w150 h18, %hotkeyConverter%
-		
+	
+	existToolsLite:=FileExist(A_MyDocuments "\AutoHotKey\LutTools\lite.ahk")
+	if !existToolsLite
+		runLutTools:=0
+	Gui, Settings:Add, Checkbox, vrunLutTools x20 yp+22 w295 Checked%runLutTools% Disabled%existToolsLite%, Запустить LutTools Lite при старте
+	Gui, Settings:Add, Link, x+2 yp+0, <a href="http://lutbot.com/#/">Lutbot.com</a>
+	
 	Gui, Settings:Tab, 2 ; Вторая вкладка
 	
 	Gui, Settings:Add, Text, x20 y95 w295, Синхронизировать(/oos):
@@ -431,6 +441,7 @@ saveSettings(){
 	IniWrite, %imagesPreset%, %configFile%, settings, imagesPreset
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
 	IniWrite, %expandMyImages%, %configFile%, settings, expandMyImages
+	IniWrite, %runLutTools%, %configFile%, settings, runLutTools
 	IniWrite, %hotkeyLastImg%, %configFile%, hotkeys, hotkeyLastImg
 	IniWrite, %hotkeyMainMenu%, %configFile%, hotkeys, hotkeyMainMenu
 	IniWrite, %hotkeyConverter%, %configFile%, hotkeys, hotkeyConverter
@@ -501,7 +512,7 @@ menuCreate(){
 	Menu, Tray, Add
 	Menu, Tray, Add, Испытания лабиринта, showLabTrials
 	Menu, Tray, Add, Очистить кэш Path of Exile, clearPoECache
-	Menu, Tray, Add, Инструменты разработчика, :devMenu
+	Menu, Tray, Add, Меню разработчика, :devMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить, ReStart
 	Menu, Tray, Add, Завершить работу макроса, Exit
