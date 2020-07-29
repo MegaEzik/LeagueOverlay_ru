@@ -203,6 +203,7 @@ myImagesMenuCreate(selfMenu=true){
 		Loop, %configFolder%\images\*.*, 1
 			if RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp)$")
 				Menu, mainMenu, Add, %A_LoopFileName%, shMyImage
+		Menu, mainMenu, Add
 	}
 }
 
@@ -502,9 +503,7 @@ setHotkeys(){
 	}
 }
 
-menuCreate(){
-	createCustomCommandsMenu()
-	
+menuCreate(){	
 	Menu, Tray, Add, История изменений, showUpdateHistory
 	Menu, Tray, Add, Информация и настройки, showSettings
 	Menu, Tray, Default, Информация и настройки
@@ -518,21 +517,20 @@ menuCreate(){
 	Menu, Tray, Add, Завершить работу макроса, Exit
 	Menu, Tray, NoStandard
 	
-	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 0
-	myImagesMenuCreate(!expandMyImages)
-	
-	Menu, mainMenu, Add
+	IniRead, imagesPreset, %configFile%, settings, imagesPreset, default
+	presetInMenu(imagesPreset)
 	
 	FormatTime, CurrentDate, %A_NowUTC%, MMdd
 	Random, randomNum, 1, 100
 	if (CurrentDate==0401 || randomNum=1)
 		Menu, mainMenu, Add, Krillson, shLastImage
 	
-	IniRead, imagesPreset, %configFile%, settings, imagesPreset, default
-	presetInMenu(imagesPreset)
-	
 	Menu, mainMenu, Add
 	
+	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 0
+	myImagesMenuCreate(!expandMyImages)
+	
+	createCustomCommandsMenu()
 	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
 	if (hotkeyCustomCommandsMenu="")
 		Menu, mainMenu, Add, Меню команд, :customCommandsMenu
