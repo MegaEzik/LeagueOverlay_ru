@@ -123,8 +123,8 @@ menuCreate()
 setHotkeys()
 
 ;Скроем сообщение загрузки
-;If FileExist(A_WinDir "\Media\Speech On.wav")
-;	SoundPlay, %A_WinDir%\Media\Speech On.wav
+If debugMode && FileExist(A_WinDir "\Media\Speech On.wav")
+	SoundPlay, %A_WinDir%\Media\Speech On.wav
 SplashTextOff
 
 ;Иногда после запуска будем предлагать поддержать проект
