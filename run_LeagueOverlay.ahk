@@ -37,8 +37,8 @@ if (!A_IsAdmin) {
 #Include, %A_ScriptDir%\resources\ahk\ItemDataConverterLib.ahk
 
 ;Список окон Path of Exile
-GroupAdd, PoEWindowGrp, Path of Exile ahk_class POEWindowClass
-GroupAdd, PoEWindowGrp, ahk_exe GeForceNOWStreamer.exe
+GroupAdd, WindowGrp, Path of Exile ahk_class POEWindowClass
+GroupAdd, WindowGrp, ahk_exe GeForceNOWStreamer.exe
 
 ;Объявление и загрузка основных переменных
 global prjName:="LeagueOverlay_ru"
@@ -55,15 +55,7 @@ FileReadLine, verScript, resources\Updates.txt, 1
 ;Подсказка в области уведомлений и сообщение при запуске
 trayUpdate(prjName " " verScript " | AHK " A_AhkVersion)
 Menu, Tray, Icon, resources\Syndicate.ico
-initMsgs := ["Подготовка макроса к работе..."
-			,"Поддержи LeagueOverlay_ru..."
-			
-			,"Спасибо, AbyssSPIRIT)"
-			,"Спасибо, milcart)"
-			,"Спасибо, Pip4ik)"]
-Random, randomNum, 1, initMsgs.MaxIndex()
-initMsg:=initMsgs[randomNum]
-SplashTextOn, 300, 20, %prjName%, %initMsg%
+showStartUI()
 
 devInit()
 
@@ -88,7 +80,7 @@ if (verConfig!=verScript) {
 ;Добавим возможность подгружать имя своего окна
 IniRead, windowLine, %configFile%, settings, windowLine, %A_Space%
 if (windowLine!="")
-	GroupAdd, PoEWindowGrp, %windowLine%
+	GroupAdd, WindowGrp, %windowLine%
 
 ;Запуск gdi+
 If !pToken:=Gdip_Startup()
@@ -101,14 +93,9 @@ OnExit, Exit
 ;Загружаем раскладку лабиринта
 downloadLabLayout()
 
-;Выполним myloader.ahk, передав ему папку расположения скрипта
+;Выполним все файлы с окончанием loader.ahk, передав ему папку расположения скрипта
 Loop, %configFolder%\*loader.ahk, 1
 	RunWait *RunAs "%A_AhkPath%" "%configFolder%\%A_LoopFileName%" "%A_ScriptDir%"
-
-;Запустим LutTools Lite
-IniRead, runLutTools, %configFile%, settings, runLutTools, 0
-If FileExist(A_MyDocuments "\AutoHotKey\LutTools\lite.ahk") && runLutTools
-	Run *RunAs "%A_AhkPath%" "%A_MyDocuments%\AutoHotKey\LutTools\lite.ahk"
 	
 ;Назначим последнее изображение
 IniRead, lastImgPathC, %configFile%, settings, lastImgPath, %A_Space%
@@ -123,24 +110,13 @@ menuCreate()
 setHotkeys()
 
 ;Скроем сообщение загрузки
-If debugMode && FileExist(A_WinDir "\Media\Speech On.wav")
-	SoundPlay, %A_WinDir%\Media\Speech On.wav
-SplashTextOff
-
-;Иногда после запуска будем предлагать поддержать проект
-Random, randomNum, 1, 10
-if (randomNum=1 && !debugMode) {
-	MsgText:="Нравится " prjName ", хотите поддержать автора?"
-	MsgBox, 0x1024, %prjName%, %MsgText%, 10
-	IfMsgBox Yes
-		run, https://qiwi.me/megaezik
-}
+closeStartUI()
 
 Return
 
 ;#################################################
 
-#IfWinActive ahk_group PoEWindowGrp
+#IfWinActive ahk_group WindowGrp
 
 shLastImage(){
 	shOverlay(LastImgPath)
@@ -221,7 +197,7 @@ textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 		Gui, tfwGui:Menu, tfwMenuBar
 		Gui, tfwGui:Add, Edit, w580 h400 vtfwContentFile, %tfwContentFile%
 	}
-	Gui, tfwGui:+AlwaysOnTop
+	Gui, tfwGui:+AlwaysOnTop -MinimizeBox -MaximizeBox
 	Gui, tfwGui:Show,, %prjName% - %Title%
 	
 	sleep 15
@@ -302,6 +278,45 @@ delPreset(presetName){
 	showSettings()
 }
 
+showStartUI(){
+	Gui, StartUI:Destroy
+	initMsgs := ["Подготовка макроса к работе..."
+				,"Поддержи " prjName "..."
+				,"Поприветствуем Кассию..."
+				,"Да начнется лига ""Спиздили""..."
+				,"Поиск NPC ""Борис Бритва""..."]
+	Random, randomNum, 1, initMsgs.MaxIndex()
+	initMsg:=initMsgs[randomNum]
+	
+	dNames:=["AbyssSPIRIT", "milcart", "Pip4ik"]
+	Random, randomNum, 1, dNames.MaxIndex()
+	dName:="Спасибо, " dNames[randomNum] ")"
+	
+	Gui, StartUI:Add, Progress, w500 h26 x0 y0 Background1A7F5B
+
+	Gui, StartUI:Font, s10 cFFFFFF bold
+	Gui, StartUI:Add, Text, x5 y5 h18 w390 +Center BackgroundTrans, %prjName% %verScript% | AHK %A_AhkVersion%
+	
+	Gui, StartUI:Font, c000000 bold italic
+	Gui, StartUI:Add, Text, x5 y+10 h18 w390 +Center BackgroundTrans, %initMsg%
+	
+	Gui, StartUI:Font, s8 norm italic
+	Gui, StartUI:Add, Text, x5 y+3 w290 BackgroundTrans, %dName%
+	
+	Gui, StartUI:Font, s8 norm
+	Gui, StartUI:Add, Link, x+0 yp+0 w100 +Right, <a href="https://qiwi.me/megaezik">Поддержать</a>
+	
+	Gui, StartUI:+ToolWindow -Caption +Border +AlwaysOnTop
+	Gui, StartUI:Show, w400 h70, %prjName% %VerScript%
+}
+
+closeStartUI(){
+	sleep 1500
+	Gui, StartUI:Destroy
+	If debugMode && FileExist(A_WinDir "\Media\Windows Proximity Notification.wav")
+		SoundPlay, %A_WinDir%\Media\Windows Proximity Notification.wav
+}
+
 showSettings(){
 	global
 	Gui, Settings:Destroy
@@ -315,7 +330,6 @@ showSettings(){
 	IniRead, imagesPreset, %configFile%, settings, imagesPreset, default
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 0
-	IniRead, runLutTools, %configFile%, settings, runLutTools, 0
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
 	IniRead, hotkeyConverter, %configFile%, hotkeys, hotkeyConverter, %A_Space%
@@ -324,24 +338,18 @@ showSettings(){
 	;Настройки второй вкладки
 	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
 	IniRead, hotkeyToCharacterSelection, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
-	
-	Gui, Settings:Add, Text, x10 y10 w300 h28 cGreen, %prjName% - макрос содержащий несколько нужных функций и отображающий полезные изображения.
-	
-	Gui, Settings:Add, Picture, x340 y2 w107 h-1, resources\qiwi-logo.png
-	Gui, Settings:Add, Link, x315 y+2, <a href="https://qiwi.me/megaezik">Поддержать %prjName%</a>
-	Gui, Settings:Add, Link, x10 yp+0 w300, <a href="https://www.autohotkey.com/download/">AutoHotkey</a> | <a href="https://ru.pathofexile.com/forum/view-thread/2694683">Тема на форуме</a> | <a href="https://github.com/MegaEzik/LeagueOverlay_ru/releases">Страница на GitHub</a>
-	
-	Gui, Settings:Add, Button, x315 y384 w162 gsaveSettings, Применить и перезапустить
 
-	Gui, Settings:Add, Tab, x10 y65 w465 h314, Основные|Быстрые команды ;Вкладки
+	Gui, Settings:Add, Button, x306 y0 w159 h21 gsaveSettings, Применить и перезапустить ;💾 465
+	
+	Gui, Settings:Add, Tab, x0 y0 w465 h315, Основные|Быстрые команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
-	Gui, Settings:Add, Checkbox, vautoUpdate x20 y92 w450 Checked%autoUpdate%, Автоматически проверять и уведомлять о наличии обновлений
+	Gui, Settings:Add, Checkbox, vautoUpdate x10 y30 w450 Checked%autoUpdate%, Автоматически проверять и уведомлять о наличии обновлений
 	
-	Gui, Settings:Add, Text, x20 yp+20 w155, Другое окно для проверки:
+	Gui, Settings:Add, Text, x10 yp+20 w155, Другое окно для проверки:
 	Gui, Settings:Add, Edit, vwindowLine x+2 yp-2 w290 h18, %windowLine%
 	
-	Gui, Settings:Add, Text, x20 y+4 w450 h2 0x10
+	Gui, Settings:Add, Text, x10 y+4 w450 h2 0x10
 	
 	presetList:=""
 	Loop, resources\presets\*.preset, 1
@@ -350,47 +358,41 @@ showSettings(){
 		presetList.="|<" StrReplace(A_LoopFileName, ".preset", "") ">"
 	presetList:=SubStr(presetList, 2)
 	
-	Gui, Settings:Add, Text, x20 yp+8 w249, Набор изображений:
+	Gui, Settings:Add, Text, x10 yp+8 w249, Набор изображений:
 	Gui, Settings:Add, Button, x+1 yp-4 w23 h23 geditPreset, ✏
 	Gui, Settings:Add, Button, x+0 w23 h23 gdelPresetMenuShow, ✕
 	Gui, Settings:Add, DropDownList, vimagesPreset x+1 yp+1 w150, %presetList%
 	GuiControl,Settings:ChooseString, imagesPreset, %imagesPreset%
 	
 	
-	Gui, Settings:Add, Checkbox, vexpandMyImages x20 yp+25 w295 Checked%expandMyImages%, Развернуть 'Мои изображения'
+	Gui, Settings:Add, Checkbox, vexpandMyImages x10 yp+25 w295 Checked%expandMyImages%, Развернуть 'Мои изображения'
 	Gui, Settings:Add, Button, x+1 yp-2 w152 h23 gopenMyImagesFolder, Открыть папку
 	
-	Gui, Settings:Add, Checkbox, vloadLab x20 yp+25 w295 Checked%loadLab%, Скачивать лабиринт(Мои изображения>Labyrinth.jpg)
+	Gui, Settings:Add, Checkbox, vloadLab x10 yp+25 w295 Checked%loadLab%, Скачивать лабиринт(Мои изображения>Labyrinth.jpg)
 	Gui, Settings:Add, Link, x+2 yp+0, <a href="https://www.poelab.com/">POELab.com</a>
 	
-	Gui, Settings:Add, Text, x20 y+4 w450 h2 0x10
+	Gui, Settings:Add, Text, x10 y+4 w450 h2 0x10
 	
-	Gui, Settings:Add, Text, x20 yp+7 w295, Последнее изображение:
+	Gui, Settings:Add, Text, x10 yp+7 w295, Последнее изображение:
 	Gui, Settings:Add, Hotkey, vhotkeyLastImg x+2 yp-2 w150 h18, %hotkeyLastImg%
 	
-	Gui, Settings:Add, Text, x20 yp+22 w295, Меню быстрого доступа:
+	Gui, Settings:Add, Text, x10 yp+22 w295, Меню быстрого доступа:
 	Gui, Settings:Add, Hotkey, vhotkeyMainMenu x+2 yp-2 w150 h18, %hotkeyMainMenu%
 	
-	Gui, Settings:Add, Text, x20 y+4 w450 h2 0x10
+	Gui, Settings:Add, Text, x10 y+4 w450 h2 0x10
 	
-	Gui, Settings:Add, Text, x20 yp+7 w295, Меню команд:
+	Gui, Settings:Add, Text, x10 yp+7 w295, Меню команд:
 	Gui, Settings:Add, Hotkey, vhotkeyCustomCommandsMenu x+2 yp-2 w150 h18, %hotkeyCustomCommandsMenu%
 	
-	Gui, Settings:Add, Text, x20 yp+22 w295, Конвертировать описание предмета Ru>En:
+	Gui, Settings:Add, Text, x10 yp+22 w295, Конвертировать описание предмета Ru>En:
 	Gui, Settings:Add, Hotkey, vhotkeyConverter x+2 yp-2 w150 h18, %hotkeyConverter%
-	
-	existToolsLite:=FileExist(A_MyDocuments "\AutoHotKey\LutTools\lite.ahk")
-	if !existToolsLite
-		runLutTools:=0
-	Gui, Settings:Add, Checkbox, vrunLutTools x20 yp+22 w295 Checked%runLutTools% Disabled%existToolsLite%, Запустить LutTools Lite при старте
-	Gui, Settings:Add, Link, x+2 yp+0, <a href="http://lutbot.com/#/">Lutbot.com</a>
 	
 	Gui, Settings:Tab, 2 ; Вторая вкладка
 	
-	Gui, Settings:Add, Text, x20 y95 w295, Синхронизировать(/oos):
+	Gui, Settings:Add, Text, x10 y30 w295, Синхронизировать(/oos):
 	Gui, Settings:Add, Hotkey, vhotkeyForceSync x+2 yp-2 w150 h18, %hotkeyForceSync%
 	
-	Gui, Settings:Add, Text, x20 yp+22 w295, К выбору персонажа(/exit):
+	Gui, Settings:Add, Text, x10 yp+22 w295, К выбору персонажа(/exit):
 	Gui, Settings:Add, Hotkey, vhotkeyToCharacterSelection x+2 yp-2 w150 h18, %hotkeyToCharacterSelection%
 	
 	;Настраиваемые команды fastReply
@@ -414,14 +416,14 @@ showSettings(){
 			If A_Index=8
 				tempVar:="@<last> ty & gl, exile)"
 		}
-		Gui, Settings:Add, Edit, vtextCmd%A_Index% x20 yp+20 w295 h18, %tempVar%
+		Gui, Settings:Add, Edit, vtextCmd%A_Index% x10 yp+20 w295 h18, %tempVar%
 		
 		IniRead, tempVar, %configFile%, fastReply, hotkeyCmd%A_Index%, %A_Space%
 		Gui, Settings:Add, Hotkey, vhotkeyCmd%A_Index% x+2 w150 h18, %tempVar%
 	}
 	
-	Gui, Settings:+AlwaysOnTop
-	Gui, Settings:Show, w485, %prjName% %VerScript% - Информация и настройки ;Отобразить окно настроек
+	Gui, Settings:+AlwaysOnTop -MinimizeBox -MaximizeBox
+	Gui, Settings:Show, w465 h315, %prjName% %VerScript% | AHK %A_AhkVersion% - Настройки ;Отобразить окно настроек
 }
 
 saveSettings(){
@@ -442,7 +444,6 @@ saveSettings(){
 	IniWrite, %imagesPreset%, %configFile%, settings, imagesPreset
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
 	IniWrite, %expandMyImages%, %configFile%, settings, expandMyImages
-	IniWrite, %runLutTools%, %configFile%, settings, runLutTools
 	IniWrite, %hotkeyLastImg%, %configFile%, hotkeys, hotkeyLastImg
 	IniWrite, %hotkeyMainMenu%, %configFile%, hotkeys, hotkeyMainMenu
 	IniWrite, %hotkeyConverter%, %configFile%, hotkeys, hotkeyConverter
@@ -503,11 +504,12 @@ setHotkeys(){
 	}
 }
 
-menuCreate(){	
+menuCreate(){
+	Menu, Tray, Add, Поддержать, openDonateURL
 	Menu, Tray, Add, История изменений, showUpdateHistory
-	Menu, Tray, Add, Информация и настройки, showSettings
-	Menu, Tray, Default, Информация и настройки
+	Menu, Tray, Add, Настройки, showSettings
 	Menu, Tray, Add, Выполнить обновление, CheckUpdateFromMenu
+	Menu, Tray, Default, Настройки
 	Menu, Tray, Add
 	Menu, Tray, Add, Испытания лабиринта, showLabTrials
 	Menu, Tray, Add, Очистить кэш Path of Exile, clearPoECache
@@ -539,6 +541,10 @@ menuCreate(){
 		Menu, mainMenu, Add, Испытания лабиринта, showLabTrials
 		
 	Menu, mainMenu, Add, Область уведомлений, :Tray
+}
+
+openDonateURL(){
+	Run, "https://qiwi.me/megaezik"
 }
 
 openConfigFolder(){

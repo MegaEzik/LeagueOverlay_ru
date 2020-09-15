@@ -49,7 +49,7 @@ destroyOverlay(){
 }
 
 checkWindowTimer(){
-	IfWinNotActive ahk_group PoEWindowGrp
+	IfWinNotActive ahk_group WindowGrp
 		destroyOverlay()
 }
 

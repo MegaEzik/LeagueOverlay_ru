@@ -36,12 +36,8 @@ downloadLabLayout() {
 		return
 	}
 	
-	;Если режим разработчика не включен, то откроем сайт
-	If !debugMode
-		run, https://www.poelab.com/
-	
 	;Назначение переменных
-	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36"
+	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36"
 	If FileExist(configfolder "\UserAgent.txt")
 		FileReadLine, UserAgent, %configFolder%\UserAgent.txt, 1
 	CurlLine.="-L -A """ UserAgent """ -o "
@@ -97,6 +93,10 @@ downloadLabLayout() {
 		return
 	}
 	
+	;Если режим разработчика не включен, то откроем сайт
+	If !debugMode
+		run, https://www.poelab.com/
+	
 	;Удалим и другие лабиринты
 	If FileExist(configFolder "\images\Labyrinth.jpg") {
 		FileDelete, %configFolder%\images\*_normal.jpg
@@ -131,7 +131,7 @@ showLabTrials() {
 	Gui, LabTrials:Add, Checkbox, vtrialE xp+0 y+28 w140 h28 Checked%trialE% +Center, Томительной болью`nLingering Pain
 	Gui, LabTrials:Add, Checkbox, vtrialF xp+0 y+28 w140 h28 Checked%trialF% +Center, Жалящим сомнением`nStinging Doubt
 	
-	Gui, LabTrials:+AlwaysOnTop -Border -Caption
+	Gui, LabTrials:+AlwaysOnTop -Caption +Border
 	Gui, LabTrials:Show, w285 h225, Испытания лабиринта
 	
 	Gui, LabTrials:Color, 6BCA94
