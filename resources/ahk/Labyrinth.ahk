@@ -1,6 +1,6 @@
 ﻿
 ;Загрузка изображения с раскладкой лабиринта соответствующего уровня
-downloadLabLayout() {
+downloadLabLayout(LabURL="https://www.poelab.com/wfbra") {
 	;Проверим нужно ли загружать лабиринт
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	If !loadLab {
@@ -65,7 +65,8 @@ downloadLabLayout() {
 	
 	;Загружаем страницу с убер-лабой и извлекаем ссылку на изображение
 	;CurlLineLabPage:=CurlLine A_Temp "\labpage.html " URL1
-	CurlLineLabPage:=CurlLine A_Temp "\labpage.html https://www.poelab.com/wfbra"
+	;CurlLineLabPage:=CurlLine A_Temp "\labpage.html https://www.poelab.com/wfbra"
+	CurlLineLabPage:=CurlLine A_Temp "\labpage.html " LabURL
 	RunWait, %CurlLineLabPage%
 	FileRead, LabData, %A_Temp%\labpage.html
 	LabDataSplit:=StrSplit(LabData, "`n")
@@ -97,6 +98,7 @@ downloadLabLayout() {
 	If !debugMode
 		run, https://www.poelab.com/
 	
+	/*
 	;Удалим и другие лабиринты
 	If FileExist(configFolder "\images\Labyrinth.jpg") {
 		FileDelete, %configFolder%\images\*_normal.jpg
@@ -104,6 +106,7 @@ downloadLabLayout() {
 		FileDelete, %configFolder%\images\*_merciless.jpg
 		FileDelete, %configFolder%\images\*_uber.jpg
 	}
+	*/
 	
 	;Запишем дату загрузки лабиринта
 	IniWrite, %CurrentDate%, %configFile%, info, labLoadDate
