@@ -311,7 +311,7 @@ showStartUI(){
 }
 
 closeStartUI(){
-	sleep 1500
+	sleep 1000
 	Gui, StartUI:Destroy
 	If debugMode && FileExist(A_WinDir "\Media\Windows Proximity Notification.wav")
 		SoundPlay, %A_WinDir%\Media\Windows Proximity Notification.wav
