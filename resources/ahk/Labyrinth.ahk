@@ -21,8 +21,8 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra") {
 	
 	;В это время раскладка лабиринта может быть недоступной
 	FormatTime, Hour, %A_NowUTC%, H
-	If (Hour<2) {
-		msgbox, 0x1040, %prjName% - Загрузка лабиринта, Повторите попытку после 5:00 по МСК), 3
+	If (Hour<1) {
+		msgbox, 0x1040, %prjName% - Загрузка лабиринта, Повторите попытку после 4:00 по МСК), 3
 		return
 	}
 		

@@ -341,12 +341,13 @@ showSettings(){
 
 	Gui, Settings:Add, Button, x306 y0 w159 h21 gsaveSettings, Применить и перезапустить ;💾 465
 	
-	Gui, Settings:Add, Tab, x0 y0 w465 h315, Основные|Быстрые команды ;Вкладки
+	Gui, Settings:Add, Tab, x0 y0 w465 h340, Основные|Команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
-	Gui, Settings:Add, Checkbox, vautoUpdate x10 y30 w450 Checked%autoUpdate%, Автоматически проверять и уведомлять о наличии обновлений
+	Gui, Settings:Add, Checkbox, vautoUpdate x10 y30 w295 Checked%autoUpdate%, Автоматически проверять наличие обновлений ;CheckUpdateFromMenu
+	Gui, Settings:Add, Button, x+1 yp-4 w152 h23 gCheckUpdateFromMenu, Выполнить обновление
 	
-	Gui, Settings:Add, Text, x10 yp+20 w155, Другое окно для проверки:
+	Gui, Settings:Add, Text, x10 yp+27 w155, Другое окно для проверки:
 	Gui, Settings:Add, Edit, vwindowLine x+2 yp-2 w290 h18, %windowLine%
 	
 	Gui, Settings:Add, Text, x10 y+4 w450 h2 0x10
@@ -365,8 +366,8 @@ showSettings(){
 	GuiControl,Settings:ChooseString, imagesPreset, %imagesPreset%
 	
 	
-	Gui, Settings:Add, Checkbox, vexpandMyImages x10 yp+25 w295 Checked%expandMyImages%, Развернуть 'Мои изображения'
-	Gui, Settings:Add, Button, x+1 yp-2 w152 h23 gopenMyImagesFolder, Открыть папку
+	Gui, Settings:Add, Checkbox, vexpandMyImages x10 yp+27 w295 Checked%expandMyImages%, Развернуть 'Мои изображения'
+	Gui, Settings:Add, Button, x+1 yp-4 w152 h23 gopenMyImagesFolder, Открыть папку
 	
 	Gui, Settings:Add, Checkbox, vloadLab x10 yp+25 w295 Checked%loadLab%, Скачивать лабиринт(Мои изображения>Labyrinth.jpg)
 	Gui, Settings:Add, Link, x+2 yp+0, <a href="https://www.poelab.com/">POELab.com</a>
@@ -381,15 +382,17 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x10 y+4 w450 h2 0x10
 	
-	Gui, Settings:Add, Text, x10 yp+7 w295, Меню команд:
-	Gui, Settings:Add, Hotkey, vhotkeyCustomCommandsMenu x+2 yp-2 w150 h18, %hotkeyCustomCommandsMenu%
-	
-	Gui, Settings:Add, Text, x10 yp+22 w295, Конвертировать описание предмета Ru>En:
+	Gui, Settings:Add, Text, x10 yp+7 w295, Конвертировать описание предмета Ru>En:
 	Gui, Settings:Add, Hotkey, vhotkeyConverter x+2 yp-2 w150 h18, %hotkeyConverter%
 	
 	Gui, Settings:Tab, 2 ; Вторая вкладка
 	
-	Gui, Settings:Add, Text, x10 y30 w295, Синхронизировать(/oos):
+	Gui, Settings:Add, Text, x10 y30 w295, Меню команд:
+	Gui, Settings:Add, Hotkey, vhotkeyCustomCommandsMenu x+2 yp-2 w150 h18, %hotkeyCustomCommandsMenu%
+	
+	Gui, Settings:Add, Text, x10 y+4 w450 h2 0x10
+	
+	Gui, Settings:Add, Text, x10 yp+7 w295, Синхронизировать(/oos):
 	Gui, Settings:Add, Hotkey, vhotkeyForceSync x+2 yp-2 w150 h18, %hotkeyForceSync%
 	
 	Gui, Settings:Add, Text, x10 yp+22 w295, К выбору персонажа(/exit):
@@ -423,7 +426,7 @@ showSettings(){
 	}
 	
 	Gui, Settings:+AlwaysOnTop -MinimizeBox -MaximizeBox
-	Gui, Settings:Show, w465 h315, %prjName% %VerScript% | AHK %A_AhkVersion% - Настройки ;Отобразить окно настроек
+	Gui, Settings:Show, w465 h340, %prjName% %VerScript% | AHK %A_AhkVersion% - Настройки ;Отобразить окно настроек
 }
 
 saveSettings(){
@@ -508,7 +511,6 @@ menuCreate(){
 	Menu, Tray, Add, Поддержать, openDonateURL
 	Menu, Tray, Add, История изменений, showUpdateHistory
 	Menu, Tray, Add, Настройки, showSettings
-	Menu, Tray, Add, Выполнить обновление, CheckUpdateFromMenu
 	Menu, Tray, Default, Настройки
 	Menu, Tray, Add
 	Menu, Tray, Add, Испытания лабиринта, showLabTrials

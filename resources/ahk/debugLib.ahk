@@ -9,18 +9,18 @@ devInit() {
 
 ;Создание меню разработчика
 devMenu() {
-	Menu, devMenu, Standard
-	Menu, devMenu, Add
+	Menu, devMenu1, Standard
+	
+	Menu, devMenu2, Add, https://www.poelab.com/gtgax, devReloadLab
+	Menu, devMenu2, Add, https://www.poelab.com/r8aws, devReloadLab
+	Menu, devMenu2, Add, https://www.poelab.com/riikv, devReloadLab
+	Menu, devMenu2, Add, https://www.poelab.com/wfbra, devReloadLab
+
 	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
-	Menu, devMenu, Add, Открыть папку настроек, openConfigFolder
 	Menu, devMenu, Add, Установить пакет, installPack
-	if debugMode {
-		Menu, devMenu, Add
-		Menu, devMenu, Add, https://www.poelab.com/gtgax, devReloadLab
-		Menu, devMenu, Add, https://www.poelab.com/r8aws, devReloadLab
-		Menu, devMenu, Add, https://www.poelab.com/riikv, devReloadLab
-		Menu, devMenu, Add, https://www.poelab.com/wfbra, devReloadLab
-	}
+	Menu, devMenu, Add, Открыть папку настроек, openConfigFolder
+	Menu, devMenu, Add, Перезагрузить лабиринт, :devMenu2
+	Menu, devMenu, Add, AutoHotkey, :devMenu1
 }
 
 ;Откатиться на релизную версию
