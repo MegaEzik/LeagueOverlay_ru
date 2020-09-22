@@ -140,6 +140,8 @@ presetInMenu(imagesPreset){
 			ImgName:=imageInfo[1]
 			if FileExist(StrReplace(imageInfo[2], "<configFolder>", configFolder))
 				Menu, mainMenu, Add, %ImgName%, presetImgShow
+			if (ImgName="---")
+				Menu, mainMenu, Add
 		}
 	}
 }
