@@ -70,10 +70,14 @@ if autoUpdate {
 IniRead, verConfig, %configFile%, info, verConfig, ""
 if (verConfig!=verScript) {
 	showSettings()
+	IniRead, debugMode, %configFile%, settings, debugMode, 0
+	IniRead, labLoadDate, %configFile%, info, labLoadDate, 0
 	FileDelete, %configFile%
 	sleep 25
 	FileCreateDir, %configFolder%\images
 	IniWrite, %verScript%, %configFile%, info, verConfig
+	IniWrite, %labLoadDate%, %configFile%, info, labLoadDate
+	IniWrite, %debugMode%, %configFile%, settings, debugMode
 	saveSettings()
 }
 
@@ -324,7 +328,6 @@ showSettings(){
 	Gui, Settings:Destroy
 	
 	IniRead, lastImgPath, %configFile%, settings, lastImgPath, %A_Space%
-	IniRead, debugMode, %configFile%, settings, debugMode, 0
 	
 	;Настройки первой вкладки
 	IniRead, windowLine, %configFile%, settings, windowLine, %A_Space%
@@ -341,15 +344,15 @@ showSettings(){
 	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
 	IniRead, hotkeyToCharacterSelection, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
 
-	Gui, Settings:Add, Button, x306 y0 w159 h21 gsaveSettings, Применить и перезапустить ;💾 465
+	Gui, Settings:Add, Button, x0 y340 w465 h25 gsaveSettings, Применить и перезапустить ;💾 465
 	
 	Gui, Settings:Add, Tab, x0 y0 w465 h340, Основные|Команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
 	Gui, Settings:Add, Checkbox, vautoUpdate x10 y30 w295 Checked%autoUpdate%, Автоматически проверять наличие обновлений ;CheckUpdateFromMenu
-	Gui, Settings:Add, Button, x+1 yp-4 w152 h23 gCheckUpdateFromMenu, Выполнить обновление
+	;Gui, Settings:Add, Button, x+1 yp-4 w152 h23 gCheckUpdateFromMenu, Выполнить обновление
 	
-	Gui, Settings:Add, Text, x10 yp+27 w155, Другое окно для проверки:
+	Gui, Settings:Add, Text, x10 yp+22 w155, Другое окно для проверки:
 	Gui, Settings:Add, Edit, vwindowLine x+2 yp-2 w290 h18, %windowLine%
 	
 	Gui, Settings:Add, Text, x10 y+4 w450 h2 0x10
@@ -428,7 +431,7 @@ showSettings(){
 	}
 	
 	Gui, Settings:+AlwaysOnTop -MinimizeBox -MaximizeBox
-	Gui, Settings:Show, w465 h340, %prjName% %VerScript% | AHK %A_AhkVersion% - Настройки ;Отобразить окно настроек
+	Gui, Settings:Show, w465 h365, %prjName% %VerScript% | AHK %A_AhkVersion% - Настройки ;Отобразить окно настроек
 }
 
 saveSettings(){
@@ -441,7 +444,6 @@ saveSettings(){
 		imagesPreset:="default"
 		
 	IniWrite, %lastImgPath%, %configFile%, settings, lastImgPath
-	IniWrite, %debugMode%, %configFile%, settings, debugMode
 	
 	;Настройки первой вкладки
 	IniWrite, %windowLine%, %configFile%, settings, windowLine
@@ -512,6 +514,7 @@ setHotkeys(){
 menuCreate(){
 	Menu, Tray, Add, Поддержать, openDonateURL
 	Menu, Tray, Add, История изменений, showUpdateHistory
+	Menu, Tray, Add, Выполнить обновление, CheckUpdateFromMenu
 	Menu, Tray, Add, Настройки, showSettings
 	Menu, Tray, Default, Настройки
 	Menu, Tray, Add

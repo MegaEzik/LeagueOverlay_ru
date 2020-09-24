@@ -31,7 +31,7 @@ shOverlay(ImgPath){
 		DeleteDC(hdcImg)
 		Gdip_DeleteGraphics(GImg)
 		Gdip_DisposeImage(pBitmapImg)
-		sleep 50 ;Нужна для корректной работы с GeForce NOW
+		sleep 40 ;Нужна для корректной работы с GeForce NOW
 		Gui, Overlay:Show, NA
 		OverlayStatus:=1
 		if (LastImgPath!=ImgPath) {
