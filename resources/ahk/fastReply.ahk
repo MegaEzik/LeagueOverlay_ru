@@ -61,7 +61,6 @@ fastCmd12(){
 
 customCommandsEdit() {
 	textFileWindow("Редактирование 'Меню команд'", configFolder "\commands.txt", false, "run https://pathofexile.gamepedia.com/Chat_console`n---`n@<last> sure`n/global 820`n/whois <last>`n/deaths`n/passives")
-	SetTimer, timerCommandsEdit, 500
 }
 
 timerCommandsEdit() {
@@ -73,6 +72,9 @@ timerCommandsEdit() {
 }
 
 createCustomCommandsMenu(){
+	Menu, customCommandsMenu, Add
+	Menu, customCommandsMenu, DeleteAll
+	
 	If FileExist(configfolder "\commands.txt") {
 		FileRead, FileContent, %configfolder%\commands.txt
 		FileContent:=StrReplace(FileContent, "`r", "")
@@ -135,5 +137,7 @@ commandFastReply(Line:="/dance"){
 }
 
 showCustomCommandsMenu(){
+	createCustomCommandsMenu()
+	sleep 5
 	Menu, customCommandsMenu, Show
 }

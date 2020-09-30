@@ -96,7 +96,7 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra") {
 	
 	;Если режим разработчика не включен, то откроем сайт
 	If !debugMode
-		run, https://www.poelab.com/
+		run, %LabURL%
 	
 	/*
 	;Удалим и другие лабиринты
@@ -125,6 +125,8 @@ showLabTrials() {
 	IniRead, trialD, %trialsFile%, LabTrials, trialD, 0
 	IniRead, trialE, %trialsFile%, LabTrials, trialE, 0
 	IniRead, trialF, %trialsFile%, LabTrials, trialF, 0
+	
+	trialsStatus:=сompletionLabTrials()
 	
 	Gui, LabTrials:Add, Checkbox, vtrialA x5 y0 w140 h28 Checked%trialA% +Center, Пронзающей истинной`nPiercing Truth
 	Gui, LabTrials:Add, Checkbox, vtrialB xp+0 y+28 w140 h28 Checked%trialB% +Center, Крутящимся страхом`nSwirling Fear
@@ -157,6 +159,10 @@ autoSaveLabTrials() {
 		IniWrite, %trialD%, %trialsFile%, LabTrials, trialD
 		IniWrite, %trialE%, %trialsFile%, LabTrials, trialE
 		IniWrite, %trialF%, %trialsFile%, LabTrials, trialF
+		If (trialsStatus<сompletionLabTrials()){
+			msgtext:="Поздравляю, вы завершили все испытания лабиринта)`n" prjName " уберет этот пункт из 'Быстрого доступа'!`n`nЕсли понадобится вернуть, то уберите отметки, через аналогичный пункт в 'Области уведомлений'!"
+			msgbox, 0x1040, %prjName% - Испытания завершены, %msgtext%, 15
+		}
 		Gui, LabTrials:Destroy
 	}
 }

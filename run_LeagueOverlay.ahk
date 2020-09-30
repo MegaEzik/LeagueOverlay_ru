@@ -94,11 +94,14 @@ If !pToken:=Gdip_Startup()
 	}
 OnExit, Exit
 
-;Загружаем раскладку лабиринта
+;Скачаем раскладку лабиринта
 downloadLabLayout()
 
-;Выполним все файлы с окончанием loader.ahk, передав ему папку расположения скрипта
-Loop, %configFolder%\*loader.ahk, 1
+;Загрузим информацию набора
+loadPresetData()
+
+;Выполним все файлы с окончанием _loader.ahk, передав ему папку расположения скрипта
+Loop, %configFolder%\*_loader.ahk, 1
 	RunWait *RunAs "%A_AhkPath%" "%configFolder%\%A_LoopFileName%" "%A_ScriptDir%"
 	
 ;Назначим последнее изображение
@@ -128,16 +131,23 @@ shLastImage(){
 
 shMainMenu(){
 	destroyOverlay()
+	createMainMenu()
+	sleep 5
 	Menu, mainMenu, Show
 }
 
-presetInMenu(imagesPreset){
+loadPresetData(){
+	IniRead, imagesPreset, %configFile%, settings, imagesPreset, default
 	presetPath:="resources\presets\" imagesPreset ".preset"
 	If RegExMatch(imagesPreset, "<(.*)>", imagesPreset)
 		presetPath:=configFolder "\presets\" imagesPreset1 ".preset"
-	if FileExist(presetPath) {
+	if FileExist(presetPath)
 		FileRead, presetData, %presetPath%
 		presetData:=StrReplace(presetData, "`r", "")
+}
+
+presetInMenu(imagesPreset){
+	if (presetData!="") {
 		presetDataSplit:=StrSplit(presetData, "`n")
 		For k, val in presetDataSplit {
 			imageInfo:=StrSplit(presetDataSplit[k], "|")
@@ -174,6 +184,9 @@ openMyImagesFolder(){
 
 myImagesMenuCreate(selfMenu=true){
 	if selfMenu {
+		Menu, myImagesMenu, Add
+		Menu, myImagesMenu, DeleteAll
+		
 		Loop, %configFolder%\images\*.*, 1
 			if RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp)$")
 				Menu, myImagesMenu, Add, %A_LoopFileName%, shMyImage
@@ -290,11 +303,12 @@ showStartUI(){
 				,"Поддержи " prjName "..."
 				,"Поприветствуем Кассию..."
 				,"Да начнется лига ""Спиздили""..."
-				,"Поиск NPC ""Борис Бритва""..."]
+				,"Поиск NPC ""Борис Бритва""..."
+				,"WAAAAAAAAAAAAAAAAAAR..."]
 	Random, randomNum, 1, initMsgs.MaxIndex()
 	initMsg:=initMsgs[randomNum]
 	
-	dNames:=["AbyssSPIRIT", "milcart", "Pip4ik"]
+	dNames:=["AbyssSPIRIT", "milcart", "Pip4ik", "Данил А. Р."]
 	Random, randomNum, 1, dNames.MaxIndex()
 	dName:="Спасибо, " dNames[randomNum] ")"
 	
@@ -525,12 +539,17 @@ menuCreate(){
 	Menu, Tray, Add, Перезапустить, ReStart
 	Menu, Tray, Add, Завершить работу макроса, Exit
 	Menu, Tray, NoStandard
+}
+
+createMainMenu(){
+	Menu, mainMenu, Add
+	Menu, mainMenu, DeleteAll
 	
 	IniRead, imagesPreset, %configFile%, settings, imagesPreset, default
 	presetInMenu(imagesPreset)
 	
 	FormatTime, CurrentDate, %A_NowUTC%, MMdd
-	Random, randomNum, 1, 100
+	Random, randomNum, 1, 300
 	if (CurrentDate==0401 || randomNum=1)
 		Menu, mainMenu, Add, Krillson, shLastImage
 	
