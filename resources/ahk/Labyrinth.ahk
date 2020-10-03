@@ -71,6 +71,8 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra") {
 	FileRead, LabData, %A_Temp%\labpage.html
 	LabDataSplit:=StrSplit(LabData, "`n")
 	For k, val in LabDataSplit {
+		If RegExMatch(LabDataSplit[k], "<img id=""notesImg"" style=""margin: 0 auto; display: inline-block; cursor: zoom-in;"" src=""(.*)"">", URL)
+			break
 		If RegExMatch(LabDataSplit[k], "<img id=""notesImg"" style=""width: margin: 0 auto; display: inline-block; cursor: zoom-in;"" src=""(.*)"" />", URL)
 			break
 		If RegExMatch(LabDataSplit[k], "<img id=""light-notesImg"" style=""width: margin: 0 auto; display: inline-block; cursor: zoom-in;"" src=""(.*)"" /", URL)
