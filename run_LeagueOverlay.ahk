@@ -597,6 +597,13 @@ Exit:
 	ExitApp
 Return
 
+OnClipBoardChange:
+	ItemData:=Clipboard
+	If RegExMatch(ItemData, "Редкость: ") && debugMode {
+		createItemMenu()
+	}
+Return
+
 ;Нужно для работы с ItemDataConverter
 class Globals {
 	Set(name, value) {

@@ -69,3 +69,65 @@ devReloadLab(LabName){
 		LabURL:="https://www.poelab.com/riikv"
 	downloadLabLayout(LabURL)
 }
+
+IDCL_ConvertFromGame2() {
+	ItemData:=IDCL_ConvertMain(Clipboard)
+	msgbox, 0x1040, Cкопировано в буфер обмена!, %ItemData%, 2
+}
+
+createItemMenu(){
+	Menu, itemMenu, Add
+	Menu, itemMenu, DeleteAll
+	
+	Menu, itemMenu, Add, Конвертировать описание Ru>En, IDCL_ConvertFromGame2
+	Menu, itemMenu, Add
+	createHightlightMenu()
+	Menu, itemMenu, Add, Подсветка с помощью тэгов, :hightlightMenu
+	Menu, itemMenu, Show
+}
+
+createHightlightMenu(){
+	Menu, hightlightMenu, Add
+	Menu, hightlightMenu, DeleteAll
+	
+	ItemData:=IDCL_CleanerItem(Clipboard)
+	ItemDataSplit:=StrSplit(ItemData, "`n")
+	
+	ItemName:=ItemDataSplit[2]
+	If RegExMatch(ItemData, "Редкость: Редкий") && !RegExMatch(ItemData, "Неопознано")
+		ItemName:=ItemDataSplit[3]
+	Menu, hightlightMenu, add, %ItemName%, nullFunction
+	
+	If RegExMatch(ItemName, "(Масло|масло|Сущность|сущность|катализатор|резонатор|ископаемое|сфера Делириума|Заражённая|флакон маны|флакон жизни)", findtext)
+		Menu, hightlightMenu, add, %findtext%, nullFunction
+	If RegExMatch(ItemName, "(Мозг|Печень|Лёгкое|Глаз|Сердце|Пробужденный|Аномальный|Искривлённый|Фантомный|Чертёж|Контракт): ", findtext)
+		Menu, hightlightMenu, add, %findtext1%, nullFunction
+		
+	If RegExMatch(ItemData, "(это пророчество|в Лаборатории Танэ)", findtext)
+		Menu, hightlightMenu, add, %findtext1%, nullFunction
+	If (RegExMatch(ItemName, "(К|к)ольцо") || RegExMatch(ItemDataSplit[3], "(К|к)ольцо")) && RegExMatch(ItemData, "Редкость: Уникальный")
+		Menu, hightlightMenu, add, "Кольцо" "Уник", nullFunction
+		
+	For k, val in ItemDataSplit {
+		If RegExMatch(ItemDataSplit[k], "Область находится под влиянием (Древнего|Создателя)", findtext)
+			Menu, hightlightMenu, add, %findtext%, nullFunction
+		If RegExMatch(ItemDataSplit[k], "Регион Атласа: (.*)", findtext)
+			Menu, hightlightMenu, add, %findtext1%, nullFunction
+		If RegExMatch(ItemDataSplit[k], "Редкость: (.*)", findtext)
+			Menu, hightlightMenu, add, %findtext1%, nullFunction
+		If RegExMatch(ItemDataSplit[k], "Качество: ")
+			Menu, hightlightMenu, add, Качество, nullFunction
+		If RegExMatch(ItemDataSplit[k], "Уровень карты: (.*)", findtext)
+			Menu, hightlightMenu, add, tier:%findtext1%, nullFunction
+		If RegExMatch(ItemDataSplit[k], "Уровень предмета: (.*)", findtext)
+			Menu, hightlightMenu, add, %findtext%, nullFunction
+	}
+}
+
+nullFunction(Line){
+	DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", 0x50, "UInt", 0x4090409, "UInt", 0x4090409)
+	sleep 25
+	BlockInput On
+	SendInput, ^{f}%Line%
+	BlockInput Off
+}
