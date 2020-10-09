@@ -154,6 +154,8 @@ createHightlightMenu(){
 			Menu, hightlightMenu, add, tier:%findtext1%, nullFunction
 		If RegExMatch(ItemDataSplit[k], "Уровень предмета: (.*)", findtext)
 			Menu, hightlightMenu, add, %findtext%, nullFunction
+		If RegExMatch(ItemDataSplit[k], "Завуалированный", findtext)
+			Menu, hightlightMenu, add, Завуалированный, nullFunction
 	}
 }
 

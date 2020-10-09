@@ -54,7 +54,7 @@ FileReadLine, verScript, resources\Updates.txt, 1
 
 ;Подсказка в области уведомлений и сообщение при запуске
 trayUpdate(prjName " " verScript " | AHK " A_AhkVersion)
-Menu, Tray, Icon, resources\Syndicate.ico
+Menu, Tray, Icon, resources\icon.png
 showStartUI()
 
 devInit()
@@ -315,7 +315,7 @@ showStartUI(){
 	Random, randomNum, 1, dNames.MaxIndex()
 	dName:="Спасибо, " dNames[randomNum] ")"
 	
-	Gui, StartUI:Add, Progress, w500 h26 x0 y0 Background1A7F5B
+	Gui, StartUI:Add, Progress, w500 h26 x0 y0 Background1496A0
 
 	Gui, StartUI:Font, s10 cFFFFFF bold
 	Gui, StartUI:Add, Text, x5 y5 h18 w390 +Center BackgroundTrans, %prjName% %verScript% | AHK %A_AhkVersion%
