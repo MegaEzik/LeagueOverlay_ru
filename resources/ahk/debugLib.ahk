@@ -5,6 +5,11 @@ devInit() {
 	devMenu()
 	if debugMode
 		trayUpdate("`nВключен режим отладки")
+	
+	if debugMode {
+		IDCL_Init2()
+		Hotkey, !c, showItemMenu, On
+	}
 }
 
 ;Создание меню разработчика
@@ -27,6 +32,7 @@ devMenu() {
 	Menu, devMenu, Add, Открыть папку настроек, openConfigFolder
 	Menu, devMenu, Add, Управление пакетами, :devMenu3
 	Menu, devMenu, Add, Перезагрузить лабиринт, :devMenu2
+	Menu, devMenu, Add, Перезагрузить списки IDCL, IDCL_Reload
 	Menu, devMenu, Add, AutoHotkey, :devMenu1
 }
 
@@ -70,14 +76,41 @@ devReloadLab(LabName){
 	downloadLabLayout(LabURL)
 }
 
+;Ниже функционал нужный для тестирования функции "Меню предмета"
+
 IDCL_ConvertFromGame2() {
 	ItemData:=IDCL_ConvertMain(Clipboard)
 	msgbox, 0x1040, Cкопировано в буфер обмена!, %ItemData%, 2
 }
 
-createItemMenu(){
+IDCL_Init2(){
+	If (FileExist("resources\stats.json") && FileExist("resources\names.json") && FileExist("resources\presufflask.json")) {
+		FileRead, stats_list, resources\stats.json
+		Globals.Set("item_stats", JSON.Load(stats_list))
+		FileRead, names_list, resources\names.json
+		Globals.Set("item_names", JSON.Load(names_list))
+		FileRead, presufflask_list, resources\presufflask.json
+		Globals.Set("item_presufflask", JSON.Load(presufflask_list))
+	} else {
+		IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/PoE-TradeMacro_ru/master/data_trade/ru/ru_en_stats.json", "resources\stats.json")
+		IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/PoE-TradeMacro_ru/master/data/ru/nameItemRuToEn.json", "resources\names.json")
+		IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/PoE-TradeMacro_ru/master/data_trade/ru/ruPrefSufFlask.json", "resources\presufflask.json")
+		sleep 3000
+		IDCL_Init2()
+	}
+}
+
+IDCL_Reload(){
+	FileDelete, resources\*.json
+	sleep 1000
+	IDCL_Init2()
+}
+
+showItemMenu(){
 	Menu, itemMenu, Add
 	Menu, itemMenu, DeleteAll
+	
+	IDCL_loadInfo()
 	
 	Menu, itemMenu, Add, Конвертировать описание Ru>En, IDCL_ConvertFromGame2
 	Menu, itemMenu, Add
@@ -98,7 +131,7 @@ createHightlightMenu(){
 		ItemName:=ItemDataSplit[3]
 	Menu, hightlightMenu, add, %ItemName%, nullFunction
 	
-	If RegExMatch(ItemName, "(Масло|масло|Сущность|сущность|катализатор|резонатор|ископаемое|сфера Делириума|Заражённая|флакон маны|флакон жизни)", findtext)
+	If RegExMatch(ItemName, "(Масло|масло|Сущность|сущность|катализатор|резонатор|ископаемое|сфера Делириума|Карта|Заражённая Карта|флакон маны|флакон жизни)", findtext)
 		Menu, hightlightMenu, add, %findtext%, nullFunction
 	If RegExMatch(ItemName, "(Мозг|Печень|Лёгкое|Глаз|Сердце|Пробужденный|Аномальный|Искривлённый|Фантомный|Чертёж|Контракт): ", findtext)
 		Menu, hightlightMenu, add, %findtext1%, nullFunction
@@ -131,3 +164,13 @@ nullFunction(Line){
 	SendInput, ^{f}%Line%
 	BlockInput Off
 }
+
+runNotify(){
+	If (FileExist("readme.txt")) {
+		FileRead, notifyMsg, readme.txt
+		If (notifyMsg!="")
+			msgbox, 0x1040, %prjName% - Уведомление, %notifyMsg%
+		FileDelete, readme.txt
+	}
+}
+

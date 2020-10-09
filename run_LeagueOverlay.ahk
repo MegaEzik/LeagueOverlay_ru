@@ -119,6 +119,9 @@ setHotkeys()
 ;Скроем сообщение загрузки
 closeStartUI()
 
+;Покажем уведомление, если таковое было вложено в пакет с макросом
+runNotify()
+
 Return
 
 ;#################################################
@@ -597,12 +600,14 @@ Exit:
 	ExitApp
 Return
 
+/*
 OnClipBoardChange:
 	ItemData:=Clipboard
 	If RegExMatch(ItemData, "Редкость: ") && debugMode {
 		createItemMenu()
 	}
 Return
+*/
 
 ;Нужно для работы с ItemDataConverter
 class Globals {
