@@ -131,7 +131,7 @@ createHightlightMenu(){
 		ItemName:=ItemDataSplit[3]
 	Menu, hightlightMenu, add, %ItemName%, nullFunction
 	
-	If RegExMatch(ItemName, "(Масло|масло|Сущность|сущность|катализатор|резонатор|ископаемое|сфера Делириума|Карта|Заражённая Карта|флакон маны|флакон жизни)", findtext)
+	If RegExMatch(ItemName, "(Масло|масло|Сущность|сущность|катализатор|резонатор|ископаемое|сфера Делириума|Карта|Заражённая Карта|флакон маны|флакон жизни|кластерный|Копия)", findtext)
 		Menu, hightlightMenu, add, %findtext%, nullFunction
 	If RegExMatch(ItemName, "(Мозг|Печень|Лёгкое|Глаз|Сердце|Пробужденный|Аномальный|Искривлённый|Фантомный|Чертёж|Контракт): ", findtext)
 		Menu, hightlightMenu, add, %findtext1%, nullFunction
@@ -142,6 +142,8 @@ createHightlightMenu(){
 		Menu, hightlightMenu, add, "Кольцо" "Уник", nullFunction
 		
 	For k, val in ItemDataSplit {
+		If RegExMatch(ItemDataSplit[k], "(Предмет Создателя|Древний предмет|Расколотый предмет|Синтезированный предмет|Предмет Вождя|Предмет Избавительницы|Предмет Крестоносца|Предмет Охотника)", findtext)
+			Menu, hightlightMenu, add, %findtext%, nullFunction
 		If RegExMatch(ItemDataSplit[k], "Область находится под влиянием (Древнего|Создателя)", findtext)
 			Menu, hightlightMenu, add, %findtext%, nullFunction
 		If RegExMatch(ItemDataSplit[k], "Регион Атласа: (.*)", findtext)
