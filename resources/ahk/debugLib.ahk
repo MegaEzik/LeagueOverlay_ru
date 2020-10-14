@@ -5,11 +5,6 @@ devInit() {
 	devMenu()
 	if debugMode
 		trayUpdate("`nВключен режим отладки")
-	
-	if debugMode {
-		IDCL_Init2()
-		Hotkey, !c, showItemMenu, On
-	}
 }
 
 ;Создание меню разработчика
@@ -30,9 +25,11 @@ devMenu() {
 
 	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
 	Menu, devMenu, Add, Открыть папку настроек, openConfigFolder
+	Menu, devMenu, Add, Очистить кэш Path of Exile, clearPoECache
 	Menu, devMenu, Add, Управление пакетами, :devMenu3
 	Menu, devMenu, Add, Перезагрузить лабиринт, :devMenu2
-	Menu, devMenu, Add, Перезагрузить списки IDCL, IDCL_Reload
+	;Menu, devMenu, Add, Активировать тестовые функции, initTestTools
+	Menu, devMenu, Add, Перезагрузить списки соответствий, IDCL_ReloadLists
 	Menu, devMenu, Add, AutoHotkey, :devMenu1
 }
 
@@ -45,20 +42,23 @@ devRestoreRelease() {
 ;Установить пакет
 installPack(){
 	FileSelectFile, ArcPath, ,,,(*.zip)
-	If FileExist(ArcPath)
+	If FileExist(ArcPath) {
 		unZipArchive(ArcPath, configFolder)
-	ReStart()
+		sleep 1000
+		ReStart()
+	}
 }
 
 ;Удалить пакет
 unInstallPack(packName){
 	RegExMatch(packName, "Удалить (.*)", packName)
 	RunWait *RunAs "%A_AhkPath%" "%configFolder%\%packName1%" "%A_ScriptDir%" "UNINSTALL"
-	sleep 100
+	sleep 1000
 	FileDelete, %configFolder%\%packName1%
 	RegExMatch(packName1, "(.*)_loader.ahk", Name)
 	FileRemoveDir, %configFolder%\%Name1%, 1
 	FileDelete, %configFolder%\presets\%Name1%.preset
+	sleep 1000
 	ReStart()
 }
 
@@ -77,33 +77,15 @@ devReloadLab(LabName){
 }
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
-
-IDCL_ConvertFromGame2() {
-	ItemData:=IDCL_ConvertMain(Clipboard)
-	msgbox, 0x1040, Cкопировано в буфер обмена!, %ItemData%, 2
-}
-
-IDCL_Init2(){
-	If (FileExist("resources\stats.json") && FileExist("resources\names.json") && FileExist("resources\presufflask.json")) {
-		FileRead, stats_list, resources\stats.json
-		Globals.Set("item_stats", JSON.Load(stats_list))
-		FileRead, names_list, resources\names.json
-		Globals.Set("item_names", JSON.Load(names_list))
-		FileRead, presufflask_list, resources\presufflask.json
-		Globals.Set("item_presufflask", JSON.Load(presufflask_list))
-	} else {
-		IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/PoE-TradeMacro_ru/master/data_trade/ru/ru_en_stats.json", "resources\stats.json")
-		IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/PoE-TradeMacro_ru/master/data/ru/nameItemRuToEn.json", "resources\names.json")
-		IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/PoE-TradeMacro_ru/master/data_trade/ru/ruPrefSufFlask.json", "resources\presufflask.json")
-		sleep 3000
-		IDCL_Init2()
+initTestTools(){
+	msgbox, 0x1024, %prjName% - Активировать тестовые функции?, Вы хотите использовать эти функции на свой страх и риск?
+	IfMsgBox Yes
+	{
+		IDCL_Init()
+		Hotkey, !c, showItemMenu, On
+		textmsg:="В данный момент тестируется:`n`t*[Alt+C] - 'Меню предмета'`n`nЕсли возникнут проблемы или просто захотите отключить, то просто перезапустите макрос!"
+		msgbox, 0x1040, %prjName%, %textmsg%
 	}
-}
-
-IDCL_Reload(){
-	FileDelete, resources\*.json
-	sleep 1000
-	IDCL_Init2()
 }
 
 showItemMenu(){
@@ -112,7 +94,7 @@ showItemMenu(){
 	
 	IDCL_loadInfo()
 	
-	Menu, itemMenu, Add, Конвертировать описание Ru>En, IDCL_ConvertFromGame2
+	Menu, itemMenu, Add, Конвертировать описание Ru>En, IDCL_ConvertFromGame
 	Menu, itemMenu, Add
 	createHightlightMenu()
 	Menu, itemMenu, Add, Подсветка с помощью тэгов, :hightlightMenu
@@ -129,52 +111,43 @@ createHightlightMenu(){
 	ItemName:=ItemDataSplit[2]
 	If RegExMatch(ItemData, "Редкость: Редкий") && !RegExMatch(ItemData, "Неопознано")
 		ItemName:=ItemDataSplit[3]
-	Menu, hightlightMenu, add, %ItemName%, nullFunction
+	Menu, hightlightMenu, add, %ItemName%, hightlightLine
 	
 	If RegExMatch(ItemName, "(Масло|масло|Сущность|сущность|катализатор|резонатор|ископаемое|сфера Делириума|Карта|Заражённая Карта|флакон маны|флакон жизни|кластерный|Копия)", findtext)
-		Menu, hightlightMenu, add, %findtext%, nullFunction
+		Menu, hightlightMenu, add, %findtext%, hightlightLine
 	If RegExMatch(ItemName, "(Мозг|Печень|Лёгкое|Глаз|Сердце|Пробужденный|Аномальный|Искривлённый|Фантомный|Чертёж|Контракт): ", findtext)
-		Menu, hightlightMenu, add, %findtext1%, nullFunction
+		Menu, hightlightMenu, add, %findtext1%, hightlightLine
 		
 	If RegExMatch(ItemData, "(это пророчество|в Лаборатории Танэ)", findtext)
-		Menu, hightlightMenu, add, %findtext1%, nullFunction
+		Menu, hightlightMenu, add, %findtext1%, hightlightLine
 	If (RegExMatch(ItemName, "(К|к)ольцо") || RegExMatch(ItemDataSplit[3], "(К|к)ольцо")) && RegExMatch(ItemData, "Редкость: Уникальный")
-		Menu, hightlightMenu, add, "Кольцо" "Уник", nullFunction
+		Menu, hightlightMenu, add, "Кольцо" "Уник", hightlightLine
 		
 	For k, val in ItemDataSplit {
 		If RegExMatch(ItemDataSplit[k], "(Предмет Создателя|Древний предмет|Расколотый предмет|Синтезированный предмет|Предмет Вождя|Предмет Избавительницы|Предмет Крестоносца|Предмет Охотника)", findtext)
-			Menu, hightlightMenu, add, %findtext%, nullFunction
+			Menu, hightlightMenu, add, %findtext%, hightlightLine
 		If RegExMatch(ItemDataSplit[k], "Область находится под влиянием (Древнего|Создателя)", findtext)
-			Menu, hightlightMenu, add, %findtext%, nullFunction
+			Menu, hightlightMenu, add, %findtext%, hightlightLine
 		If RegExMatch(ItemDataSplit[k], "Регион Атласа: (.*)", findtext)
-			Menu, hightlightMenu, add, %findtext1%, nullFunction
+			Menu, hightlightMenu, add, %findtext1%, hightlightLine
 		If RegExMatch(ItemDataSplit[k], "Редкость: (.*)", findtext)
-			Menu, hightlightMenu, add, %findtext1%, nullFunction
+			Menu, hightlightMenu, add, %findtext1%, hightlightLine
 		If RegExMatch(ItemDataSplit[k], "Качество: ")
-			Menu, hightlightMenu, add, Качество, nullFunction
+			Menu, hightlightMenu, add, Качество, hightlightLine
 		If RegExMatch(ItemDataSplit[k], "Уровень карты: (.*)", findtext)
-			Menu, hightlightMenu, add, tier:%findtext1%, nullFunction
+			Menu, hightlightMenu, add, tier:%findtext1%, hightlightLine
 		If RegExMatch(ItemDataSplit[k], "Уровень предмета: (.*)", findtext)
-			Menu, hightlightMenu, add, %findtext%, nullFunction
+			Menu, hightlightMenu, add, %findtext%, hightlightLine
 		If RegExMatch(ItemDataSplit[k], "Завуалированный", findtext)
-			Menu, hightlightMenu, add, Завуалированный, nullFunction
+			Menu, hightlightMenu, add, Завуалированный, hightlightLine
 	}
 }
 
-nullFunction(Line){
+hightlightLine(Line){
 	DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", 0x50, "UInt", 0x4090409, "UInt", 0x4090409)
 	sleep 25
 	BlockInput On
 	SendInput, ^{f}%Line%
 	BlockInput Off
-}
-
-runNotify(){
-	If (FileExist("readme.txt")) {
-		FileRead, notifyMsg, readme.txt
-		If (notifyMsg!="")
-			msgbox, 0x1040, %prjName% - Уведомление, %notifyMsg%
-		FileDelete, readme.txt
-	}
 }
 

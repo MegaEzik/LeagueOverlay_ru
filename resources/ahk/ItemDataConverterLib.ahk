@@ -20,24 +20,32 @@ IDCL_DownloadJSONList(url, file) {
 }
 
 ;Инициализация библиотеки и дополнительных компонентов
-IDCL_Init() {
-	IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/PoE-TradeMacro_ru/master/data_trade/ru/ru_en_stats.json", "resources\stats.json")
-	FileRead, stats_list, resources\stats.json
-	Globals.Set("item_stats", JSON.Load(stats_list))
-	
-	IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/PoE-TradeMacro_ru/master/data/ru/nameItemRuToEn.json", "resources\names.json")
-	FileRead, names_list, resources\names.json
-	Globals.Set("item_names", JSON.Load(names_list))
-	
-	IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/PoE-TradeMacro_ru/master/data_trade/ru/ruPrefSufFlask.json", "resources\presufflask.json")
-	FileRead, presufflask_list, resources\presufflask.json
-	Globals.Set("item_presufflask", JSON.Load(presufflask_list))
-	
-	/*
-	IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/PoE-TradeMacro_ru/master/data/ru/sameNameItem.json", "resources\samename.json")
-	FileRead, samename_list, resources\samename.json
-	Globals.Set("item_samename", JSON.Load(samename_list))
-	*/
+IDCL_Init(){
+	If (FileExist("resources\stats.json") && FileExist("resources\names.json") && FileExist("resources\presufflask.json")) {
+		FileRead, stats_list, resources\stats.json
+		Globals.Set("item_stats", JSON.Load(stats_list))
+		FileRead, names_list, resources\names.json
+		Globals.Set("item_names", JSON.Load(names_list))
+		FileRead, presufflask_list, resources\presufflask.json
+		Globals.Set("item_presufflask", JSON.Load(presufflask_list))
+		;FileRead, samename_list, resources\samename.json
+		;Globals.Set("item_samename", JSON.Load(samename_list))
+	} else {
+		IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/PoE-TradeMacro_ru/master/data_trade/ru/ru_en_stats.json", "resources\stats.json")
+		IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/PoE-TradeMacro_ru/master/data/ru/nameItemRuToEn.json", "resources\names.json")
+		IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/PoE-TradeMacro_ru/master/data_trade/ru/ruPrefSufFlask.json", "resources\presufflask.json")
+		;IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/PoE-TradeMacro_ru/master/data/ru/sameNameItem.json", "resources\samename.json")
+		sleep 3000
+		If (FileExist("resources\stats.json") && FileExist("resources\names.json") && FileExist("resources\presufflask.json"))
+			IDCL_Init()
+	}
+}
+
+;Перезагрузить списки соответствий
+IDCL_ReloadLists(){
+	FileDelete, resources\*.json
+	sleep 1000
+	IDCL_Init()
 }
 
 ;Получение информации c предмета
@@ -351,9 +359,6 @@ IDCL_CheckResult(idft){
 
 ;Конвертирование описания с предмета из игры
 IDCL_ConvertFromGame() {
-	sleep 35
-	itemdata:=IDCL_loadInfo()
-	itemdata:=IDCL_ConvertMain(itemdata)
-	Clipboard:=itemdata
-	msgbox, 0x1040, Cкопировано в буфер обмена!, %itemdata%, 2
+	ItemData:=IDCL_ConvertMain(IDCL_loadInfo())
+	msgbox, 0x1040, Cкопировано в буфер обмена!, %ItemData%, 2
 }

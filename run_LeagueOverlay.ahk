@@ -44,11 +44,11 @@ GroupAdd, WindowGrp, ahk_exe GeForceNOWStreamer.exe
 global prjName:="LeagueOverlay_ru"
 global githubUser:="MegaEzik"
 global configFolder:=A_MyDocuments "\AutoHotKey\" prjName
-if InStr(FileExist(A_ScriptDir "\profile"), "D")
-	configFolder:=A_ScriptDir "\profile"
+if InStr(FileExist(A_ScriptDir "\..\Profile"), "D")
+	configFolder:=A_ScriptDir "\..\Profile"
 global configFile:=configFolder "\settings.ini"
 global trayMsg, verScript, debugMode=0
-global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, textCmd11, textCmd12, cmdNum=12
+global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, textCmd11, textCmd12, textCmd13, textCmd14, textCmd15, cmdNum=15
 global presetData, LastImgPath, OverlayStatus=0
 FileReadLine, verScript, resources\Updates.txt, 1
 
@@ -120,7 +120,7 @@ setHotkeys()
 closeStartUI()
 
 ;Покажем уведомление, если таковое было вложено в пакет с макросом
-runNotify()
+showStartNotify()
 
 Return
 
@@ -246,31 +246,35 @@ showUpdateHistory(){
 }
 
 clearPoECache(){
-	FileSelectFile, FilePath, , C:\Program Files (x86)\Grinding Gear Games\Path of Exile\Content.ggpk, Укажите путь к файлу Content.ggpk в папке с игрой, (Content.ggpk)
-	if (FilePath!="" && FileExist(FilePath)) {
-		SplashTextOn, 300, 20, %prjName%, Очистка кэша, пожалуйста подождите...
-		
-		SplitPath, FilePath, , PoEFolderPath
-		FileRemoveDir, %PoEFolderPath%\logs, 1
-		;DirectX11
-		FileRemoveDir, %PoEFolderPath%\CachedHLSLShaders, 1
-		FileRemoveDir, %PoEFolderPath%\ShaderCacheD3D11, 1
-		FileRemoveDir, %PoEFolderPath%\ShaderCacheD3D11_GI, 1
-		;Vulkan
-		FileRemoveDir, %PoEFolderPath%\ShaderCacheVulkan, 1
-		
-		PoEConfigFolderPath:=A_MyDocuments "\My Games\Path of Exile"
-		FileRemoveDir, %PoEConfigFolderPath%\Countdown, 1
-		FileRemoveDir, %PoEConfigFolderPath%\DailyDealCache, 1
-		FileRemoveDir, %PoEConfigFolderPath%\Minimap, 1
-		FileRemoveDir, %PoEConfigFolderPath%\MOTDCache, 1
-		FileRemoveDir, %PoEConfigFolderPath%\ShopImages, 1
-		FileRemoveDir, %PoEConfigFolderPath%\OnlineFilters, 1
-		
-		SplashTextOff
-	} else {
-		msgbox, 0x1010, %prjName%, Файл не найден или операция прервана пользователем!, 3
-		return		
+	msgbox, 0x1014, %prjName%, Во время очистки кэша лучше закрыть игру!`n`nВы закрыли и хотите продолжить?
+	IfMsgBox Yes
+	{
+		FileSelectFile, FilePath, , C:\Program Files (x86)\Grinding Gear Games\Path of Exile\Content.ggpk, Укажите путь к файлу Content.ggpk в папке с игрой, (Content.ggpk)
+		if (FilePath!="" && FileExist(FilePath)) {
+			SplashTextOn, 300, 20, %prjName%, Очистка кэша, пожалуйста подождите...
+			
+			SplitPath, FilePath, , PoEFolderPath
+			FileRemoveDir, %PoEFolderPath%\logs, 1
+			;DirectX11
+			FileRemoveDir, %PoEFolderPath%\CachedHLSLShaders, 1
+			FileRemoveDir, %PoEFolderPath%\ShaderCacheD3D11, 1
+			FileRemoveDir, %PoEFolderPath%\ShaderCacheD3D11_GI, 1
+			;Vulkan
+			FileRemoveDir, %PoEFolderPath%\ShaderCacheVulkan, 1
+			
+			PoEConfigFolderPath:=A_MyDocuments "\My Games\Path of Exile"
+			FileRemoveDir, %PoEConfigFolderPath%\Countdown, 1
+			FileRemoveDir, %PoEConfigFolderPath%\DailyDealCache, 1
+			FileRemoveDir, %PoEConfigFolderPath%\Minimap, 1
+			FileRemoveDir, %PoEConfigFolderPath%\MOTDCache, 1
+			FileRemoveDir, %PoEConfigFolderPath%\ShopImages, 1
+			FileRemoveDir, %PoEConfigFolderPath%\OnlineFilters, 1
+			
+			SplashTextOff
+		} else {
+			msgbox, 0x1010, %prjName%, Файл не найден или операция прервана пользователем!, 3
+			return		
+		}
 	}
 }
 
@@ -361,18 +365,18 @@ showSettings(){
 	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
 	IniRead, hotkeyToCharacterSelection, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
 
-	Gui, Settings:Add, Button, x0 y340 w465 h25 gsaveSettings, Применить и перезапустить ;💾 465
+	Gui, Settings:Add, Button, x0 y375 w360 h25 gsaveSettings, Применить и перезапустить ;💾 465
 	
-	Gui, Settings:Add, Tab, x0 y0 w465 h340, Основные|Команды ;Вкладки
+	Gui, Settings:Add, Tab, x0 y0 w360 h375, Основные|Быстрые команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
 	Gui, Settings:Add, Checkbox, vautoUpdate x10 y30 w295 Checked%autoUpdate%, Автоматически проверять наличие обновлений ;CheckUpdateFromMenu
 	;Gui, Settings:Add, Button, x+1 yp-4 w152 h23 gCheckUpdateFromMenu, Выполнить обновление
 	
-	Gui, Settings:Add, Text, x10 yp+22 w155, Другое окно для проверки:
-	Gui, Settings:Add, Edit, vwindowLine x+2 yp-2 w290 h18, %windowLine%
+	Gui, Settings:Add, Text, x10 yp+22 w75, Другое окно:
+	Gui, Settings:Add, Edit, vwindowLine x+2 yp-2 w265 h18, %windowLine%
 	
-	Gui, Settings:Add, Text, x10 y+4 w450 h2 0x10
+	Gui, Settings:Add, Text, x10 y+4 w345 h2 0x10
 	
 	presetList:=""
 	Loop, resources\presets\*.preset, 1
@@ -381,44 +385,44 @@ showSettings(){
 		presetList.="|<" StrReplace(A_LoopFileName, ".preset", "") ">"
 	presetList:=SubStr(presetList, 2)
 	
-	Gui, Settings:Add, Text, x10 yp+8 w249, Набор изображений:
+	Gui, Settings:Add, Text, x10 yp+8 w184, Набор изображений:
 	Gui, Settings:Add, Button, x+1 yp-4 w23 h23 geditPreset, ✏
 	Gui, Settings:Add, Button, x+0 w23 h23 gdelPresetMenuShow, ✕
-	Gui, Settings:Add, DropDownList, vimagesPreset x+1 yp+1 w150, %presetList%
+	Gui, Settings:Add, DropDownList, vimagesPreset x+1 yp+1 w110, %presetList%
 	GuiControl,Settings:ChooseString, imagesPreset, %imagesPreset%
 	
 	
-	Gui, Settings:Add, Checkbox, vexpandMyImages x10 yp+27 w295 Checked%expandMyImages%, Развернуть 'Мои изображения'
-	Gui, Settings:Add, Button, x+1 yp-4 w152 h23 gopenMyImagesFolder, Открыть папку
+	Gui, Settings:Add, Checkbox, vexpandMyImages x10 yp+27 w230 Checked%expandMyImages%, Развернуть 'Мои изображения'
+	Gui, Settings:Add, Button, x+1 yp-4 w112 h23 gopenMyImagesFolder, Открыть папку
 	
-	Gui, Settings:Add, Checkbox, vloadLab x10 yp+25 w295 Checked%loadLab%, Скачивать лабиринт(Мои изображения>Labyrinth.jpg)
+	Gui, Settings:Add, Checkbox, vloadLab x10 yp+25 w230 Checked%loadLab%, Скачивать лабиринт`n(Мои изображения>Labyrinth.jpg)
 	Gui, Settings:Add, Link, x+2 yp+0, <a href="https://www.poelab.com/">POELab.com</a>
 	
-	Gui, Settings:Add, Text, x10 y+4 w450 h2 0x10
+	Gui, Settings:Add, Text, x10 y+18 w345 h2 0x10
 	
-	Gui, Settings:Add, Text, x10 yp+7 w295, Последнее изображение:
-	Gui, Settings:Add, Hotkey, vhotkeyLastImg x+2 yp-2 w150 h18, %hotkeyLastImg%
+	Gui, Settings:Add, Text, x10 yp+7 w230, Последнее изображение:
+	Gui, Settings:Add, Hotkey, vhotkeyLastImg x+2 yp-2 w110 h18, %hotkeyLastImg%
 	
-	Gui, Settings:Add, Text, x10 yp+22 w295, Меню быстрого доступа:
-	Gui, Settings:Add, Hotkey, vhotkeyMainMenu x+2 yp-2 w150 h18, %hotkeyMainMenu%
+	Gui, Settings:Add, Text, x10 yp+22 w230, Меню быстрого доступа:
+	Gui, Settings:Add, Hotkey, vhotkeyMainMenu x+2 yp-2 w110 h18, %hotkeyMainMenu%
 	
-	Gui, Settings:Add, Text, x10 y+4 w450 h2 0x10
+	Gui, Settings:Add, Text, x10 yp+22 w230, Меню команд:
+	Gui, Settings:Add, Hotkey, vhotkeyCustomCommandsMenu x+2 yp-2 w110 h18, %hotkeyCustomCommandsMenu%
 	
-	Gui, Settings:Add, Text, x10 yp+7 w295, Конвертировать описание предмета Ru>En:
-	Gui, Settings:Add, Hotkey, vhotkeyConverter x+2 yp-2 w150 h18, %hotkeyConverter%
+	Gui, Settings:Add, Text, x10 y+4 w345 h2 0x10
+	
+	Gui, Settings:Add, Text, x10 yp+7 w230, Конвертировать описание предмета Ru>En:
+	Gui, Settings:Add, Hotkey, vhotkeyConverter x+2 yp-2 w110 h18, %hotkeyConverter%
 	
 	Gui, Settings:Tab, 2 ; Вторая вкладка
 	
-	Gui, Settings:Add, Text, x10 y30 w295, Меню команд:
-	Gui, Settings:Add, Hotkey, vhotkeyCustomCommandsMenu x+2 yp-2 w150 h18, %hotkeyCustomCommandsMenu%
+	;Gui, Settings:Add, Text, x10 y+4 w345 h2 0x10
 	
-	Gui, Settings:Add, Text, x10 y+4 w450 h2 0x10
+	Gui, Settings:Add, Text, x10 y30 w230, Синхронизировать(/oos):
+	Gui, Settings:Add, Hotkey, vhotkeyForceSync x+2 yp-2 w110 h18, %hotkeyForceSync%
 	
-	Gui, Settings:Add, Text, x10 yp+7 w295, Синхронизировать(/oos):
-	Gui, Settings:Add, Hotkey, vhotkeyForceSync x+2 yp-2 w150 h18, %hotkeyForceSync%
-	
-	Gui, Settings:Add, Text, x10 yp+22 w295, К выбору персонажа(/exit):
-	Gui, Settings:Add, Hotkey, vhotkeyToCharacterSelection x+2 yp-2 w150 h18, %hotkeyToCharacterSelection%
+	Gui, Settings:Add, Text, x10 yp+22 w230, К выбору персонажа(/exit):
+	Gui, Settings:Add, Hotkey, vhotkeyToCharacterSelection x+2 yp-2 w110 h18, %hotkeyToCharacterSelection%
 	
 	;Настраиваемые команды fastReply
 	Loop %cmdNum% {
@@ -441,14 +445,14 @@ showSettings(){
 			If A_Index=8
 				tempVar:="@<last> ty & gl, exile)"
 		}
-		Gui, Settings:Add, Edit, vtextCmd%A_Index% x10 yp+20 w295 h18, %tempVar%
+		Gui, Settings:Add, Edit, vtextCmd%A_Index% x10 yp+20 w230 h18, %tempVar%
 		
 		IniRead, tempVar, %configFile%, fastReply, hotkeyCmd%A_Index%, %A_Space%
-		Gui, Settings:Add, Hotkey, vhotkeyCmd%A_Index% x+2 w150 h18, %tempVar%
+		Gui, Settings:Add, Hotkey, vhotkeyCmd%A_Index% x+2 w110 h18, %tempVar%
 	}
 	
 	Gui, Settings:+AlwaysOnTop -MinimizeBox -MaximizeBox
-	Gui, Settings:Show, w465 h365, %prjName% %VerScript% | AHK %A_AhkVersion% - Настройки ;Отобразить окно настроек
+	Gui, Settings:Show, w360 h400, %prjName% %VerScript% | AHK %A_AhkVersion% - Настройки ;Отобразить окно настроек
 }
 
 saveSettings(){
@@ -536,7 +540,6 @@ menuCreate(){
 	Menu, Tray, Default, Настройки
 	Menu, Tray, Add
 	Menu, Tray, Add, Испытания лабиринта, showLabTrials
-	Menu, Tray, Add, Очистить кэш Path of Exile, clearPoECache
 	Menu, Tray, Add, Меню разработчика, :devMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить, ReStart
@@ -591,6 +594,15 @@ ReStart(){
 	Reload
 }
 
+showStartNotify(){
+	If (FileExist("readme.txt")) {
+		FileRead, notifyMsg, readme.txt
+		If (notifyMsg!="")
+			msgbox, 0x1040, %prjName% - Уведомление, %notifyMsg%
+		FileDelete, readme.txt
+	}
+}
+
 ;#################################################
 
 Exit:
@@ -604,7 +616,7 @@ Return
 OnClipBoardChange:
 	ItemData:=Clipboard
 	If RegExMatch(ItemData, "Редкость: ") && debugMode {
-		createItemMenu()
+		showItemMenu()
 	}
 Return
 */
