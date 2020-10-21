@@ -1,15 +1,10 @@
 ﻿
 ;Загрузка изображения с раскладкой лабиринта соответствующего уровня
 downloadLabLayout(LabURL="https://www.poelab.com/wfbra") {
-	;Проверим нужно ли загружать лабиринт
-	IniRead, loadLab, %configFile%, settings, loadLab, 0
-	If !loadLab {
-		FileDelete, %configFolder%\images\Labyrinth.jpg
-		return
-	}
+	cfgLab:=configFolder "\trials.ini"
 
 	;Сравним текущую дату UTC с датой загрузки лабиринта 
-	IniRead, labLoadDate, %configFile%, info, labLoadDate, %A_Space%
+	IniRead, labLoadDate, %cfgLab%, info, labLoadDate, %A_Space%
 	FormatTime, CurrentDate, %A_NowUTC%, yyyyMMdd
 	If (CurrentDate==labLoadDate && FileExist(configFolder "\images\Labyrinth.jpg"))
 		return
@@ -35,6 +30,10 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra") {
 		msgbox, 0x1040, %prjName% - Загрузка лабиринта, В вашей системе не найдена утилита Curl!`nБез нее загрузка изображения лабиринта невозможна!`n`nРешение этой проблемы есть в теме на форуме), 10
 		return
 	}
+	
+	;Если режим разработчика не включен, то откроем сайт
+	If !debugMode
+		run, %LabURL%
 	
 	;Назначение переменных
 	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36"
@@ -96,10 +95,6 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra") {
 		return
 	}
 	
-	;Если режим разработчика не включен, то откроем сайт
-	If !debugMode
-		run, %LabURL%
-	
 	/*
 	;Удалим и другие лабиринты
 	If FileExist(configFolder "\images\Labyrinth.jpg") {
@@ -111,7 +106,7 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra") {
 	*/
 	
 	;Запишем дату загрузки лабиринта
-	IniWrite, %CurrentDate%, %configFile%, info, labLoadDate
+	IniWrite, %CurrentDate%, %cfgLab%, info, labLoadDate
 	sleep 100
 }
 
@@ -119,14 +114,14 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra") {
 showLabTrials() {
 	global
 	Gui, LabTrials:Destroy
-	trialsFile:=configFolder "\trials.ini"
+	cfgLab:=configFolder "\trials.ini"
 	
-	IniRead, trialA, %trialsFile%, LabTrials, trialA, 0
-	IniRead, trialB, %trialsFile%, LabTrials, trialB, 0
-	IniRead, trialC, %trialsFile%, LabTrials, trialC, 0
-	IniRead, trialD, %trialsFile%, LabTrials, trialD, 0
-	IniRead, trialE, %trialsFile%, LabTrials, trialE, 0
-	IniRead, trialF, %trialsFile%, LabTrials, trialF, 0
+	IniRead, trialA, %cfgLab%, LabTrials, trialA, 0
+	IniRead, trialB, %cfgLab%, LabTrials, trialB, 0
+	IniRead, trialC, %cfgLab%, LabTrials, trialC, 0
+	IniRead, trialD, %cfgLab%, LabTrials, trialD, 0
+	IniRead, trialE, %cfgLab%, LabTrials, trialE, 0
+	IniRead, trialF, %cfgLab%, LabTrials, trialF, 0
 	
 	trialsStatus:=сompletionLabTrials()
 	
@@ -155,12 +150,12 @@ autoSaveLabTrials() {
 	{
 		SetTimer, autoSaveLabTrials, Delete
 		Gui, LabTrials:Submit
-		IniWrite, %trialA%, %trialsFile%, LabTrials, trialA
-		IniWrite, %trialB%, %trialsFile%, LabTrials, trialB
-		IniWrite, %trialC%, %trialsFile%, LabTrials, trialC
-		IniWrite, %trialD%, %trialsFile%, LabTrials, trialD
-		IniWrite, %trialE%, %trialsFile%, LabTrials, trialE
-		IniWrite, %trialF%, %trialsFile%, LabTrials, trialF
+		IniWrite, %trialA%, %cfgLab%, LabTrials, trialA
+		IniWrite, %trialB%, %cfgLab%, LabTrials, trialB
+		IniWrite, %trialC%, %cfgLab%, LabTrials, trialC
+		IniWrite, %trialD%, %cfgLab%, LabTrials, trialD
+		IniWrite, %trialE%, %cfgLab%, LabTrials, trialE
+		IniWrite, %trialF%, %cfgLab%, LabTrials, trialF
 		If (trialsStatus<сompletionLabTrials()){
 			msgtext:="Поздравляю, вы завершили все испытания лабиринта)`n" prjName " уберет этот пункт из 'Быстрого доступа'!`n`nЕсли понадобится вернуть, то уберите отметки, через аналогичный пункт в 'Области уведомлений'!"
 			msgbox, 0x1040, %prjName% - Испытания завершены, %msgtext%, 15
@@ -170,13 +165,13 @@ autoSaveLabTrials() {
 }
 
 сompletionLabTrials() {
-	trialsFile:=configFolder "\trials.ini"
-	IniRead, trialA, %trialsFile%, LabTrials, trialA, 0
-	IniRead, trialB, %trialsFile%, LabTrials, trialB, 0
-	IniRead, trialC, %trialsFile%, LabTrials, trialC, 0
-	IniRead, trialD, %trialsFile%, LabTrials, trialD, 0
-	IniRead, trialE, %trialsFile%, LabTrials, trialE, 0
-	IniRead, trialF, %trialsFile%, LabTrials, trialF, 0
+	cfgLab:=configFolder "\trials.ini"
+	IniRead, trialA, %cfgLab%, LabTrials, trialA, 0
+	IniRead, trialB, %cfgLab%, LabTrials, trialB, 0
+	IniRead, trialC, %cfgLab%, LabTrials, trialC, 0
+	IniRead, trialD, %cfgLab%, LabTrials, trialD, 0
+	IniRead, trialE, %cfgLab%, LabTrials, trialE, 0
+	IniRead, trialF, %cfgLab%, LabTrials, trialF, 0
 	if (trialA && trialB && trialC && trialD && trialE && trialF)
 		return true
 	return false

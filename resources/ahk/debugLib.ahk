@@ -5,6 +5,14 @@ devInit() {
 	devMenu()
 	if debugMode
 		trayUpdate("`nВключен режим отладки")
+	
+	/*
+	if debugMode {
+		IDCL_Init()
+		Hotkey, !c, showItemMenu, On
+		showToolTip("Включен режим отладки", 2000)
+	}
+	*/
 }
 
 ;Создание меню разработчика
@@ -88,13 +96,19 @@ initTestTools(){
 	}
 }
 
+IDCL_ConvertFromGame2() {
+	ItemData:=IDCL_ConvertMain(Clipboard)
+	Clipboard:=ItemData
+	showToolTip("Скопировано в буфер обмена!`n---------------------------`n" ItemData, 3000)
+}
+
 showItemMenu(){
 	Menu, itemMenu, Add
 	Menu, itemMenu, DeleteAll
 	
 	IDCL_loadInfo()
 	
-	Menu, itemMenu, Add, Конвертировать описание Ru>En, IDCL_ConvertFromGame
+	Menu, itemMenu, Add, Конвертировать описание Ru>En, IDCL_ConvertFromGame2
 	Menu, itemMenu, Add
 	createHightlightMenu()
 	Menu, itemMenu, Add, Подсветка с помощью тэгов, :hightlightMenu
@@ -150,4 +164,18 @@ hightlightLine(Line){
 	SendInput, ^{f}%Line%
 	BlockInput Off
 }
+
+showToolTip(msg, t=0) {
+	ToolTip
+	sleep 5
+	ToolTip, %msg%
+	if t!=0
+		SetTimer, removeToolTip, %t%
+}
+
+removeToolTip() {
+	ToolTip
+	SetTimer, removeToolTip, Delete
+}
+
 

@@ -71,12 +71,10 @@ IniRead, verConfig, %configFile%, info, verConfig, ""
 if (verConfig!=verScript) {
 	showSettings()
 	IniRead, debugMode, %configFile%, settings, debugMode, 0
-	IniRead, labLoadDate, %configFile%, info, labLoadDate, 0
 	FileDelete, %configFile%
 	sleep 25
 	FileCreateDir, %configFolder%\images
 	IniWrite, %verScript%, %configFile%, info, verConfig
-	IniWrite, %labLoadDate%, %configFile%, info, labLoadDate
 	IniWrite, %debugMode%, %configFile%, settings, debugMode
 	saveSettings()
 }
@@ -95,7 +93,9 @@ If !pToken:=Gdip_Startup()
 OnExit, Exit
 
 ;Скачаем раскладку лабиринта
-downloadLabLayout()
+IniRead, loadLab, %configFile%, settings, loadLab, 0
+If loadLab
+	downloadLabLayout()
 
 ;Загрузим информацию набора
 loadPresetData()

@@ -359,6 +359,9 @@ IDCL_CheckResult(idft){
 
 ;Конвертирование описания с предмета из игры
 IDCL_ConvertFromGame() {
-	ItemData:=IDCL_ConvertMain(IDCL_loadInfo())
-	msgbox, 0x1040, Cкопировано в буфер обмена!, %ItemData%, 2
+	sleep 35
+	itemdata:=IDCL_loadInfo()
+	itemdata:=IDCL_ConvertMain(itemdata)
+	Clipboard:=itemdata
+	msgbox, 0x1040, Cкопировано в буфер обмена!, %itemdata%, 2
 }
