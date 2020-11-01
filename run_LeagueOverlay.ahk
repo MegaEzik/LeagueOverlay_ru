@@ -324,7 +324,7 @@ showStartUI(){
 	initMsgs := ["Подготовка макроса к работе..."
 				,"Поддержи " prjName "..."
 				,"Поиск NPC ""Борис Бритва""..."
-				,"Переносим 3.12, чтобы Крис поиграл в Cyberpunk 2077..."]
+				,"Переносим 3.13, чтобы Крис поиграл в Cyberpunk 2077..."]
 	Random, randomNum, 1, initMsgs.MaxIndex()
 	initMsg:=initMsgs[randomNum]
 	
