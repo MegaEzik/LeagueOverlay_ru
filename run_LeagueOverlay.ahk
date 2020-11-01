@@ -106,7 +106,8 @@ Loop, %configFolder%\*_loader.ahk, 1
 	
 ;Назначим последнее изображение
 IniRead, lastImgPathC, %configFile%, settings, lastImgPath, %A_Space%
-If (lastImgPathC!="" && FileExist(lastImgPathC))
+;If (lastImgPathC!="" && FileExist(lastImgPathC))
+If lastImgPathC!=""
 	LastImgPath:=lastImgPathC
 
 ;Установим таймер на проверку активного окна
@@ -129,7 +130,8 @@ Return
 #IfWinActive ahk_group WindowGrp
 
 shLastImage(){
-	shOverlay(LastImgPath)
+	SplitImgPath:=StrSplit(LastImgPath, "|")
+	shOverlay(SplitImgPath[1], SplitImgPath[2])
 }
 
 shMainMenu(){
@@ -157,6 +159,8 @@ presetInMenu(imagesPreset){
 			ImgName:=imageInfo[1]
 			if FileExist(StrReplace(imageInfo[2], "<configFolder>", configFolder))
 				Menu, mainMenu, Add, %ImgName%, presetImgShow
+			If RegExMatch(imageInfo[2], "http")=1
+				Menu, mainMenu, Add, %ImgName%, presetLink
 			if (ImgName="---")
 				Menu, mainMenu, Add
 		}
@@ -168,7 +172,18 @@ presetImgShow(ImgName){
 	For k, val in presetDataSplit {
 		imageInfo:=StrSplit(presetDataSplit[k], "|")
 		if (ImgName=imageInfo[1]) {
-			shOverlay(StrReplace(imageInfo[2], "<configFolder>", configFolder))
+			shOverlay(StrReplace(imageInfo[2], "<configFolder>", configFolder), imageInfo[3])
+		}
+	}
+}
+
+presetLink(Name){
+	presetDataSplit:=StrSplit(presetData, "`n")
+	For k, val in presetDataSplit {
+		pLink:=StrSplit(presetDataSplit[k], "|")
+		if (Name=pLink[1]) {
+			oLink:=pLink[2]
+			run %oLink%
 		}
 	}
 }
@@ -308,10 +323,8 @@ showStartUI(){
 	Gui, StartUI:Destroy
 	initMsgs := ["Подготовка макроса к работе..."
 				,"Поддержи " prjName "..."
-				,"Поприветствуем Кассию..."
-				,"Да начнется лига ""Спиздили""..."
 				,"Поиск NPC ""Борис Бритва""..."
-				,"WAAAAAAAAAAAAAAAAAAR..."]
+				,"Переносим 3.12, чтобы Крис поиграл в Cyberpunk 2077..."]
 	Random, randomNum, 1, initMsgs.MaxIndex()
 	initMsg:=initMsgs[randomNum]
 	
@@ -322,23 +335,23 @@ showStartUI(){
 	Gui, StartUI:Add, Progress, w500 h26 x0 y0 Background1496A0
 
 	Gui, StartUI:Font, s10 cFFFFFF bold
-	Gui, StartUI:Add, Text, x5 y5 h18 w390 +Center BackgroundTrans, %prjName% %verScript% | AHK %A_AhkVersion%
+	Gui, StartUI:Add, Text, x5 y5 h18 w440 +Center BackgroundTrans, %prjName% %verScript% | AHK %A_AhkVersion%
 	
 	Gui, StartUI:Font, c000000 bold italic
-	Gui, StartUI:Add, Text, x5 y+10 h18 w390 +Center BackgroundTrans, %initMsg%
+	Gui, StartUI:Add, Text, x5 y+10 h18 w440 +Center BackgroundTrans, %initMsg%
 	
 	Gui, StartUI:Font, s8 norm italic
-	Gui, StartUI:Add, Text, x5 y+3 w290 BackgroundTrans, %dName%
+	Gui, StartUI:Add, Text, x5 y+3 w340 BackgroundTrans, %dName%
 	
 	Gui, StartUI:Font, s8 norm
 	Gui, StartUI:Add, Link, x+0 yp+0 w100 +Right, <a href="https://qiwi.me/megaezik">Поддержать</a>
 	
 	Gui, StartUI:+ToolWindow -Caption +Border +AlwaysOnTop
-	Gui, StartUI:Show, w400 h70, %prjName% %VerScript%
+	Gui, StartUI:Show, w450 h70, %prjName% %VerScript%
 }
 
 closeStartUI(){
-	sleep 1000
+	sleep 1500
 	Gui, StartUI:Destroy
 	If debugMode && FileExist(A_WinDir "\Media\Windows Proximity Notification.wav")
 		SoundPlay, %A_WinDir%\Media\Windows Proximity Notification.wav

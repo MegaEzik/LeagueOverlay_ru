@@ -6,13 +6,11 @@ devInit() {
 	if debugMode
 		trayUpdate("`nВключен режим отладки")
 	
-	/*
 	if debugMode {
 		IDCL_Init()
 		Hotkey, !c, showItemMenu, On
-		showToolTip("Включен режим отладки", 2000)
+		;showToolTip("Включен режим отладки", 2000)
 	}
-	*/
 }
 
 ;Создание меню разработчика
@@ -107,6 +105,7 @@ showItemMenu(){
 	Menu, itemMenu, DeleteAll
 	
 	IDCL_loadInfo()
+	sleep 25
 	
 	Menu, itemMenu, Add, Конвертировать описание Ru>En, IDCL_ConvertFromGame2
 	Menu, itemMenu, Add
@@ -126,11 +125,21 @@ createHightlightMenu(){
 	If RegExMatch(ItemData, "Редкость: Редкий") && !RegExMatch(ItemData, "Неопознано")
 		ItemName:=ItemDataSplit[3]
 	Menu, hightlightMenu, add, %ItemName%, hightlightLine
+	Menu, hightlightMenu, add
 	
+	splitItemName:=StrSplit(ItemName, " ")
+	For k, val in splitItemName {
+		findtext:=splitItemName[k]
+		Menu, hightlightMenu, add, %findtext%, hightlightLine
+	}
+	Menu, hightlightMenu, add
+	
+	/*
 	If RegExMatch(ItemName, "(Масло|масло|Сущность|сущность|катализатор|резонатор|ископаемое|сфера Делириума|Карта|Заражённая Карта|флакон маны|флакон жизни|кластерный|Копия)", findtext)
 		Menu, hightlightMenu, add, %findtext%, hightlightLine
 	If RegExMatch(ItemName, "(Мозг|Печень|Лёгкое|Глаз|Сердце|Пробужденный|Аномальный|Искривлённый|Фантомный|Чертёж|Контракт): ", findtext)
 		Menu, hightlightMenu, add, %findtext1%, hightlightLine
+	*/
 		
 	If RegExMatch(ItemData, "(это пророчество|в Лаборатории Танэ)", findtext)
 		Menu, hightlightMenu, add, %findtext1%, hightlightLine
@@ -154,6 +163,8 @@ createHightlightMenu(){
 			Menu, hightlightMenu, add, %findtext%, hightlightLine
 		If RegExMatch(ItemDataSplit[k], "Завуалированный", findtext)
 			Menu, hightlightMenu, add, Завуалированный, hightlightLine
+		If RegExMatch(ItemDataSplit[k], "Требуется (взлом|грубая сила|восприятие|взрывное дело|контрмагия|разминирование|проворство|маскировка|инженерное дело)", findtext)
+			Menu, hightlightMenu, add, %findtext1%, hightlightLine
 	}
 }
 

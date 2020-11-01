@@ -1,5 +1,5 @@
 ﻿
-shOverlay(ImgPath){
+shOverlay(ImgPath, MultImg=1){
 	if !OverlayStatus {
 		Gui, Overlay:Destroy
 		Gui, Overlay:-Caption -Border +E0x80000 +LastFound +AlwaysOnTop +ToolWindow +OwnDialogs
@@ -19,7 +19,10 @@ shOverlay(ImgPath){
 		
 		WidthImg:=Gdip_GetImageWidth(pBitmapImg)
 		HeightImg:=Gdip_GetImageHeight(pBitmapImg)
-		MultImg:=calcMult(WidthImg, HeightImg, A_ScreenWidth, A_ScreenHeight-65)
+		
+		If (MultImg="" || MultImg<0.25 || MultImg>=1)
+			MultImg:=calcMult(WidthImg, HeightImg, A_ScreenWidth, A_ScreenHeight-65)
+		
 		hbmImg:=CreateDIBSection(WidthImg, HeightImg)
 		hdcImg:=CreateCompatibleDC()
 		obmImg:=SelectObject(hdcImg, hbmImg)
@@ -34,9 +37,9 @@ shOverlay(ImgPath){
 		sleep 40 ;Нужна для корректной работы с GeForce NOW
 		Gui, Overlay:Show, NA
 		OverlayStatus:=1
-		if (LastImgPath!=ImgPath) {
-			LastImgPath:=ImgPath
-			IniWrite, %ImgPath%, %configFile%, settings, lastImgPath
+		if (LastImgPath!=ImgPath "|" MultImg) {
+			LastImgPath:=ImgPath "|" MultImg
+			IniWrite, %LastImgPath%, %configFile%, settings, lastImgPath
 		}
 	} else {
 		destroyOverlay()
