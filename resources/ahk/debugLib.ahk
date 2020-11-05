@@ -6,11 +6,13 @@ devInit() {
 	if debugMode
 		trayUpdate("`nВключен режим отладки")
 	
+	/*
 	if debugMode {
 		IDCL_Init()
 		Hotkey, !c, showItemMenu, On
 		;showToolTip("Включен режим отладки", 2000)
 	}
+	*/
 }
 
 ;Создание меню разработчика
@@ -34,7 +36,6 @@ devMenu() {
 	Menu, devMenu, Add, Очистить кэш Path of Exile, clearPoECache
 	Menu, devMenu, Add, Управление пакетами, :devMenu3
 	Menu, devMenu, Add, Перезагрузить лабиринт, :devMenu2
-	;Menu, devMenu, Add, Активировать тестовые функции, initTestTools
 	Menu, devMenu, Add, Перезагрузить списки соответствий, IDCL_ReloadLists
 	Menu, devMenu, Add, AutoHotkey, :devMenu1
 }
@@ -83,19 +84,8 @@ devReloadLab(LabName){
 }
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
-initTestTools(){
-	msgbox, 0x1024, %prjName% - Активировать тестовые функции?, Вы хотите использовать эти функции на свой страх и риск?
-	IfMsgBox Yes
-	{
-		IDCL_Init()
-		Hotkey, !c, showItemMenu, On
-		textmsg:="В данный момент тестируется:`n`t*[Alt+C] - 'Меню предмета'`n`nЕсли возникнут проблемы или просто захотите отключить, то просто перезапустите макрос!"
-		msgbox, 0x1040, %prjName%, %textmsg%
-	}
-}
-
 IDCL_ConvertFromGame2() {
-	ItemData:=IDCL_ConvertMain(Clipboard)
+	ItemData:=IDCL_ConvertMain(ItemDataFullText)
 	Clipboard:=ItemData
 	showToolTip("Скопировано в буфер обмена!`n---------------------------`n" ItemData, 3000)
 }
@@ -104,7 +94,7 @@ showItemMenu(){
 	Menu, itemMenu, Add
 	Menu, itemMenu, DeleteAll
 	
-	IDCL_loadInfo()
+	ItemDataFullText:=IDCL_loadInfo()
 	sleep 25
 	
 	Menu, itemMenu, Add, Конвертировать описание Ru>En, IDCL_ConvertFromGame2
@@ -118,7 +108,7 @@ createHightlightMenu(){
 	Menu, hightlightMenu, Add
 	Menu, hightlightMenu, DeleteAll
 	
-	ItemData:=IDCL_CleanerItem(Clipboard)
+	ItemData:=IDCL_CleanerItem(ItemDataFullText)
 	ItemDataSplit:=StrSplit(ItemData, "`n")
 	
 	ItemName:=ItemDataSplit[2]
@@ -127,10 +117,15 @@ createHightlightMenu(){
 	Menu, hightlightMenu, add, %ItemName%, hightlightLine
 	Menu, hightlightMenu, add
 	
-	splitItemName:=StrSplit(ItemName, " ")
+	tempItemName:=ItemName
+	tempItemName:=strReplace(tempItemName, ":", "")
+	tempItemName:=strReplace(tempItemName, ",", "")
+	tempItemName:=strReplace(tempItemName, ".", "")
+	splitItemName:=StrSplit(tempItemName, " ")
 	For k, val in splitItemName {
 		findtext:=splitItemName[k]
-		Menu, hightlightMenu, add, %findtext%, hightlightLine
+		If (RegExMatch(findtext, "[А-ЯЁ]+") || StrLen(findtext)>3)
+			Menu, hightlightMenu, add, %findtext%, hightlightLine
 	}
 	Menu, hightlightMenu, add
 	

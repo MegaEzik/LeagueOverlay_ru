@@ -50,6 +50,7 @@ global configFile:=configFolder "\settings.ini"
 global trayMsg, verScript, debugMode=0
 global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, textCmd11, textCmd12, textCmd13, textCmd14, textCmd15, cmdNum=15
 global presetData, LastImgPath, OverlayStatus=0
+global ItemDataFullText
 FileReadLine, verScript, resources\Updates.txt, 1
 
 ;Подсказка в области уведомлений и сообщение при запуске
@@ -371,7 +372,7 @@ showSettings(){
 	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 0
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
-	IniRead, hotkeyConverter, %configFile%, hotkeys, hotkeyConverter, %A_Space%
+	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, %A_Space%
 	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
 	
 	;Настройки второй вкладки
@@ -419,13 +420,15 @@ showSettings(){
 	Gui, Settings:Add, Text, x10 yp+22 w230, Меню быстрого доступа:
 	Gui, Settings:Add, Hotkey, vhotkeyMainMenu x+2 yp-2 w110 h18, %hotkeyMainMenu%
 	
-	Gui, Settings:Add, Text, x10 yp+22 w230, Меню команд:
+	Gui, Settings:Add, Text, x10 y+4 w345 h2 0x10
+	
+	Gui, Settings:Add, Text, x10 yp+7 w230, Меню команд:
 	Gui, Settings:Add, Hotkey, vhotkeyCustomCommandsMenu x+2 yp-2 w110 h18, %hotkeyCustomCommandsMenu%
 	
 	Gui, Settings:Add, Text, x10 y+4 w345 h2 0x10
 	
-	Gui, Settings:Add, Text, x10 yp+7 w230, Конвертировать описание предмета Ru>En:
-	Gui, Settings:Add, Hotkey, vhotkeyConverter x+2 yp-2 w110 h18, %hotkeyConverter%
+	Gui, Settings:Add, Text, x10 yp+7 w230, Меню работы с предметом:
+	Gui, Settings:Add, Hotkey, vhotkeyItemMenu x+2 yp-2 w110 h18, %hotkeyItemMenu%
 	
 	Gui, Settings:Tab, 2 ; Вторая вкладка
 	
@@ -487,7 +490,7 @@ saveSettings(){
 	IniWrite, %expandMyImages%, %configFile%, settings, expandMyImages
 	IniWrite, %hotkeyLastImg%, %configFile%, hotkeys, hotkeyLastImg
 	IniWrite, %hotkeyMainMenu%, %configFile%, hotkeys, hotkeyMainMenu
-	IniWrite, %hotkeyConverter%, %configFile%, hotkeys, hotkeyConverter
+	IniWrite, %hotkeyItemMenu%, %configFile%, hotkeys, hotkeyItemMenu
 	IniWrite, %hotkeyCustomCommandsMenu%, %configFile%, hotkeys, hotkeyCustomCommandsMenu
 	
 	;Настройки второй вкладки
@@ -521,10 +524,10 @@ setHotkeys(){
 		Hotkey, % hotkeyCustomCommandsMenu, showCustomCommandsMenu, On
 
 	;Инициализация ItemDataConverterLib
-	IniRead, hotkeyConverter, %configFile%, hotkeys, hotkeyConverter, %A_Space%
-	if (hotkeyConverter!="") {
+	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, %A_Space%
+	if (hotkeyItemMenu!="") {
 		IDCL_Init()
-		Hotkey, % hotkeyConverter, IDCL_ConvertFromGame, On
+		Hotkey, % hotkeyItemMenu, showItemMenu, On
 	}
 	
 	;Инициализация встроенных команд fastReply
