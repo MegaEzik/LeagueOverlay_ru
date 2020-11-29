@@ -19,10 +19,10 @@ devInit() {
 devMenu() {
 	Menu, devMenu1, Standard
 	
-	Menu, devMenu2, Add, Normal, devReloadLab
-	Menu, devMenu2, Add, Cruel, devReloadLab
-	Menu, devMenu2, Add, Merciless, devReloadLab
-	Menu, devMenu2, Add, Uber, devReloadLab
+	Menu, devMenu2, Add, https://poelab.com/gtgax, devReloadLab
+	Menu, devMenu2, Add, https://poelab.com/r8aws, devReloadLab
+	Menu, devMenu2, Add, https://poelab.com/riikv, devReloadLab
+	Menu, devMenu2, Add, https://poelab.com/wfbra, devReloadLab
 	
 	Menu, devMenu3, Add, Установить пакет, installPack
 	Menu, devMenu3, Add
@@ -70,16 +70,9 @@ unInstallPack(packName){
 }
 
 ;Перезагрузить лабиринт
-devReloadLab(LabName){
+devReloadLab(LabURL){
 	FileDelete, %configFolder%\images\Labyrinth.jpg
 	sleep 25
-	LabURL:="https://www.poelab.com/wfbra"
-	If (LabName="Normal")
-		LabURL:="https://www.poelab.com/gtgax"
-	If (LabName="Cruel")
-		LabURL:="https://www.poelab.com/r8aws"
-	If (LabName="Merciless")
-		LabURL:="https://www.poelab.com/riikv"
 	downloadLabLayout(LabURL)
 }
 

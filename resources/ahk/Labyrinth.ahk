@@ -13,6 +13,7 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra") {
 	FileDelete, %A_Temp%\labmain.html
 	FileDelete, %A_Temp%\labpage.html
 	FileDelete, %configFolder%\images\Labyrinth.jpg
+	;FileDelete, %A_ScriptDir%\MiniLab\Lab.jpg
 	
 	;В это время раскладка лабиринта может быть недоступной
 	FormatTime, Hour, %A_NowUTC%, H
@@ -22,26 +23,14 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra") {
 	}
 		
 	;Проверка наличия утилиты Curl
-	If FileExist(A_WinDir "\System32\curl.exe") {
-		CurlLine:="curl "
-	} Else If FileExist(configfolder "\curl.exe") {
-		CurlLine:="""" configFolder "\curl.exe"" "
-	} Else {
-		msgbox, 0x1040, %prjName% - Загрузка лабиринта, В вашей системе не найдена утилита Curl!`nБез нее загрузка изображения лабиринта невозможна!`n`nРешение этой проблемы есть в теме на форуме), 10
+	If !FileExist(A_WinDir "\System32\curl.exe") && !FileExist(configfolder "\curl.exe") {
+		msgbox, 0x1040, %prjName% - Загрузка лабиринта, В вашей системе не найдена утилита Curl!`nЗагрузка лабиринта без нее невозможна!`n`nДля устранения проблемы установите пакет 'cURL.zip'!, 15
 		return
 	}
 	
 	;Если режим разработчика не включен, то откроем сайт
 	If !debugMode
 		run, %LabURL%
-	
-	;Назначение переменных
-	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36"
-	If FileExist(configfolder "\UserAgent.txt")
-		FileReadLine, UserAgent, %configFolder%\UserAgent.txt, 1
-	CurlLine.="-L -A """ UserAgent """ -o "
-
-	sleep 25
 	
 	/*
 	;Загружаем основную страницу и извлекаем ссылку на страницу с убер-лабой
@@ -60,13 +49,13 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra") {
 		msgbox, 0x1010, %prjName% - Загрузка лабиринта, Не удалось скачать основную страницу!, 3
 		return
 	}
+	
+	CurlLineLabPage:=CurlLine A_Temp "\labpage.html " URL1
 	*/
 	
 	;Загружаем страницу с убер-лабой и извлекаем ссылку на изображение
-	;CurlLineLabPage:=CurlLine A_Temp "\labpage.html " URL1
-	;CurlLineLabPage:=CurlLine A_Temp "\labpage.html https://www.poelab.com/wfbra"
-	CurlLineLabPage:=CurlLine A_Temp "\labpage.html " LabURL
-	RunWait, %CurlLineLabPage%
+	LoadFile(LabURL, A_Temp "\labpage.html")
+	
 	FileRead, LabData, %A_Temp%\labpage.html
 	LabDataSplit:=StrSplit(LabData, "`n")
 	For k, val in LabDataSplit {
@@ -84,8 +73,8 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra") {
 	}
 	
 	;Загружаем изображение убер-лабы
-	CurlLineImg:=CurlLine configFolder "\images\Labyrinth.jpg " URL1
-	RunWait, %CurlLineImg%
+	LoadFile(URL1, configFolder "\images\Labyrinth.jpg")
+	
 	
 	;Проверим изображение, чтобы оно не было пустым файлом или веб-страницей
 	FileReadLine, Line, %configFolder%\images\Labyrinth.jpg, 1
@@ -105,6 +94,12 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra") {
 	}
 	*/
 	
+	;MiniLab
+	/*
+	If FileExist(configfolder "\MiniLab\ImageMagick_Convert.exe")
+		RunWait *RunAs "%configFolder%\MiniLab\ImageMagick_Convert.exe" "%configFolder%\images\Labyrinth.jpg" -crop 806x250+305+130 "%configFolder%\MiniLab\Lab.jpg"
+	*/
+	
 	;Запишем дату загрузки лабиринта
 	IniWrite, %CurrentDate%, %cfgLab%, info, labLoadDate
 	sleep 100
@@ -116,6 +111,7 @@ showLabTrials() {
 	Gui, LabTrials:Destroy
 	cfgLab:=configFolder "\trials.ini"
 	
+	IniRead, hideTrialsInFastMenu, %cfgLab%, settings, hideTrialsInFastMenu, 0
 	IniRead, trialA, %cfgLab%, LabTrials, trialA, 0
 	IniRead, trialB, %cfgLab%, LabTrials, trialB, 0
 	IniRead, trialC, %cfgLab%, LabTrials, trialC, 0
@@ -133,12 +129,15 @@ showLabTrials() {
 	Gui, LabTrials:Add, Checkbox, vtrialE xp+0 y+28 w140 h28 Checked%trialE% +Center, Томительной болью`nLingering Pain
 	Gui, LabTrials:Add, Checkbox, vtrialF xp+0 y+28 w140 h28 Checked%trialF% +Center, Жалящим сомнением`nStinging Doubt
 	
+	Gui, LabTrials:Add, Text, x0 y+15 w400 h2 0x10
+	Gui, LabTrials:Add, Checkbox, vhideTrialsInFastMenu x5 y+7 w280 Checked%hideTrialsInFastMenu% +Center, Скрыть из 'Быстрого доступа' при завершении
+	
 	Gui, LabTrials:+AlwaysOnTop -Caption +Border
 	Gui, LabTrials:Show, w285 h225, Испытания лабиринта
 	
 	Gui, LabTrials:Color, 6BCA94
 	WinSet, Transparent, 210, Испытания лабиринта
-	WinMove,Испытания лабиринта,,,,,145
+	WinMove,Испытания лабиринта,,,,,185
 	sleep 50
 	SetTimer, autoSaveLabTrials, 250
 }
@@ -150,11 +149,13 @@ autoSaveLabTrials() {
 	{
 		SetTimer, autoSaveLabTrials, Delete
 		Gui, LabTrials:Submit
+		IniWrite, %hideTrialsInFastMenu%, %cfgLab%, settings, hideTrialsInFastMenu
 		IniWrite, %trialA%, %cfgLab%, LabTrials, trialA
 		IniWrite, %trialB%, %cfgLab%, LabTrials, trialB
 		IniWrite, %trialC%, %cfgLab%, LabTrials, trialC
 		IniWrite, %trialD%, %cfgLab%, LabTrials, trialD
 		IniWrite, %trialE%, %cfgLab%, LabTrials, trialE
+		IniWrite, %trialF%, %cfgLab%, LabTrials, trialF
 		IniWrite, %trialF%, %cfgLab%, LabTrials, trialF
 		If (trialsStatus<сompletionLabTrials()){
 			msgtext:="Поздравляю, вы завершили все испытания лабиринта)`n" prjName " уберет этот пункт из 'Быстрого доступа'!`n`nЕсли понадобится вернуть, то уберите отметки, через аналогичный пункт в 'Области уведомлений'!"
@@ -166,13 +167,14 @@ autoSaveLabTrials() {
 
 сompletionLabTrials() {
 	cfgLab:=configFolder "\trials.ini"
+	IniRead, hideTrialsInFastMenu, %cfgLab%, settings, hideTrialsInFastMenu, 0
 	IniRead, trialA, %cfgLab%, LabTrials, trialA, 0
 	IniRead, trialB, %cfgLab%, LabTrials, trialB, 0
 	IniRead, trialC, %cfgLab%, LabTrials, trialC, 0
 	IniRead, trialD, %cfgLab%, LabTrials, trialD, 0
 	IniRead, trialE, %cfgLab%, LabTrials, trialE, 0
 	IniRead, trialF, %cfgLab%, LabTrials, trialF, 0
-	if (trialA && trialB && trialC && trialD && trialE && trialF)
+	if (hideTrialsInFastMenu && trialA && trialB && trialC && trialD && trialE && trialF)
 		return true
 	return false
 }

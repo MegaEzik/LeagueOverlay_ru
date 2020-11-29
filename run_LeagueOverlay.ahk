@@ -49,7 +49,7 @@ if InStr(FileExist(A_ScriptDir "\..\Profile"), "D")
 global configFile:=configFolder "\settings.ini"
 global trayMsg, verScript, debugMode=0
 global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, textCmd11, textCmd12, textCmd13, textCmd14, textCmd15, cmdNum=15
-global presetData, LastImgPath, OverlayStatus=0
+global presetData, LastImg, globalOverlayPosition, OverlayStatus=0
 global ItemDataFullText
 FileReadLine, verScript, resources\Updates.txt, 1
 
@@ -80,11 +80,6 @@ if (verConfig!=verScript) {
 	saveSettings()
 }
 
-;Добавим возможность подгружать имя своего окна
-IniRead, windowLine, %configFile%, settings, windowLine, %A_Space%
-if (windowLine!="")
-	GroupAdd, WindowGrp, %windowLine%
-
 ;Запуск gdi+
 If !pToken:=Gdip_Startup()
 	{
@@ -93,27 +88,31 @@ If !pToken:=Gdip_Startup()
 	}
 OnExit, Exit
 
+;Подгрузим некоторые значения
+IniRead, globalOverlayPosition, %configFile%, settings, overlayPosition, %A_Space%
+IniRead, windowLine, %configFile%, settings, windowLine, %A_Space%
+if (windowLine!="")
+	GroupAdd, WindowGrp, %windowLine%
+
 ;Скачаем раскладку лабиринта
 IniRead, loadLab, %configFile%, settings, loadLab, 0
 If loadLab
 	downloadLabLayout()
 
-;Загрузим информацию набора
+;Загрузим информацию набора и подготовим его
 loadPresetData()
+preparationPreset()
 
 ;Выполним все файлы с окончанием _loader.ahk, передав ему папку расположения скрипта
 Loop, %configFolder%\*_loader.ahk, 1
 	RunWait *RunAs "%A_AhkPath%" "%configFolder%\%A_LoopFileName%" "%A_ScriptDir%"
 	
 ;Назначим последнее изображение
-IniRead, lastImgPathC, %configFile%, settings, lastImgPath, %A_Space%
-;If (lastImgPathC!="" && FileExist(lastImgPathC))
-If lastImgPathC!=""
-	LastImgPath:=lastImgPathC
+IniRead, lastImgC, %configFile%, info, lastImg, %A_Space%
+;If (lastImgC!="" && FileExist(lastImgC))
+If lastImgC!=""
+	LastImg:=lastImgC
 
-;Установим таймер на проверку активного окна
-SetTimer, checkWindowTimer, 250
-	
 ;Назначим управление и создадим меню
 menuCreate()
 setHotkeys()
@@ -124,6 +123,9 @@ closeStartUI()
 ;Покажем уведомление, если таковое было вложено в пакет с макросом
 showStartNotify()
 
+;Иногда после запуска будем предлагать поддержать проект
+showDonateUIOnStart()
+
 Return
 
 ;#################################################
@@ -131,8 +133,8 @@ Return
 #IfWinActive ahk_group WindowGrp
 
 shLastImage(){
-	SplitImgPath:=StrSplit(LastImgPath, "|")
-	shOverlay(SplitImgPath[1], SplitImgPath[2])
+	SplitLastImg:=StrSplit(LastImg, "|")
+	shOverlay(SplitLastImg[1], SplitLastImg[2], SplitLastImg[3])
 }
 
 shMainMenu(){
@@ -147,15 +149,43 @@ loadPresetData(){
 	presetPath:="resources\presets\" imagesPreset ".preset"
 	If RegExMatch(imagesPreset, "<(.*)>", imagesPreset)
 		presetPath:=configFolder "\presets\" imagesPreset1 ".preset"
+	/*
+	If RegExMatch(imagesPreset, ".preset$")
+		presetPath:=configFolder "\presets\" imagesPreset
+	*/
 	if FileExist(presetPath)
 		FileRead, presetData, %presetPath%
 		presetData:=StrReplace(presetData, "`r", "")
+}
+
+preparationPreset(){
+	FileCreateDir, %configFolder%\cache
+	presetDataSplit:=strSplit(presetData, "`n")
+	For k, val in presetDataSplit {
+		If RegExMatch(presetDataSplit[k], ";")=1
+			Continue
+		If RegExMatch(presetDataSplit[k], "OverlayPosition=(.*)", line) {
+			globalOverlayPosition:=line1
+		}
+		If RegExMatch(presetDataSplit[k], "ahk_(class|exe)") && RegExMatch(presetDataSplit[k], "WindowLine=(.*)", line) {
+			GroupAdd, WindowGrp, %line1%
+		}
+		If RegExMatch(presetDataSplit[k], "http")=10 && RegExMatch(presetDataSplit[k], ".(png|jpg|jpeg|bmp)$") && RegExMatch(presetDataSplit[k], "LoadFile=(.*)", URL) {
+			URLSplit:=strSplit(URL1, "/")
+			FilePath:=configFolder "\cache\" URLSplit[URLSplit.MaxIndex()]
+			If !FileExist(FilePath)
+				LoadFile(URL1, FilePath)
+				;UrlDownloadToFile, %URL1%, %FilePath%
+		}
+	}
 }
 
 presetInMenu(imagesPreset){
 	if (presetData!="") {
 		presetDataSplit:=StrSplit(presetData, "`n")
 		For k, val in presetDataSplit {
+			If RegExMatch(presetDataSplit[k], ";")=1
+				Continue
 			imageInfo:=StrSplit(presetDataSplit[k], "|")
 			ImgName:=imageInfo[1]
 			if FileExist(StrReplace(imageInfo[2], "<configFolder>", configFolder))
@@ -173,7 +203,7 @@ presetImgShow(ImgName){
 	For k, val in presetDataSplit {
 		imageInfo:=StrSplit(presetDataSplit[k], "|")
 		if (ImgName=imageInfo[1]) {
-			shOverlay(StrReplace(imageInfo[2], "<configFolder>", configFolder), imageInfo[3])
+			shOverlay(StrReplace(imageInfo[2], "<configFolder>", configFolder), imageInfo[3], imageInfo[4])
 		}
 	}
 }
@@ -225,6 +255,7 @@ textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 	global
 	tfwFilePath:=FilePath
 	Gui, tfwGui:Destroy
+	Gui, tfwGui:Font, s10, Consolas
 	FileRead, tfwContentFile, %tfwFilePath%
 	if ReadOnlyStatus {
 		Gui, tfwGui:Add, Edit, w580 h400 +ReadOnly, %tfwContentFile%
@@ -294,6 +325,23 @@ clearPoECache(){
 	}
 }
 
+clearCachePresets(){
+	FileRemoveDir, %configFolder%\cache, 1
+}
+
+copyPreset(){
+	Gui, Settings:Destroy
+	FileCreateDir, %configFolder%\presets
+	FileSelectFile, FilePath,,, Укажите путь к файлу набора изображений, (*.preset)
+	if (FilePath!="" && FileExist(FilePath)) {
+		FileCopy, %FilePath%, %configFolder%\presets, 1
+	} else {
+		msgbox, 0x1010, %prjName%, Файл не найден или операция прервана пользователем!, 3
+	}
+	Sleep 25
+	showSettings()
+}
+
 editPreset(){
 	Gui, Settings:Destroy
 	FileCreateDir, %configFolder%\presets
@@ -307,6 +355,7 @@ editPreset(){
 delPresetMenuShow(){
 	Menu, delPresetMenu, Add
 	Menu, delPresetMenu, DeleteAll
+	Menu, delPresetMenu, Add, Очистить кэш, clearCachePresets
 	Menu, delPresetMenu, Add
 	Loop, %configFolder%\presets\*.preset, 1
 		Menu, delPresetMenu, Add, %A_LoopFileName%, delPreset
@@ -314,6 +363,9 @@ delPresetMenuShow(){
 }
 
 delPreset(presetName){
+	msgbox, 0x1024, %prjName%, Удалить набор изображений '%presetName%'?
+	IfMsgBox No
+		return
 	FileDelete, %configFolder%\presets\%presetName%
 	Gui, Settings:Destroy
 	Sleep 25
@@ -324,8 +376,9 @@ showStartUI(){
 	Gui, StartUI:Destroy
 	initMsgs := ["Подготовка макроса к работе..."
 				,"Поддержи " prjName "..."
-				,"Поиск NPC ""Борис Бритва""..."
-				,"Переносим 3.13, чтобы Крис поиграл в Cyberpunk 2077..."]
+				,"Поиск NPC 'Борис Бритва'..."
+				,"Переносим 3.13, чтобы Крис поиграл в Cyberpunk 2077..."
+				,"Опускаемся на 65535 глубину в 'Бесконечном спуске'..."]
 	Random, randomNum, 1, initMsgs.MaxIndex()
 	initMsg:=initMsgs[randomNum]
 	
@@ -362,9 +415,16 @@ showSettings(){
 	global
 	Gui, Settings:Destroy
 	
-	IniRead, lastImgPath, %configFile%, settings, lastImgPath, %A_Space%
+	IniRead, lastImg, %configFile%, info, lastImg, %A_Space%
 	
 	;Настройки первой вкладки
+	IniRead, OverlayPosition, %configFile%, settings, overlayPosition, %A_Space%
+	splitOverlayPosition:=strSplit(OverlayPosition, "/")
+	posX:=splitOverlayPosition[1]
+	posY:=splitOverlayPosition[2]
+	posW:=splitOverlayPosition[3]
+	posH:=splitOverlayPosition[4]
+	
 	IniRead, windowLine, %configFile%, settings, windowLine, %A_Space%
 	IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
 	IniRead, imagesPreset, %configFile%, settings, imagesPreset, default
@@ -373,72 +433,86 @@ showSettings(){
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
 	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, %A_Space%
-	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
 	
 	;Настройки второй вкладки
+	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
 	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
 	IniRead, hotkeyToCharacterSelection, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
-
-	Gui, Settings:Add, Button, x0 y375 w360 h25 gsaveSettings, Применить и перезапустить ;💾 465
 	
-	Gui, Settings:Add, Tab, x0 y0 w360 h375, Основные|Быстрые команды ;Вкладки
+	Gui, Settings:Add, Button, x0 y400 w500 h25 gsaveSettings, Применить и перезапустить ;💾 465
+	Gui, Settings:Add, Link, x200 y4 w295 +Right, <a href="https://www.autohotkey.com/download/">AutoHotKey</a> | <a href="https://ru.pathofexile.com/forum/view-thread/2694683">Тема на Форуме</a> | <a href="https://github.com/MegaEzik/LeagueOverlay_ru/releases">Страница на GitHub</a>
+	
+	Gui, Settings:Add, Tab, x0 y0 w500 h400, Общие|Команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
-	Gui, Settings:Add, Checkbox, vautoUpdate x10 y30 w295 Checked%autoUpdate%, Автоматически проверять наличие обновлений ;CheckUpdateFromMenu
-	;Gui, Settings:Add, Button, x+1 yp-4 w152 h23 gCheckUpdateFromMenu, Выполнить обновление
+	Gui, Settings:Add, Checkbox, vautoUpdate x10 y30 w295 Checked%autoUpdate%, Автоматически проверять наличие обновлений
+	Gui, Settings:Add, Text, x10 yp+22 w150, Другое окно для проверки:
+	Gui, Settings:Add, Edit, vwindowLine x+2 yp-2 w330 h18, %windowLine%
 	
-	Gui, Settings:Add, Text, x10 yp+22 w75, Другое окно:
-	Gui, Settings:Add, Edit, vwindowLine x+2 yp-2 w265 h18, %windowLine%
+	Gui, Settings:Add, Text, x10 y+4 w485 h2 0x10
+
+	Gui, Settings:Add, Text, x10 yp+8 w190, Позиция области под изображения:
+	Gui, Settings:Add, Text, x+7 w12 +Right, X
+	Gui, Settings:Add, Text, x+60 w12 +Right, Y
+	Gui, Settings:Add, Text, x+60 w12 +Right, W
+	Gui, Settings:Add, Text, x+60 w12 +Right, H
 	
-	Gui, Settings:Add, Text, x10 y+4 w345 h2 0x10
+	Gui, Settings:Add, Edit, vposX x+-214 yp-2 w55 h18 Number, %posX%
+	Gui, Settings:Add, UpDown, Range-99999-99999 0x80, %posX%
+	Gui, Settings:Add, Edit, vposY x+17 w55 h18 Number, %posY%
+	Gui, Settings:Add, UpDown, Range-99999-99999 0x80, %posY%
+	Gui, Settings:Add, Edit, vposW x+17 w55 h18 Number, %posW%
+	Gui, Settings:Add, UpDown, Range0-99999 0x80, %posW%
+	Gui, Settings:Add, Edit, vposH x+17 w55 h18 Number, %posH%
+	Gui, Settings:Add, UpDown, Range0-99999 0x80, %posH%
 	
 	presetList:=""
 	Loop, resources\presets\*.preset, 1
 		presetList.="|" StrReplace(A_LoopFileName, ".preset", "")
 	Loop, %configFolder%\presets\*.preset, 1
 		presetList.="|<" StrReplace(A_LoopFileName, ".preset", "") ">"
+		;presetList.="|" A_LoopFileName
 	presetList:=SubStr(presetList, 2)
 	
-	Gui, Settings:Add, Text, x10 yp+8 w184, Набор изображений:
-	Gui, Settings:Add, Button, x+1 yp-4 w23 h23 geditPreset, ✏
+	Gui, Settings:Add, Text, x10 yp+24 w281, Набор изображений:
+	Gui, Settings:Add, Button, x+1 yp-4 w23 h23 gcopyPreset, 📄
+	Gui, Settings:Add, Button, x+0 w23 h23 geditPreset, ✏
 	Gui, Settings:Add, Button, x+0 w23 h23 gdelPresetMenuShow, ✕
-	Gui, Settings:Add, DropDownList, vimagesPreset x+1 yp+1 w110, %presetList%
+	Gui, Settings:Add, DropDownList, vimagesPreset x+1 yp+1 w130, %presetList%
 	GuiControl,Settings:ChooseString, imagesPreset, %imagesPreset%
 	
 	
-	Gui, Settings:Add, Checkbox, vexpandMyImages x10 yp+27 w230 Checked%expandMyImages%, Развернуть 'Мои изображения'
-	Gui, Settings:Add, Button, x+1 yp-4 w112 h23 gopenMyImagesFolder, Открыть папку
+	Gui, Settings:Add, Checkbox, vexpandMyImages x10 yp+27 w350 Checked%expandMyImages%, Развернуть 'Мои изображения'
+	Gui, Settings:Add, Button, x+1 yp-4 w132 h23 gopenMyImagesFolder, Открыть папку
 	
-	Gui, Settings:Add, Checkbox, vloadLab x10 yp+25 w230 Checked%loadLab%, Скачивать лабиринт`n(Мои изображения>Labyrinth.jpg)
+	Gui, Settings:Add, Checkbox, vloadLab x10 yp+25 w350 Checked%loadLab%, Скачивать лабиринт(Мои изображения>Labyrinth.jpg)
 	Gui, Settings:Add, Link, x+2 yp+0, <a href="https://www.poelab.com/">POELab.com</a>
 	
-	Gui, Settings:Add, Text, x10 y+18 w345 h2 0x10
+	Gui, Settings:Add, Text, x10 y+4 w485 h2 0x10
 	
-	Gui, Settings:Add, Text, x10 yp+7 w230, Последнее изображение:
-	Gui, Settings:Add, Hotkey, vhotkeyLastImg x+2 yp-2 w110 h18, %hotkeyLastImg%
+	Gui, Settings:Add, Text, x10 yp+7 w350, Последнее изображение:
+	Gui, Settings:Add, Hotkey, vhotkeyLastImg x+2 yp-2 w130 h18, %hotkeyLastImg%
 	
-	Gui, Settings:Add, Text, x10 yp+22 w230, Меню быстрого доступа:
-	Gui, Settings:Add, Hotkey, vhotkeyMainMenu x+2 yp-2 w110 h18, %hotkeyMainMenu%
+	Gui, Settings:Add, Text, x10 yp+22 w350, Меню быстрого доступа:
+	Gui, Settings:Add, Hotkey, vhotkeyMainMenu x+2 yp-2 w130 h18, %hotkeyMainMenu%
 	
-	Gui, Settings:Add, Text, x10 y+4 w345 h2 0x10
+	Gui, Settings:Add, Text, x10 y+4 w485 h2 0x10
 	
-	Gui, Settings:Add, Text, x10 yp+7 w230, Меню команд:
-	Gui, Settings:Add, Hotkey, vhotkeyCustomCommandsMenu x+2 yp-2 w110 h18, %hotkeyCustomCommandsMenu%
-	
-	Gui, Settings:Add, Text, x10 y+4 w345 h2 0x10
-	
-	Gui, Settings:Add, Text, x10 yp+7 w230, Меню работы с предметом:
-	Gui, Settings:Add, Hotkey, vhotkeyItemMenu x+2 yp-2 w110 h18, %hotkeyItemMenu%
+	Gui, Settings:Add, Text, x10 yp+7 w350, Меню работы с предметом:
+	Gui, Settings:Add, Hotkey, vhotkeyItemMenu x+2 yp-2 w130 h18, %hotkeyItemMenu%
 	
 	Gui, Settings:Tab, 2 ; Вторая вкладка
 	
-	;Gui, Settings:Add, Text, x10 y+4 w345 h2 0x10
+	Gui, Settings:Add, Text, x10 y30 w350, Меню команд:
+	Gui, Settings:Add, Hotkey, vhotkeyCustomCommandsMenu x+2 yp-2 w130 h18, %hotkeyCustomCommandsMenu%
 	
-	Gui, Settings:Add, Text, x10 y30 w230, Синхронизировать(/oos):
-	Gui, Settings:Add, Hotkey, vhotkeyForceSync x+2 yp-2 w110 h18, %hotkeyForceSync%
+	Gui, Settings:Add, Text, x10 y+4 w485 h2 0x10
 	
-	Gui, Settings:Add, Text, x10 yp+22 w230, К выбору персонажа(/exit):
-	Gui, Settings:Add, Hotkey, vhotkeyToCharacterSelection x+2 yp-2 w110 h18, %hotkeyToCharacterSelection%
+	Gui, Settings:Add, Text, x10 yp+7 w350, Синхронизировать(/oos):
+	Gui, Settings:Add, Hotkey, vhotkeyForceSync x+2 yp-2 w130 h18, %hotkeyForceSync%
+	
+	Gui, Settings:Add, Text, x10 yp+22 w350, К выбору персонажа(/exit):
+	Gui, Settings:Add, Hotkey, vhotkeyToCharacterSelection x+2 yp-2 w130 h18, %hotkeyToCharacterSelection%
 	
 	;Настраиваемые команды fastReply
 	Loop %cmdNum% {
@@ -461,14 +535,14 @@ showSettings(){
 			If A_Index=8
 				tempVar:="@<last> ty & gl, exile)"
 		}
-		Gui, Settings:Add, Edit, vtextCmd%A_Index% x10 yp+20 w230 h18, %tempVar%
+		Gui, Settings:Add, Edit, vtextCmd%A_Index% x10 yp+20 w350 h18, %tempVar%
 		
 		IniRead, tempVar, %configFile%, fastReply, hotkeyCmd%A_Index%, %A_Space%
-		Gui, Settings:Add, Hotkey, vhotkeyCmd%A_Index% x+2 w110 h18, %tempVar%
+		Gui, Settings:Add, Hotkey, vhotkeyCmd%A_Index% x+2 w130 h18, %tempVar%
 	}
 	
 	Gui, Settings:+AlwaysOnTop -MinimizeBox -MaximizeBox
-	Gui, Settings:Show, w360 h400, %prjName% %VerScript% | AHK %A_AhkVersion% - Настройки ;Отобразить окно настроек
+	Gui, Settings:Show, w500 h425, %prjName% %VerScript% | AHK %A_AhkVersion% - Настройки ;Отобразить окно настроек
 }
 
 saveSettings(){
@@ -480,10 +554,11 @@ saveSettings(){
 	if (imagesPreset="")
 		imagesPreset:="default"
 		
-	IniWrite, %lastImgPath%, %configFile%, settings, lastImgPath
+	IniWrite, %lastImg%, %configFile%, info, lastImg
 	
 	;Настройки первой вкладки
 	IniWrite, %windowLine%, %configFile%, settings, windowLine
+	IniWrite, %posX%/%posY%/%posW%/%posH%, %configFile%, settings, overlayPosition
 	IniWrite, %autoUpdate%, %configFile%, settings, autoUpdate
 	IniWrite, %imagesPreset%, %configFile%, settings, imagesPreset
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
@@ -491,9 +566,9 @@ saveSettings(){
 	IniWrite, %hotkeyLastImg%, %configFile%, hotkeys, hotkeyLastImg
 	IniWrite, %hotkeyMainMenu%, %configFile%, hotkeys, hotkeyMainMenu
 	IniWrite, %hotkeyItemMenu%, %configFile%, hotkeys, hotkeyItemMenu
-	IniWrite, %hotkeyCustomCommandsMenu%, %configFile%, hotkeys, hotkeyCustomCommandsMenu
 	
 	;Настройки второй вкладки
+	IniWrite, %hotkeyCustomCommandsMenu%, %configFile%, hotkeys, hotkeyCustomCommandsMenu
 	IniWrite, %hotkeyForceSync%, %configFile%, hotkeys, hotkeyForceSync
 	IniWrite, %hotkeyToCharacterSelection%, %configFile%, hotkeys, hotkeyToCharacterSelection
 	
@@ -549,7 +624,7 @@ setHotkeys(){
 }
 
 menuCreate(){
-	Menu, Tray, Add, Поддержать, openDonateURL
+	Menu, Tray, Add, Поддержать, showDonateUI
 	Menu, Tray, Add, История изменений, showUpdateHistory
 	Menu, Tray, Add, Выполнить обновление, CheckUpdateFromMenu
 	Menu, Tray, Add, Настройки, showSettings
@@ -573,7 +648,8 @@ createMainMenu(){
 	FormatTime, CurrentDate, %A_NowUTC%, MMdd
 	Random, randomNum, 1, 300
 	if (CurrentDate==0401 || randomNum=1)
-		Menu, mainMenu, Add, Krillson, shLastImage
+		Menu, mainMenu, Add, Криллсон - Самоучитель по рыбалке, shLastImage
+		;Menu, mainMenu, Add, Krillson, shLastImage
 	
 	Menu, mainMenu, Add
 	
@@ -604,6 +680,27 @@ trayUpdate(nLine=""){
 	Menu, Tray, Tip, %trayMsg%
 }
 
+LoadFile(URL, FilePath) {
+	FileDelete, %FilePath%
+	Sleep 100
+	
+	;Проверка наличия утилиты Curl
+	If FileExist(A_WinDir "\System32\curl.exe") {
+		CurlLine:="curl "
+	} Else If FileExist(configfolder "\curl.exe") {
+		CurlLine:="""" configFolder "\curl.exe"" "
+	} Else {
+		UrlDownloadToFile, %URL%, %FilePath%
+		return
+	}
+	
+	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36"
+	CurlLine.="-L -A """ UserAgent """ -o "
+	
+	CurlLine:=CurlLine """" FilePath """" " " """" URL """"
+	RunWait, %CurlLine%
+}
+
 ReStart(){
 	Gdip_Shutdown(pToken)
 	sleep 250
@@ -617,6 +714,33 @@ showStartNotify(){
 			msgbox, 0x1040, %prjName% - Уведомление, %notifyMsg%
 		FileDelete, readme.txt
 	}
+}
+
+showDonateUIOnStart() {
+	;Иногда после запуска будем предлагать поддержать проект
+	Random, randomNum, 1, 10
+	if (randomNum=1 && !debugMode) {
+		showDonateUI()
+		Sleep 5000
+		Gui, DonateUI:Minimize
+	}
+}
+
+
+showDonateUI() {
+	Gui, DonateUI:Destroy
+	Gui, DonateUI:Add, Text, x10 y7 w300 +Center, Перевод на карту Visa: 
+	Gui, DonateUI:Add, Edit, x10 y+3 w300 h18 +ReadOnly, 4276 0400 2866 1739
+	Gui, DonateUI:Add, Text, x10 y+7 w300 +Center, Перевод по номеру телефона для клиентов Сбербанка: 
+	Gui, DonateUI:Add, Edit, x10 y+3 w300 h18 +ReadOnly, +7 900 917 25 92
+	
+	Gui, DonateUI:Add, Text, x0 y+10 w400 h2 0x10
+	Gui, DonateUI:Add, Text, x30 y+7 w260 +Center, Спасибо за вашу поддержку) 
+	Gui, DonateUI:Add, Text, x0 y+10 w400 h2 0x10
+	Gui, DonateUI:Add, Link, x30 yp+7 w260 +Center, Если хотите попасть на экран загрузки, то после совершения пожертвования напишите <a href="https://ru.pathofexile.com/private-messages/compose/to/MegaEzik@pc">мне в ЛС</a>)
+	
+	Gui, DonateUI:+AlwaysOnTop -MinimizeBox -MaximizeBox
+	Gui, DonateUI:Show, w320 h165, Поддержать/Задонатить
 }
 
 ;#################################################
