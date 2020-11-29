@@ -79,34 +79,45 @@ devReloadLab(LabURL){
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
 IDCL_ConvertFromGame2() {
 	ItemData:=IDCL_ConvertMain(ItemDataFullText)
+	Sleep 100
 	Clipboard:=ItemData
-	showToolTip("Скопировано в буфер обмена!`n---------------------------`n" ItemData, 3000)
+	showToolTip("Скопировано в буфер обмена!`n-----------------------------------`n" ItemData, 3000)
 }
 
 showItemMenu(){
+	Menu, hightlightMenu, Add
+	Menu, hightlightMenu, DeleteAll
 	Menu, itemMenu, Add
 	Menu, itemMenu, DeleteAll
 	
 	ItemDataFullText:=IDCL_loadInfo()
 	sleep 25
 	
-	Menu, itemMenu, Add, Конвертировать описание Ru>En, IDCL_ConvertFromGame2
-	Menu, itemMenu, Add
-	createHightlightMenu()
-	Menu, itemMenu, Add, Подсветка с помощью тэгов, :hightlightMenu
-	Menu, itemMenu, Show
-}
-
-createHightlightMenu(){
-	Menu, hightlightMenu, Add
-	Menu, hightlightMenu, DeleteAll
-	
 	ItemData:=IDCL_CleanerItem(ItemDataFullText)
+	rlvl:=IDCL_lvlRarity(ItemData) ;Оценим тип предмета по его редкости и описанию
+	If (rlvl=0 || rlvl="") {
+		showToolTip("ОШИБКА: Буфер обмена пуст или не удалось определить тип предмета!" ItemData, 5000)
+		return
+	}
 	ItemDataSplit:=StrSplit(ItemData, "`n")
 	
+	;Определим имя предмета
 	ItemName:=ItemDataSplit[2]
-	If RegExMatch(ItemData, "Редкость: Редкий") && !RegExMatch(ItemData, "Неопознано")
+	If (rlvl=3 && !RegExMatch(ItemData, "Неопознано"))
 		ItemName:=ItemDataSplit[3]
+	
+	;Пунктя для копирования имени предмета
+	Menu, itemMenu, Add, %ItemName%, copyInBuffer
+	ItemName_En:=IDCL_ConvertName(ItemName, rlvl)
+	If (ItemName_En!="" && !RegExMatch(ItemName_En, "Undefined Name"))
+		Menu, itemMenu, Add, %ItemName_En%, copyInBuffer
+	Menu, itemMenu, Add
+	
+	;Пункт меню для конвертирования описания
+	Menu, itemMenu, Add, Конвертировать Ru>En, IDCL_ConvertFromGame2
+	Menu, itemMenu, Add	
+	
+	;Создадим меню для подсветки
 	Menu, hightlightMenu, add, %ItemName%, hightlightLine
 	Menu, hightlightMenu, add
 	
@@ -154,6 +165,16 @@ createHightlightMenu(){
 		If RegExMatch(ItemDataSplit[k], "Требуется (взлом|грубая сила|восприятие|взрывное дело|контрмагия|разминирование|проворство|маскировка|инженерное дело)", findtext)
 			Menu, hightlightMenu, add, %findtext1%, hightlightLine
 	}
+	
+	;Выпадающие меню для подсветки
+	Menu, itemMenu, Add, Подсветить, :hightlightMenu
+	
+	Menu, itemMenu, Show
+}
+
+copyInBuffer(Line){
+	Clipboard:=Line
+	showToolTip("Скопировано в буфер обмена!`n-----------------------------------`n" Line, 3000)
 }
 
 hightlightLine(Line){
