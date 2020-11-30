@@ -156,7 +156,6 @@ autoSaveLabTrials() {
 		IniWrite, %trialD%, %cfgLab%, LabTrials, trialD
 		IniWrite, %trialE%, %cfgLab%, LabTrials, trialE
 		IniWrite, %trialF%, %cfgLab%, LabTrials, trialF
-		IniWrite, %trialF%, %cfgLab%, LabTrials, trialF
 		If (trialsStatus<сompletionLabTrials()){
 			msgtext:="Поздравляю, вы завершили все испытания лабиринта)`n" prjName " уберет этот пункт из 'Быстрого доступа'!`n`nЕсли понадобится вернуть, то уберите отметки, через аналогичный пункт в 'Области уведомлений'!"
 			msgbox, 0x1040, %prjName% - Испытания завершены, %msgtext%, 15
