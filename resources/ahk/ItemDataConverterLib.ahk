@@ -114,6 +114,7 @@ IDCL_writeLogFile(datatext){
 IDCL_CleanerItem(itemdata){
 	itemdata:=RegExReplace(itemdata, chr(0xA0), "")
 	itemdata:=RegExReplace(itemdata, "`r", "")
+	itemdata:=RegExReplace(itemdata, " высокого качества`n", "`n")
 	itemdata:=RegExReplace(itemdata, "Вы не можете использовать этот предмет, его параметры не будут учтены`n--------`n", "")
 	itemdata:=RegExReplace(itemdata, "<<.*>>", "")
 	return itemdata
@@ -140,10 +141,12 @@ IDCL_ConvertName(name, rlvl){
 	names:=Globals.Get("item_names")
 	;samename:=Globals.Get("item_samename")
 	new_name:=name
+	/*
 	if inStr(new_name, " высокого качества")
 		new_name:=StrReplace(name, " высокого качества", "")
 	if inStr(new_name, " исключительного качества")
 		new_name:=StrReplace(name, " исключительного качества", "")
+	*/
 	/*
 	;Пока(лига 3.10) более не актульно
 	;Обработаем особые случаи с дублирующимися названиями

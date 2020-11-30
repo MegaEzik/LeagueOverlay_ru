@@ -498,7 +498,7 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x10 y+4 w485 h2 0x10
 	
-	Gui, Settings:Add, Text, x10 yp+7 w350, Меню работы с предметом:
+	Gui, Settings:Add, Text, x10 yp+7 w350, Меню предмета:
 	Gui, Settings:Add, Hotkey, vhotkeyItemMenu x+2 yp-2 w130 h18, %hotkeyItemMenu%
 	
 	Gui, Settings:Tab, 2 ; Вторая вкладка
@@ -601,8 +601,8 @@ setHotkeys(){
 	;Инициализация ItemDataConverterLib
 	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, %A_Space%
 	if (hotkeyItemMenu!="") {
-		IDCL_Init()
-		Hotkey, % hotkeyItemMenu, showItemMenu, On
+		ItemMenu_IDCLInit()
+		Hotkey, % hotkeyItemMenu, ItemMenu_Show, On
 	}
 	
 	;Инициализация встроенных команд fastReply
