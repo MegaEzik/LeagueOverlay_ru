@@ -106,9 +106,11 @@ showItemMenu(){
 	If (rlvl=3 && !RegExMatch(ItemData, "Неопознано"))
 		ItemName:=ItemDataSplit[3]
 	
-	;Пунктя для копирования имени предмета
+	;Пункт для копирования имени предмета
 	Menu, itemMenu, Add, %ItemName%, copyInBuffer
 	ItemName_En:=IDCL_ConvertName(ItemName, rlvl)
+	If RegExMatch(ItemName_En, " Map$")
+		ItemName_En:=StrReplace(ItemName_En, " Map", "")
 	If (ItemName_En!="" && !RegExMatch(ItemName_En, "Undefined Name"))
 		Menu, itemMenu, Add, %ItemName_En%, copyInBuffer
 	Menu, itemMenu, Add
