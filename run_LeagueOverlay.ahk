@@ -159,7 +159,7 @@ loadPresetData(){
 }
 
 preparationPreset(){
-	FileCreateDir, %configFolder%\cache
+	FileCreateDir, %A_ScriptDir%\cache
 	presetDataSplit:=strSplit(presetData, "`n")
 	For k, val in presetDataSplit {
 		If RegExMatch(presetDataSplit[k], ";")=1
@@ -172,7 +172,7 @@ preparationPreset(){
 		}
 		If RegExMatch(presetDataSplit[k], "http")=10 && RegExMatch(presetDataSplit[k], ".(png|jpg|jpeg|bmp)$") && RegExMatch(presetDataSplit[k], "LoadFile=(.*)", URL) {
 			URLSplit:=strSplit(URL1, "/")
-			FilePath:=configFolder "\cache\" URLSplit[URLSplit.MaxIndex()]
+			FilePath:=A_ScriptDir "\cache\" URLSplit[URLSplit.MaxIndex()]
 			If !FileExist(FilePath)
 				LoadFile(URL1, FilePath)
 				;UrlDownloadToFile, %URL1%, %FilePath%
@@ -325,10 +325,6 @@ clearPoECache(){
 	}
 }
 
-clearCachePresets(){
-	FileRemoveDir, %configFolder%\cache, 1
-}
-
 copyPreset(){
 	Gui, Settings:Destroy
 	FileCreateDir, %configFolder%\presets
@@ -355,7 +351,6 @@ editPreset(){
 delPresetMenuShow(){
 	Menu, delPresetMenu, Add
 	Menu, delPresetMenu, DeleteAll
-	Menu, delPresetMenu, Add, Очистить кэш, clearCachePresets
 	Menu, delPresetMenu, Add
 	Loop, %configFolder%\presets\*.preset, 1
 		Menu, delPresetMenu, Add, %A_LoopFileName%, delPreset
