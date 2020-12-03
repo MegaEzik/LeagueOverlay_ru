@@ -3,7 +3,7 @@
 LoadFile=https://img2.wtftime.ru/store/2020/11/15/Eg1kO7de.jpg
 
 ;Раскладка лабиринта|<configFolder>\MiniLab\Lab.jpg|0.5|0/0//125
-Раскладка лабиринта|<configFolder>\images\Labyrinth.jpg|0.5
+Раскладка лабиринта|<configFolder>\images\Labyrinth.jpg|0.7
 ---
 Адия - Кража|resources\presets\russian\Heist.jpg
 Альва - Храм Ацоатль|resources\presets\russian\Incursion.jpg
