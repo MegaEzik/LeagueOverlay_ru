@@ -93,6 +93,8 @@ createCustomCommandsMenu(){
 		FileLines:=StrSplit(FileContent, "`n")
 		For k, val in FileLines {
 			Line:=FileLines[k]
+			If RegExMatch(FileLines[k], ";")=1
+				Continue
 			If (RegExMatch(FileLines[k], "/")=1) || (RegExMatch(FileLines[k], "@<last> ")=1) || ((RegExMatch(FileLines[k], "search ")=1) || (RegExMatch(FileLines[k], "run ")=1) || RegExMatch(FileLines[k], ".(png|jpg|jpeg|bmp)"))
 				Menu, customCommandsMenu, Add, %Line%, commandFastReply
 			If (FileLines[k]="---")

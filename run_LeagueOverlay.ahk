@@ -101,7 +101,6 @@ If loadLab
 
 ;Загрузим информацию набора и подготовим его
 loadPresetData()
-preparationPreset()
 
 ;Выполним все файлы с окончанием _loader.ahk, передав ему папку расположения скрипта
 Loop, %configFolder%\*_loader.ahk, 1
@@ -156,10 +155,9 @@ loadPresetData(){
 	if FileExist(presetPath)
 		FileRead, presetData, %presetPath%
 		presetData:=StrReplace(presetData, "`r", "")
-}
-
-preparationPreset(){
-	FileCreateDir, %A_ScriptDir%\cache
+	
+	;Подготовим набор
+	FileCreateDir, %A_ScriptDir%\temp
 	presetDataSplit:=strSplit(presetData, "`n")
 	For k, val in presetDataSplit {
 		If RegExMatch(presetDataSplit[k], ";")=1
@@ -172,7 +170,7 @@ preparationPreset(){
 		}
 		If RegExMatch(presetDataSplit[k], "http")=10 && RegExMatch(presetDataSplit[k], ".(png|jpg|jpeg|bmp)$") && RegExMatch(presetDataSplit[k], "LoadFile=(.*)", URL) {
 			URLSplit:=strSplit(URL1, "/")
-			FilePath:=A_ScriptDir "\cache\" URLSplit[URLSplit.MaxIndex()]
+			FilePath:=A_ScriptDir "\temp\" URLSplit[URLSplit.MaxIndex()]
 			If !FileExist(FilePath)
 				LoadFile(URL1, FilePath)
 				;UrlDownloadToFile, %URL1%, %FilePath%
@@ -429,6 +427,8 @@ showSettings(){
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
 	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, %A_Space%
 	
+	oldPreset:=imagesPreset
+	
 	;Настройки второй вкладки
 	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
 	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
@@ -548,6 +548,9 @@ saveSettings(){
 	
 	if (imagesPreset="")
 		imagesPreset:="default"
+	
+	if (oldPreset!=imagesPreset)
+		FileRemoveDir, %A_ScriptDir%\temp, 1
 		
 	IniWrite, %lastImg%, %configFile%, info, lastImg
 	

@@ -30,13 +30,26 @@ devMenu() {
 		Menu, devMenu3, Add, myloader.ahk, unInstallPack
 	Loop, %configFolder%\*_loader.ahk, 1
 		Menu, devMenu3, Add, Удалить %A_LoopFileName%, unInstallPack
-
+	
 	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
+	Menu, devMenu, Add, Режим отладки, switchDebugMode
+	If debugMode
+		Menu, devMenu, Check, Режим отладки
 	Menu, devMenu, Add, Открыть папку настроек, openConfigFolder
 	Menu, devMenu, Add, Очистить кэш Path of Exile, clearPoECache
 	Menu, devMenu, Add, Управление пакетами, :devMenu3
 	Menu, devMenu, Add, Перезагрузить лабиринт, :devMenu2
 	Menu, devMenu, Add, AutoHotkey, :devMenu1
+}
+
+switchDebugMode() {
+	if debugMode {
+		IniWrite, 0, %configFile%, settings, debugMode
+	} else {
+		IniWrite, 1, %configFile%, settings, debugMode
+	}
+	Sleep 500
+	Reload
 }
 
 ;Откатиться на релизную версию
