@@ -3,8 +3,8 @@
 devInit() {
 	IniRead, debugMode, %configFile%, settings, debugMode, 0
 	devMenu()
-	if debugMode
-		trayUpdate("`nВключен режим отладки")
+	;if debugMode
+	;	trayUpdate("`nВключен режим отладки")
 	
 	/*
 	if debugMode {
