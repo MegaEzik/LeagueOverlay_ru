@@ -63,7 +63,7 @@ shOverlay(ImgPath, MultImg=1, winPosition=""){
 		DeleteDC(hdcImg)
 		Gdip_DeleteGraphics(GImg)
 		Gdip_DisposeImage(pBitmapImg)
-		sleep 40 ;Нужна для корректной работы с GeForce NOW
+		sleep 35 ;Нужна для корректной работы с GeForce NOW
 		Gui, Overlay:Show, NA
 		OverlayStatus:=1
 		SetTimer, checkWindowTimer, 250 ;Установим таймер на проверку активного окна

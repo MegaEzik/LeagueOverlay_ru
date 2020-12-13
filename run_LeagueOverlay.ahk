@@ -11,10 +11,13 @@
 		*Updater.ahk - Проверка и установка обновлений
 		*debugLib.ahk - Библиотека для функций отладки и тестирования новых функций
 		*fastReply.ahk - Библиотека с функциями для команд
+		*ItemDataConverterLib.ahk - Библиотека для конвертирования описания предмета
+		*itemMenu.ahk - Библиотека для формирования меню предмета
 	
 	Управление:
 		[Alt+F1] - Последнее изображение
 		[Alt+F2] - Меню быстрого доступа
+		Остальные клавиши по умолчанию не назначены и определяются пользователем через настройки или файл конфигурации
 */
 
 #NoEnv
@@ -35,6 +38,7 @@ if (!A_IsAdmin) {
 #Include, %A_ScriptDir%\resources\ahk\fastReply.ahk
 #Include, %A_ScriptDir%\resources\ahk\debugLib.ahk
 #Include, %A_ScriptDir%\resources\ahk\ItemDataConverterLib.ahk
+#Include, %A_ScriptDir%\resources\ahk\itemMenu.ahk
 
 ;Список окон Path of Exile
 GroupAdd, WindowGrp, Path of Exile ahk_class POEWindowClass
@@ -398,7 +402,7 @@ showStartUI(){
 }
 
 closeStartUI(){
-	sleep 1500
+	sleep 1000
 	Gui, StartUI:Destroy
 	If debugMode && FileExist(A_WinDir "\Media\Windows Proximity Notification.wav")
 		SoundPlay, %A_WinDir%\Media\Windows Proximity Notification.wav
@@ -695,7 +699,7 @@ LoadFile(URL, FilePath) {
 	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36"
 	CurlLine.="-L -A """ UserAgent """ -o "
 	
-	CurlLine:=CurlLine """" FilePath """" " " """" URL """"
+	CurlLine.="""" FilePath """" " " """" URL """"
 	RunWait, %CurlLine%
 }
 
@@ -727,6 +731,7 @@ showDonateUIOnStart() {
 
 showDonateUI() {
 	Gui, DonateUI:Destroy
+	Gui, DonateUI:Add, Edit, x0 y0 w0 h0
 	Gui, DonateUI:Add, Text, x10 y7 w300 +Center, Перевод на карту Visa: 
 	Gui, DonateUI:Add, Edit, x10 y+3 w300 h18 +ReadOnly, 4276 0400 2866 1739
 	Gui, DonateUI:Add, Text, x10 y+7 w300 +Center, Перевод по номеру телефона для клиентов Сбербанка: 
