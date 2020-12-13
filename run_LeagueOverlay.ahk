@@ -294,6 +294,10 @@ showUpdateHistory(){
 	textFileWindow("История изменений", "resources\Updates.txt")
 }
 
+showLicense(){
+	textFileWindow("Лицензия", "LICENSE.md")
+}
+
 clearPoECache(){
 	msgbox, 0x1014, %prjName%, Во время очистки кэша лучше закрыть игру!`n`nВы закрыли и хотите продолжить?
 	IfMsgBox Yes
@@ -627,12 +631,16 @@ setHotkeys(){
 
 menuCreate(){
 	Menu, Tray, Add, Поддержать, showDonateUI
+	If FileExist("LICENSE.md")
+		Menu, Tray, Add, Лицензия, showLicense
 	Menu, Tray, Add, История изменений, showUpdateHistory
+	Menu, Tray, Add
 	Menu, Tray, Add, Выполнить обновление, CheckUpdateFromMenu
 	Menu, Tray, Add, Настройки, showSettings
 	Menu, Tray, Default, Настройки
 	Menu, Tray, Add
 	Menu, Tray, Add, Испытания лабиринта, showLabTrials
+	Menu, Tray, Add, Очистить кэш Path of Exile, clearPoECache
 	Menu, Tray, Add, Меню разработчика, :devMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить, ReStart
@@ -667,10 +675,6 @@ createMainMenu(){
 		Menu, mainMenu, Add, Испытания лабиринта, showLabTrials
 		
 	Menu, mainMenu, Add, Область уведомлений, :Tray
-}
-
-openDonateURL(){
-	Run, "https://qiwi.me/megaezik"
 }
 
 openConfigFolder(){
@@ -720,7 +724,7 @@ showStartNotify(){
 
 showDonateUIOnStart() {
 	;Иногда после запуска будем предлагать поддержать проект
-	Random, randomNum, 1, 10
+	Random, randomNum, 1, 15
 	if (randomNum=1 && !debugMode) {
 		showDonateUI()
 		Sleep 5000

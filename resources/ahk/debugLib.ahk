@@ -31,12 +31,11 @@ devMenu() {
 	Loop, %configFolder%\*_loader.ahk, 1
 		Menu, devMenu3, Add, Удалить %A_LoopFileName%, unInstallPack
 	
-	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
+	Menu, devMenu, Add, Открыть папку настроек, openConfigFolder
 	Menu, devMenu, Add, Режим отладки, switchDebugMode
 	If debugMode
 		Menu, devMenu, Check, Режим отладки
-	Menu, devMenu, Add, Открыть папку настроек, openConfigFolder
-	Menu, devMenu, Add, Очистить кэш Path of Exile, clearPoECache
+	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
 	Menu, devMenu, Add, Управление пакетами, :devMenu3
 	Menu, devMenu, Add, Перезагрузить лабиринт, :devMenu2
 	Menu, devMenu, Add, AutoHotkey, :devMenu1
@@ -46,6 +45,9 @@ switchDebugMode() {
 	if debugMode {
 		IniWrite, 0, %configFile%, settings, debugMode
 	} else {
+		MsgBox, 0x1024, %prjName%, Включение режима отладки может сделать работу %prjName% нестабильной!`n`nВы уверены, что хотите продолжить?
+		IfMsgBox No
+			return
 		IniWrite, 1, %configFile%, settings, debugMode
 	}
 	Sleep 500
@@ -54,6 +56,7 @@ switchDebugMode() {
 
 ;Откатиться на релизную версию
 devRestoreRelease() {
+	IniWrite, 0, %configFile%, info, verConfig
 	verScript:=0
 	CheckUpdateFromMenu()
 }
