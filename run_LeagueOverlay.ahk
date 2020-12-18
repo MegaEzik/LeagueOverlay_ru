@@ -166,18 +166,32 @@ loadPresetData(){
 	For k, val in presetDataSplit {
 		If RegExMatch(presetDataSplit[k], ";")=1
 			Continue
+		If RegExMatch(presetDataSplit[k], "http")=12 && RegExMatch(presetDataSplit[k], ".preset$") && RegExMatch(presetDataSplit[k], "LoadPreset=(.*)", URL) {
+			FormatTime, CurrentDate, %A_Now%, yyyyMMdd
+			FileGetTime, LoadDate, %presetPath%, M
+			FormatTime, LoadDate, %LoadDate%, yyyyMMdd
+			IfNotExist, %presetPath%
+				LoadDate:=0
+			If (LoadDate!=CurrentDate && debugMode) {
+				LoadFile(URL1, A_ScriptDir "\" presetPath)
+				Sleep 500
+				loadPresetData()
+				Return
+			}
+		}
+		If RegExMatch(presetDataSplit[k], "http")=9 && RegExMatch(presetDataSplit[k], ".(png|jpg|jpeg|bmp)$") && RegExMatch(presetDataSplit[k], "LoadFile=(.*)", URL) {
+			URLSplit:=strSplit(URL1, "/")
+			FilePath:=A_ScriptDir "\temp\" URLSplit[URLSplit.MaxIndex()]
+			If !FileExist(FilePath)
+				LoadFile(URL1, FilePath)
+		}
+		If RegExMatch(presetDataSplit[k], "TrayInfo=(.*)", Info)
+			TrayUpdate("`n" Info1)
 		If RegExMatch(presetDataSplit[k], "OverlayPosition=(.*)", line) {
 			globalOverlayPosition:=line1
 		}
 		If RegExMatch(presetDataSplit[k], "ahk_(class|exe)") && RegExMatch(presetDataSplit[k], "WindowLine=(.*)", line) {
 			GroupAdd, WindowGrp, %line1%
-		}
-		If RegExMatch(presetDataSplit[k], "http")=10 && RegExMatch(presetDataSplit[k], ".(png|jpg|jpeg|bmp)$") && RegExMatch(presetDataSplit[k], "LoadFile=(.*)", URL) {
-			URLSplit:=strSplit(URL1, "/")
-			FilePath:=A_ScriptDir "\temp\" URLSplit[URLSplit.MaxIndex()]
-			If !FileExist(FilePath)
-				LoadFile(URL1, FilePath)
-				;UrlDownloadToFile, %URL1%, %FilePath%
 		}
 	}
 }
@@ -739,7 +753,7 @@ showDonateUI() {
 	Gui, DonateUI:Add, Text, x10 y7 w300 +Center, Перевод на карту Visa: 
 	Gui, DonateUI:Add, Edit, x10 y+3 w300 h18 +ReadOnly, 4276 0400 2866 1739
 	Gui, DonateUI:Add, Text, x10 y+7 w300 +Center, Перевод по номеру телефона для клиентов Сбербанка: 
-	Gui, DonateUI:Add, Edit, x10 y+3 w300 h18 +ReadOnly, +7 900 917 25 92
+	Gui, DonateUI:Add, Edit, x10 y+3 w300 h18 +ReadOnly, +7 965 731 83 13
 	
 	Gui, DonateUI:Add, Text, x0 y+10 w400 h2 0x10
 	Gui, DonateUI:Add, Text, x30 y+7 w260 +Center, Спасибо за вашу поддержку) 
