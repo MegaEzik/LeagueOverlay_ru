@@ -4,7 +4,7 @@
 WindowLine=ahk_exe notepad++.exe
 ;OverlayPosition=0/23/1920/1015
 
-Раскладка лабиринта|<configFolder>\images\Labyrinth.jpg|0.7
+Раскладка лабиринта|<configFolder>\images\Labyrinth.jpg|0.65
 ---
 Адия - Кража|resources\presets\russian\Heist.jpg
 Альва - Храм Ацоатль|resources\presets\russian\Incursion.jpg
@@ -13,6 +13,6 @@ WindowLine=ahk_exe notepad++.exe
 Навали - Пророчества|resources\presets\russian\Prophecy.jpg
 Нико - Азуритовая шахта|resources\presets\russian\Delve.jpg
 ;Танэ - Катализаторы|temp\Eg1kO7de.jpg
----
+;---
 ;PoE Tracker|https://poetracker.com
-PoeСraft - Race Zone Mod Tracker|https://poecraft.com/race/zones
+;PoeСraft - Race Zone Mod Tracker|https://poecraft.com/race/zones

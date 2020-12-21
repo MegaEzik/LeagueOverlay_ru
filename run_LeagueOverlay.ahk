@@ -149,7 +149,7 @@ shMainMenu(){
 
 loadPresetData(){
 	IniRead, imagesPreset, %configFile%, settings, imagesPreset, default
-	presetPath:="resources\presets\" imagesPreset ".preset"
+	presetPath:=A_ScriptDir "\resources\presets\" imagesPreset ".preset"
 	If RegExMatch(imagesPreset, "<(.*)>", imagesPreset)
 		presetPath:=configFolder "\presets\" imagesPreset1 ".preset"
 	/*
@@ -173,7 +173,7 @@ loadPresetData(){
 			IfNotExist, %presetPath%
 				LoadDate:=0
 			If (LoadDate!=CurrentDate && debugMode) {
-				LoadFile(URL1, A_ScriptDir "\" presetPath)
+				LoadFile(URL1, presetPath)
 				Sleep 500
 				loadPresetData()
 				Return
