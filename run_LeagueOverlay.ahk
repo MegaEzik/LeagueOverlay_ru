@@ -166,20 +166,20 @@ loadPresetData(){
 	For k, val in presetDataSplit {
 		If RegExMatch(presetDataSplit[k], ";")=1
 			Continue
-		If RegExMatch(presetDataSplit[k], "http")=12 && RegExMatch(presetDataSplit[k], ".preset$") && RegExMatch(presetDataSplit[k], "LoadPreset=(.*)", URL) {
+		If RegExMatch(presetDataSplit[k], "http")=12 && RegExMatch(presetDataSplit[k], ".preset$") && RegExMatch(presetDataSplit[k], "LoadPreset=(.*)", URL) && debugMode {
 			FormatTime, CurrentDate, %A_Now%, yyyyMMdd
 			FileGetTime, LoadDate, %presetPath%, M
 			FormatTime, LoadDate, %LoadDate%, yyyyMMdd
 			IfNotExist, %presetPath%
 				LoadDate:=0
-			If (LoadDate!=CurrentDate && debugMode) {
+			If (LoadDate!=CurrentDate) {
 				LoadFile(URL1, presetPath)
 				Sleep 500
 				loadPresetData()
 				Return
 			}
 		}
-		If RegExMatch(presetDataSplit[k], "http")=9 && RegExMatch(presetDataSplit[k], ".(png|jpg|jpeg|bmp)$") && RegExMatch(presetDataSplit[k], "LoadFile=(.*)", URL) {
+		If RegExMatch(presetDataSplit[k], "http")=9 && RegExMatch(presetDataSplit[k], ".(png|jpg|jpeg|bmp)$") && RegExMatch(presetDataSplit[k], "LoadFile=(.*)", URL) && debugMode {
 			URLSplit:=strSplit(URL1, "/")
 			FilePath:=A_ScriptDir "\temp\" URLSplit[URLSplit.MaxIndex()]
 			If !FileExist(FilePath)
