@@ -368,16 +368,19 @@ editPreset(){
 	textFileWindow("Редактирование " namePreset ".preset", configFolder "\presets\" namePreset ".preset", false, presetData)
 }
 
-delPresetMenuShow(){
+cfgPresetMenuShow(){
 	Menu, delPresetMenu, Add
 	Menu, delPresetMenu, DeleteAll
+	Menu, delPresetMenu, Add, Создать/Редактировать, editPreset
+	Menu, delPresetMenu, Add, Добавить из файла, copyPreset
 	Menu, delPresetMenu, Add
 	Loop, %configFolder%\presets\*.preset, 1
-		Menu, delPresetMenu, Add, %A_LoopFileName%, delPreset
+		Menu, delPresetMenu, Add, Удалить %A_LoopFileName%, delPreset
 	Menu, delPresetMenu, Show
 }
 
 delPreset(presetName){
+	presetName:=SubStr(presetName, 9)
 	msgbox, 0x1024, %prjName%, Удалить набор изображений '%presetName%'?
 	IfMsgBox No
 		return
@@ -491,10 +494,10 @@ showSettings(){
 		;presetList.="|" A_LoopFileName
 	presetList:=SubStr(presetList, 2)
 	
-	Gui, Settings:Add, Text, x10 yp+24 w281, Набор изображений:
-	Gui, Settings:Add, Button, x+1 yp-4 w23 h23 gcopyPreset, 📄
-	Gui, Settings:Add, Button, x+0 w23 h23 geditPreset, ✏
-	Gui, Settings:Add, Button, x+0 w23 h23 gdelPresetMenuShow, ✕
+	Gui, Settings:Add, Text, x10 yp+24 w327, Набор изображений:
+	;Gui, Settings:Add, Button, x+1 yp-4 w23 h23 gcopyPreset, 📄
+	;Gui, Settings:Add, Button, x+0 w23 h23 geditPreset, ✏
+	Gui, Settings:Add, Button, x+1 yp-4 w23 h23 gcfgPresetMenuShow, ☰
 	Gui, Settings:Add, DropDownList, vimagesPreset x+1 yp+1 w130, %presetList%
 	GuiControl,Settings:ChooseString, imagesPreset, %imagesPreset%
 	
