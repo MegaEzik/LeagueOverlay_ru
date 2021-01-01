@@ -1,6 +1,4 @@
-﻿LoadPreset=https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/presets/experimental.preset
-;LoadImg=https://img2.wtftime.ru/store/2020/11/15/Eg1kO7de.jpg
-;TrayInfo=Набор: experimental
+﻿;LoadPreset=https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/presets/experimental.preset
 WindowLine=ahk_exe notepad++.exe
 ;OverlayPosition=0/23/1920/1015
 
@@ -12,7 +10,3 @@ WindowLine=ahk_exe notepad++.exe
 Кассия - Масла|resources\presets\russian\Oils.jpg
 Навали - Пророчества|resources\presets\russian\Prophecy.jpg
 Нико - Азуритовая шахта|resources\presets\russian\Delve.jpg
-;Танэ - Катализаторы|temp\Eg1kO7de.jpg
-;---
-;PoE Tracker|https://poetracker.com
-;PoeСraft - Race Zone Mod Tracker|https://poecraft.com/race/zones
