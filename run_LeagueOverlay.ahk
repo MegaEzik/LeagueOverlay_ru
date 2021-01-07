@@ -161,32 +161,10 @@ loadPresetData(){
 		presetData:=StrReplace(presetData, "`r", "")
 	
 	;Подготовим набор
-	FileCreateDir, %A_ScriptDir%\temp
 	presetDataSplit:=strSplit(presetData, "`n")
 	For k, val in presetDataSplit {
 		If RegExMatch(presetDataSplit[k], ";")=1
 			Continue
-		If RegExMatch(presetDataSplit[k], "http")=12 && RegExMatch(presetDataSplit[k], ".preset$") && RegExMatch(presetDataSplit[k], "LoadPreset=(.*)", URL) && debugMode {
-			FormatTime, CurrentDate, %A_Now%, yyyyMMdd
-			FileGetTime, LoadDate, %presetPath%, M
-			FormatTime, LoadDate, %LoadDate%, yyyyMMdd
-			IfNotExist, %presetPath%
-				LoadDate:=0
-			If (LoadDate!=CurrentDate) {
-				LoadFile(URL1, presetPath)
-				Sleep 500
-				loadPresetData()
-				Return
-			}
-		}
-		If RegExMatch(presetDataSplit[k], "http")=9 && RegExMatch(presetDataSplit[k], ".(png|jpg|jpeg|bmp)$") && RegExMatch(presetDataSplit[k], "LoadFile=(.*)", URL) && debugMode {
-			URLSplit:=strSplit(URL1, "/")
-			FilePath:=A_ScriptDir "\temp\" URLSplit[URLSplit.MaxIndex()]
-			If !FileExist(FilePath)
-				LoadFile(URL1, FilePath)
-		}
-		If RegExMatch(presetDataSplit[k], "TrayInfo=(.*)", Info)
-			TrayUpdate("`n" Info1)
 		If RegExMatch(presetDataSplit[k], "OverlayPosition=(.*)", line) {
 			globalOverlayPosition:=line1
 		}
@@ -452,8 +430,6 @@ showSettings(){
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
 	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, %A_Space%
 	
-	oldPreset:=imagesPreset
-	
 	;Настройки второй вкладки
 	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
 	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
@@ -574,9 +550,6 @@ saveSettings(){
 	if (imagesPreset="")
 		imagesPreset:="default"
 	
-	if (oldPreset!=imagesPreset)
-		FileRemoveDir, %A_ScriptDir%\temp, 1
-		
 	IniWrite, %lastImg%, %configFile%, info, lastImg
 	
 	;Настройки первой вкладки

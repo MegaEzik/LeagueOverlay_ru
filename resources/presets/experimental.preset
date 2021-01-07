@@ -1,5 +1,4 @@
-﻿;LoadPreset=https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/presets/experimental.preset
-WindowLine=ahk_exe notepad++.exe
+﻿WindowLine=ahk_exe notepad++.exe
 ;OverlayPosition=0/23/1920/1015
 
 Раскладка лабиринта|<configFolder>\images\Labyrinth.jpg|0.65
