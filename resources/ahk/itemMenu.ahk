@@ -29,12 +29,12 @@ ItemMenu_Show(){
 		ItemName:=ItemDataSplit[3]
 	
 	;Пункт для копирования имени предмета
-	Menu, itemMenu, Add, 📄 %ItemName%, ItemMenu_CopyInBuffer
+	Menu, itemMenu, Add, • %ItemName%, ItemMenu_CopyInBuffer
 	ItemName_En:=IDCL_ConvertName(ItemName, rlvl)
 	If RegExMatch(ItemName_En, " Map$")
 		ItemName_En:=StrReplace(ItemName_En, " Map", "")
 	If (ItemName_En!="" && !RegExMatch(ItemName_En, "Undefined Name"))
-		Menu, itemMenu, Add, 📄 %ItemName_En%, ItemMenu_CopyInBuffer
+		Menu, itemMenu, Add, • %ItemName_En%, ItemMenu_CopyInBuffer
 	Menu, itemMenu, Add
 	
 	;Пункт меню для конвертирования описания
@@ -94,7 +94,7 @@ ItemMenu_Show(){
 }
 
 ItemMenu_CopyInBuffer(Line){
-	Line:=SubStr(Line, 4)
+	Line:=SubStr(Line, 3)
 	Clipboard:=Line
 	showToolTip("Скопировано в буфер обмена!`n-----------------------------------`n" Line, 3000)
 }
