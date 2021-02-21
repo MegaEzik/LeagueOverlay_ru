@@ -1,13 +1,13 @@
 ﻿
 fastCmdForceSync(){
 	BlockInput On
-	SendInput, {Enter}{/}oos{Enter}
+	SendInput, {Enter}^a{Backspace}{/}oos{Enter}
 	BlockInput Off
 }
 
 fastCmdExit(){
 	BlockInput On
-	SendInput, {Enter}{/}exit{Enter}
+	SendInput, {Enter}^a{Backspace}{/}exit{Enter}
 	BlockInput Off
 }
 
@@ -95,7 +95,7 @@ createCustomCommandsMenu(){
 			Line:=FileLines[k]
 			If RegExMatch(FileLines[k], ";")=1
 				Continue
-			If (RegExMatch(FileLines[k], "/")=1) || (RegExMatch(FileLines[k], "@<last> ")=1) || ((RegExMatch(FileLines[k], "search ")=1) || (RegExMatch(FileLines[k], "run ")=1) || RegExMatch(FileLines[k], ".(png|jpg|jpeg|bmp)"))
+			If ((InStr(FileLines[k], "/")=1) || (InStr(Line, "%")=1) || (InStr(Line, "_")=1) || (InStr(FileLines[k], "@<last> ")=1) || (InStr(FileLines[k], ">")=1) || RegExMatch(FileLines[k], ".(png|jpg|jpeg|bmp)"))
 				Menu, customCommandsMenu, Add, %Line%, commandFastReply
 			If (FileLines[k]="---")
 				Menu, customCommandsMenu, Add
@@ -108,53 +108,59 @@ createCustomCommandsMenu(){
 commandFastReply(Line:="/dance"){
 	DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", 0x50, "UInt", 0x4090409, "UInt", 0x4090409)
 	sleep 25
-	If RegExMatch(Line, "<configFolder>")
+	
+	;Замена переменных
+	If InStr(Line, "<configFolder>")
 		Line:=StrReplace(Line, "<configFolder>", configFolder)
-	If RegExMatch(Line, "<time>") {
+	If InStr(Line, "<time>") {
 		FormatTime, currentTime, %A_NowUTC%, HH:mm
 		Line:=StrReplace(Line, "<time>", currentTime)
 	}
-	If RegExMatch(Line, "<inputbox>") {
+	If InStr(Line, "<inputbox>") {
 		InputBox, inputLine, Введите текст,,, 300, 100
 		sleep 250
 		Line:=StrReplace(Line, "<inputbox>", inputLine)
 	}
-	If (RegExMatch(Line, "/")=1) {
-		If (RegExMatch(Line, " <last>$")) {
+	
+	;Чат
+	If (InStr(Line, "/")=1) || (InStr(Line, "%")=1) {
+		If (!InStr(Line, "%")=1 && RegExMatch(Line, " <last>$")) {
 			Line:=StrReplace(Line, " <last>", "")
 			BlockInput On
 			SendInput, ^{Enter}{Home}{Delete}%Line% {Enter}
 			BlockInput Off
 		} Else {
 			BlockInput On
-			SendInput, {Enter}%Line%{Enter}
+			SendInput, {Enter}^a{Backspace}%Line%{Enter}
 			BlockInput Off
 		}
 		return
 	}
-	If (RegExMatch(Line, "@<last> ")=1) {
-		Line:=StrReplace(Line, "@<last> ", "")
+	If (InStr(Line, "_")=1) {
+		Line:=SubStr(Line, 2)
+		BlockInput On
+		SendInput, {Enter}^a{Backspace}%Line%{Enter}
+		BlockInput Off
+		return
+	}
+	If (InStr(Line, "@<last> ")=1) {
+		Line:=SubStr(Line, 9)
 		BlockInput On
 		SendInput, ^{Enter}%Line%{Enter}
 		BlockInput Off
 		return
 	}
-	If (RegExMatch(Line, "search ")=1) {
-		Line:=StrReplace(Line, "search ", "")
-		BlockInput On
-		SendInput, ^{f}%Line%
-		BlockInput Off
-		return
-	}
-	If (RegExMatch(Line, "run ")=1) {
-		Line:=StrReplace(Line, "run ", "")
+	
+	;Другое
+	If (InStr(Line, ">")=1) {
+		Line:=SubStr(Line, 2)
 		run, %Line%
 		return
 	}
-	if RegExMatch(Line, ".(png|jpg|jpeg|bmp)") {
+	If RegExMatch(Line, ".(png|jpg|jpeg|bmp)") {
 		SplitImg:=StrSplit(Line, "|")
 		if RegExMatch(SplitImg[1], ".(png|jpg|jpeg|bmp)$") {
-			shOverlay(SplitImg[1], SplitImg[2])
+			shOverlay(SplitImg[1], SplitImg[2], SplitImg[3])
 			return
 		}
 	}

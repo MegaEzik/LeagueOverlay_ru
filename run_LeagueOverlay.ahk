@@ -140,6 +140,29 @@ shLastImage(){
 	shOverlay(SplitLastImg[1], SplitLastImg[2], SplitLastImg[3])
 }
 
+firstAprilJoke(){
+	tmpPresetData:=""
+	presetDataSplit:=strSplit(presetData, "`n")
+	For k, val in presetDataSplit {
+		ImgSplit:=strSplit(presetDataSplit[k], "|")
+		If (ImgSplit[3]="" || ImgSplit[3]>1)
+			ImgSplit[3]:=1		
+		Random, randomNum, ImgSplit[3]/2.5, ImgSplit[3]
+		ImgSplit[3]:=Round(randomNum, 2)
+		If FileExist(StrReplace(ImgSplit[2], "<configFolder>", configFolder))
+			tmpPresetData.=StrReplace(ImgSplit[2], "<configFolder>", configFolder) "|" ImgSplit[3] "|" ImgSplit[4] "`n"
+	}
+	presetDataSplit:=strSplit(tmpPresetData, "`n")
+	Random, randomNum, 1, presetDataSplit.MaxIndex()-1
+	ImgSplit:=strSplit(presetDataSplit[randomNum], "|")
+	If FileExist(ImgSplit[1]) {
+		shOverlay(ImgSplit[1], ImgSplit[2], ImgSplit[3])
+		return
+	} else {
+		return
+	}
+}
+
 shMainMenu(){
 	destroyOverlay()
 	createMainMenu()
@@ -377,6 +400,13 @@ showStartUI(){
 				,"Опускаемся на 65535 глубину в 'Бесконечном спуске'..."]
 	Random, randomNum, 1, initMsgs.MaxIndex()
 	initMsg:=initMsgs[randomNum]
+	
+	FormatTime, CurrentDate, %A_NowUTC%, MMdd
+	If (CurrentDate==0401) {
+		Loop % Len := StrLen(initMsg)
+			NewInitMsg.= SubStr(initMsg, Len--, 1)
+		initMsg:=NewInitMsg
+	}
 	
 	dNames:=["AbyssSPIRIT", "milcart", "Pip4ik", "Данил А. Р."]
 	Random, randomNum, 1, dNames.MaxIndex()
@@ -646,10 +676,9 @@ createMainMenu(){
 	presetInMenu(imagesPreset)
 	
 	FormatTime, CurrentDate, %A_NowUTC%, MMdd
-	Random, randomNum, 1, 300
-	if (CurrentDate==0401 || randomNum=1)
-		Menu, mainMenu, Add, Криллсон - Самоучитель по рыбалке, shLastImage
-		;Menu, mainMenu, Add, Krillson, shLastImage
+	Random, randomNum, 1, 250
+	If (CurrentDate==0401 || randomNum=1)
+		Menu, mainMenu, Add, Криллсон - Самоучитель по рыбалке, firstAprilJoke
 	
 	Menu, mainMenu, Add
 	
@@ -690,7 +719,7 @@ LoadFile(URL, FilePath) {
 		return
 	}
 	
-	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36"
+	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36"
 	CurlLine.="-L -A """ UserAgent """ -o "
 	
 	CurlLine.="""" FilePath """" " " """" URL """"

@@ -49,7 +49,7 @@ shOverlay(ImgPath, MultImg=1, winPosition=""){
 		WidthImg:=Gdip_GetImageWidth(pBitmapImg)
 		HeightImg:=Gdip_GetImageHeight(pBitmapImg)
 		
-		If (MultImg="" || MultImg<0.25 || MultImg>=1)
+		If (MultImg="" || MultImg<0.2 || MultImg>=1)
 			MultImg:=calcMult(WidthImg, HeightImg, posW, posH)
 		
 		hbmImg:=CreateDIBSection(WidthImg, HeightImg)
