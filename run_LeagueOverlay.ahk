@@ -420,7 +420,6 @@ showStartUI(){
 	Random, randomNum, 1, initMsgs.MaxIndex()
 	initMsg:=initMsgs[randomNum] "..."
 	
-	
 	If (CurrentDate==0401) {
 		Loop % Len := StrLen(initMsg)
 			NewInitMsg.= SubStr(initMsg, Len--, 1)
@@ -446,8 +445,7 @@ showStartUI(){
 	Gui, StartUI:Add, Link, x+0 yp+0 w100 +Right, <a href="https://qiwi.me/megaezik">Поддержать</a>
 	
 	Gui, StartUI:+ToolWindow -Caption +Border +AlwaysOnTop
-	Gui, StartUI:Show, w500 h70, %prjName% %VerScript%
-	sleep 2000 
+	Gui, StartUI:Show, w500 h70, %prjName% %VerScript% 
 }
 
 closeStartUI(){
