@@ -393,15 +393,34 @@ delPreset(presetName){
 
 showStartUI(){
 	Gui, StartUI:Destroy
-	initMsgs := ["Подготовка макроса к работе..."
-				,"Поддержи " prjName "..."
-				,"Поиск NPC 'Борис Бритва'..."
-				,"Переносим 3.13, чтобы Крис поиграл в Cyberpunk 2077..."
-				,"Опускаемся на 65535 глубину в 'Бесконечном спуске'..."]
-	Random, randomNum, 1, initMsgs.MaxIndex()
-	initMsg:=initMsgs[randomNum]
 	
+	initMsgs := ["Подготовка макроса к работе"
+				,"Поддержи " prjName
+				,"Поиск NPC 'Борис Бритва'"
+				,"Переносим 3.13, чтобы Крис поиграл в Cyberpunk 2077"
+				,"Опускаемся на 65535 глубину в 'Бесконечном спуске'"]
+				
 	FormatTime, CurrentDate, %A_NowUTC%, MMdd
+	
+	If (CurrentDate==1231 || CurrentDate==0101)
+		initMsgs:=["Тебя весь год ждет PoE)"]
+	If (CurrentDate==0107)
+		initMsgs:=["Санта-Клаус vs Иисус"]
+	If (CurrentDate==0214)
+		initMsgs:=["Похоже кто-то будет соло", "<3 <3 <3 <3 <3 <3 <3"]
+	If (CurrentDate==0223)
+		initMsgs:=["Все мужики любят носки", "Есть один подарок лучше, чем носки. Это пена для бритья"]
+	If (CurrentDate==0308)
+		initMsgs:=["Не забывайте - это праздник всех женщин. Всех на свете!", "@>->--"]
+	If (CurrentDate==0501)
+		initMsgs:=["Мир, Труд, Май"]
+	If (CurrentDate==0509)
+		initMsgs:=["Все должны это помнить, чтобы не совершить тех же ошибок"]
+	
+	Random, randomNum, 1, initMsgs.MaxIndex()
+	initMsg:=initMsgs[randomNum] "..."
+	
+	
 	If (CurrentDate==0401) {
 		Loop % Len := StrLen(initMsg)
 			NewInitMsg.= SubStr(initMsg, Len--, 1)
@@ -415,19 +434,20 @@ showStartUI(){
 	Gui, StartUI:Add, Progress, w500 h26 x0 y0 Background1496A0
 
 	Gui, StartUI:Font, s10 cFFFFFF bold
-	Gui, StartUI:Add, Text, x5 y5 h18 w440 +Center BackgroundTrans, %prjName% %verScript% | AHK %A_AhkVersion%
+	Gui, StartUI:Add, Text, x5 y5 h18 w490 +Center BackgroundTrans, %prjName% %verScript% | AHK %A_AhkVersion%
 	
-	Gui, StartUI:Font, c000000 bold italic
-	Gui, StartUI:Add, Text, x5 y+10 h18 w440 +Center BackgroundTrans, %initMsg%
+	Gui, StartUI:Font, s11 c000000 bold italic
+	Gui, StartUI:Add, Text, x0 y+10 h18 w500 +Center BackgroundTrans, %initMsg%
 	
 	Gui, StartUI:Font, s8 norm italic
-	Gui, StartUI:Add, Text, x5 y+3 w340 BackgroundTrans, %dName%
+	Gui, StartUI:Add, Text, x5 y+3 w390 BackgroundTrans, %dName%
 	
 	Gui, StartUI:Font, s8 norm
 	Gui, StartUI:Add, Link, x+0 yp+0 w100 +Right, <a href="https://qiwi.me/megaezik">Поддержать</a>
 	
 	Gui, StartUI:+ToolWindow -Caption +Border +AlwaysOnTop
-	Gui, StartUI:Show, w450 h70, %prjName% %VerScript%
+	Gui, StartUI:Show, w500 h70, %prjName% %VerScript%
+	sleep 2000 
 }
 
 closeStartUI(){
