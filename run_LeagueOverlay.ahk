@@ -66,7 +66,7 @@ devInit()
 
 ;Проверка обновлений
 IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
-if autoUpdate {
+if autoUpdate && !debugMode {
 	CheckUpdateFromMenu("onStart")
 	SetTimer, CheckUpdate, 10800000
 }
@@ -761,10 +761,10 @@ showStartNotify(){
 
 showDonateUIOnStart() {
 	;Иногда после запуска будем предлагать поддержать проект
-	Random, randomNum, 1, 15
+	Random, randomNum, 1, 10
 	if (randomNum=1 && !debugMode) {
 		showDonateUI()
-		Sleep 5000
+		Sleep 10000
 		Gui, DonateUI:Minimize
 	}
 }
