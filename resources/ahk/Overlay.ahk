@@ -66,7 +66,10 @@ shOverlay(ImgPath, MultImg=1, winPosition=""){
 		sleep 35 ;Нужна для корректной работы с GeForce NOW
 		Gui, Overlay:Show, NA
 		OverlayStatus:=1
-		SetTimer, checkWindowTimer, 250 ;Установим таймер на проверку активного окна
+		MouseGetPos, CurrX, CurrY
+		Globals.Set("overlayCurrStartPosX", CurrX)
+		Globals.Set("overlayCurrStartPosY", CurrY)
+		SetTimer, checkWindowTimer, 200 ;Установим таймер на проверку активного окна
 		if (LastImg!=ImgPath "|" MultImg "|" winPosition) {
 			LastImg:=ImgPath "|" MultImg "|" winPosition
 			IniWrite, %LastImg%, %configFile%, info, lastImg
@@ -83,6 +86,9 @@ destroyOverlay(){
 }
 
 checkWindowTimer(){
+	MouseGetPos, CurrX, CurrY
+	If (CurrX - Globals.Get("overlayCurrStartPosX")) ** 2 + (CurrY - Globals.Get("overlayCurrStartPosY")) ** 2 > Globals.Get("mouseDistance") ** 2
+		destroyOverlay()
 	IfWinNotActive ahk_group WindowGrp
 		destroyOverlay()
 }

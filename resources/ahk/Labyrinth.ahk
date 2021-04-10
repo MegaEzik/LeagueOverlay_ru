@@ -111,7 +111,6 @@ showLabTrials() {
 	Gui, LabTrials:Destroy
 	cfgLab:=configFolder "\trials.ini"
 	
-	IniRead, hideTrialsInFastMenu, %cfgLab%, settings, hideTrialsInFastMenu, 0
 	IniRead, trialA, %cfgLab%, LabTrials, trialA, 0
 	IniRead, trialB, %cfgLab%, LabTrials, trialB, 0
 	IniRead, trialC, %cfgLab%, LabTrials, trialC, 0
@@ -129,17 +128,14 @@ showLabTrials() {
 	Gui, LabTrials:Add, Checkbox, vtrialE xp+0 y+28 w140 h28 Checked%trialE% +Center, Томительной болью`nLingering Pain
 	Gui, LabTrials:Add, Checkbox, vtrialF xp+0 y+28 w140 h28 Checked%trialF% +Center, Жалящим сомнением`nStinging Doubt
 	
-	Gui, LabTrials:Add, Text, x0 y+15 w400 h2 0x10
-	Gui, LabTrials:Add, Checkbox, vhideTrialsInFastMenu x5 y+7 w280 Checked%hideTrialsInFastMenu% +Center, Скрыть из 'Быстрого доступа' при завершении
-	
 	Gui, LabTrials:+AlwaysOnTop -Caption +Border
 	Gui, LabTrials:Show, w285 h225, Испытания лабиринта
 	
 	Gui, LabTrials:Color, 6BCA94
 	WinSet, Transparent, 210, Испытания лабиринта
-	WinMove,Испытания лабиринта,,,,,185
+	WinMove,Испытания лабиринта,,,,,145
 	sleep 50
-	SetTimer, autoSaveLabTrials, 250
+	SetTimer, autoSaveLabTrials, 200
 }
 
 ;Сохранение информации и удаление интерфейса
@@ -149,7 +145,6 @@ autoSaveLabTrials() {
 	{
 		SetTimer, autoSaveLabTrials, Delete
 		Gui, LabTrials:Submit
-		IniWrite, %hideTrialsInFastMenu%, %cfgLab%, settings, hideTrialsInFastMenu
 		IniWrite, %trialA%, %cfgLab%, LabTrials, trialA
 		IniWrite, %trialB%, %cfgLab%, LabTrials, trialB
 		IniWrite, %trialC%, %cfgLab%, LabTrials, trialC
@@ -166,14 +161,13 @@ autoSaveLabTrials() {
 
 сompletionLabTrials() {
 	cfgLab:=configFolder "\trials.ini"
-	IniRead, hideTrialsInFastMenu, %cfgLab%, settings, hideTrialsInFastMenu, 0
 	IniRead, trialA, %cfgLab%, LabTrials, trialA, 0
 	IniRead, trialB, %cfgLab%, LabTrials, trialB, 0
 	IniRead, trialC, %cfgLab%, LabTrials, trialC, 0
 	IniRead, trialD, %cfgLab%, LabTrials, trialD, 0
 	IniRead, trialE, %cfgLab%, LabTrials, trialE, 0
 	IniRead, trialF, %cfgLab%, LabTrials, trialF, 0
-	if (hideTrialsInFastMenu && trialA && trialB && trialC && trialD && trialE && trialF)
+	if (trialA && trialB && trialC && trialD && trialE && trialF)
 		return true
 	return false
 }

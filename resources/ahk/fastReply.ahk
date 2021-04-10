@@ -71,7 +71,28 @@ fastCmd15(){
 	commandFastReply(textCmd15)
 }
 
+fastCmd16(){
+	commandFastReply(textCmd16)
+}
+
+fastCmd17(){
+	commandFastReply(textCmd17)
+}
+
+fastCmd18(){
+	commandFastReply(textCmd18)
+}
+
+fastCmd19(){
+	commandFastReply(textCmd19)
+}
+
+fastCmd20(){
+	commandFastReply(textCmd20)
+}
+
 customCommandsEdit() {
+	Gui, Settings:Destroy
 	textFileWindow("Редактирование 'Меню команд'", configFolder "\commands.txt", false, "run https://pathofexile.gamepedia.com/Chat_console`n---`n@<last> sure`n/global 820`n/whois <last>`n/deaths`n/passives")
 }
 

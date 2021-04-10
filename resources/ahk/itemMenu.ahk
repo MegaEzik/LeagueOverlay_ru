@@ -4,7 +4,7 @@ ItemMenu_ConvertFromGame() {
 	ItemData:=IDCL_ConvertMain(ItemDataFullText)
 	Sleep 100
 	Clipboard:=ItemData
-	showToolTip("Скопировано в буфер обмена!`n-----------------------------------`n" ItemData, 3000)
+	showToolTip("Скопировано в буфер обмена!`n-----------------------------------`n" ItemData, 10000)
 }
 
 ItemMenu_Show(){
@@ -18,7 +18,7 @@ ItemMenu_Show(){
 	ItemData:=IDCL_CleanerItem(ItemDataFullText)
 	rlvl:=IDCL_lvlRarity(ItemData) ;Оценим тип предмета по его редкости и описанию
 	If (rlvl=0 || rlvl="") {
-		showToolTip("ОШИБКА: Буфер обмена пуст, окно не в фокусе`n`tили не удалось определить тип предмета!", 4000)
+		showToolTip("ОШИБКА: Буфер обмена пуст, окно не в фокусе`n`tили не удалось определить тип предмета!", 5000)
 		return
 	}
 	ItemDataSplit:=StrSplit(ItemData, "`n")
@@ -29,20 +29,22 @@ ItemMenu_Show(){
 		ItemName:=ItemDataSplit[3]
 	
 	;Пункт для копирования имени предмета
-	Menu, itemMenu, Add, • %ItemName%, ItemMenu_CopyInBuffer
+	ItemMenu_AddCopyInBuffer(ItemName)
 	ItemName_En:=IDCL_ConvertName(ItemName, rlvl)
 	If RegExMatch(ItemName_En, " Map$")
 		ItemName_En:=StrReplace(ItemName_En, " Map", "")
 	If (ItemName_En!="" && !RegExMatch(ItemName_En, "Undefined Name"))
-		Menu, itemMenu, Add, • %ItemName_En%, ItemMenu_CopyInBuffer
+		ItemMenu_AddCopyInBuffer(ItemName_En)
 	Menu, itemMenu, Add
 	
 	;Пункт меню для конвертирования описания
 	Menu, itemMenu, Add, Конвертировать Ru>En, ItemMenu_ConvertFromGame
+	If FileExist("resources\icons\copy.png")
+		Menu, itemMenu, Icon, Конвертировать Ru>En, resources\icons\copy.png
 	Menu, itemMenu, Add	
 	
 	;Создадим меню для подсветки
-	Menu, itemMenu, add, ◳ %ItemName%, ItemMenu_Hightlight
+	ItemMenu_AddHightlight(ItemName)
 	
 	tempItemName:=ItemName
 	tempItemName:=strReplace(tempItemName, ":", "")
@@ -51,56 +53,67 @@ ItemMenu_Show(){
 	splitItemName:=StrSplit(tempItemName, " ")
 	For k, val in splitItemName {
 		findtext:=splitItemName[k]
-		If (RegExMatch(findtext, "[А-ЯЁ]+") || StrLen(findtext)>3)
-			Menu, itemMenu, add, ◳ %findtext%, ItemMenu_Hightlight
+		If (RegExMatch(findtext, "[А-ЯЁ]+") || StrLen(findtext)>=3)
+			ItemMenu_AddHightlight(findtext)
 	}
 	
 	/*
 	If RegExMatch(ItemName, "(Масло|масло|Сущность|сущность|катализатор|резонатор|ископаемое|сфера Делириума|Карта|Заражённая Карта|флакон маны|флакон жизни|кластерный|Копия)", findtext)
-		Menu, itemMenu, add, ◳ %findtext%, ItemMenu_Hightlight
+		ItemMenu_AddHightlight(findtext%, ItemMenu_Hightlight
 	If RegExMatch(ItemName, "(Мозг|Печень|Лёгкое|Глаз|Сердце|Пробужденный|Аномальный|Искривлённый|Фантомный|Чертёж|Контракт): ", findtext)
-		Menu, itemMenu, add, ◳ %findtext1%, ItemMenu_Hightlight
+		ItemMenu_AddHightlight(findtext1%, ItemMenu_Hightlight
 	*/
 		
 	If RegExMatch(ItemData, "(это пророчество|в Лаборатории Танэ)", findtext)
-		Menu, itemMenu, add, ◳ %findtext1%, ItemMenu_Hightlight
+		ItemMenu_AddHightlight(findtext1)
 	If (RegExMatch(ItemName, "(К|к)ольцо") || RegExMatch(ItemDataSplit[3], "(К|к)ольцо")) && RegExMatch(ItemData, "Редкость: Уникальный")
-		Menu, itemMenu, add, ◳ "Кольцо" "Уник", ItemMenu_Hightlight
+		ItemMenu_AddHightlight("""Кольцо""" " " """Уник""")
 	If (RegExMatch(ItemData, "Качество: ") && RegExMatch(ItemData, "Редкость: Камень"))
-		Menu, itemMenu, add, ◳ "Качество" "Камень", ItemMenu_Hightlight
+		ItemMenu_AddHightlight("""Качество""" " " """Камень""")
 	
 	For k, val in ItemDataSplit {
 		If RegExMatch(ItemDataSplit[k], "(Предмет Создателя|Древний предмет|Расколотый предмет|Синтезированный предмет|Предмет Вождя|Предмет Избавительницы|Предмет Крестоносца|Предмет Охотника)", findtext)
-			Menu, itemMenu, add, ◳ %findtext%, ItemMenu_Hightlight
+			ItemMenu_AddHightlight(findtext)
 		If RegExMatch(ItemDataSplit[k], "Область находится под влиянием (Древнего|Создателя)", findtext)
-			Menu, itemMenu, add, ◳ %findtext%, ItemMenu_Hightlight
+			ItemMenu_AddHightlight(findtext)
 		If RegExMatch(ItemDataSplit[k], "Регион Атласа: (.*)", findtext)
-			Menu, itemMenu, add, ◳ %findtext1%, ItemMenu_Hightlight
+			ItemMenu_AddHightlight(findtext1)
 		If RegExMatch(ItemDataSplit[k], "Редкость: (.*)", findtext)
-			Menu, itemMenu, add, ◳ %findtext1%, ItemMenu_Hightlight
+			ItemMenu_AddHightlight(findtext1)
 		If RegExMatch(ItemDataSplit[k], "Качество: ")
-			Menu, itemMenu, add, ◳ Качество, ItemMenu_Hightlight
+			ItemMenu_AddHightlight("Качество")
 		If RegExMatch(ItemDataSplit[k], "Уровень карты: (.*)", findtext)
-			Menu, itemMenu, add, ◳ tier:%findtext1%, ItemMenu_Hightlight
+			ItemMenu_AddHightlight("tier:" findtext1)
 		If RegExMatch(ItemDataSplit[k], "Уровень предмета: (.*)", findtext)
-			Menu, itemMenu, add, ◳ %findtext%, ItemMenu_Hightlight
+			ItemMenu_AddHightlight(findtext)
 		If RegExMatch(ItemDataSplit[k], "Завуалированный", findtext)
-			Menu, itemMenu, add, ◳ Завуалированный, ItemMenu_Hightlight
+			ItemMenu_AddHightlight("Завуалированный")
 		If RegExMatch(ItemDataSplit[k], "Требуется (взлом|грубая сила|восприятие|взрывное дело|контрмагия|разминирование|проворство|маскировка|инженерное дело)", findtext)
-			Menu, itemMenu, add, ◳ %findtext1%, ItemMenu_Hightlight
+			ItemMenu_AddHightlight(findtext1)
 	}
 	
 	Menu, itemMenu, Show
 }
 
+ItemMenu_AddCopyInBuffer(Line){
+	Menu, itemMenu, Add, %Line%, ItemMenu_CopyInBuffer
+	If FileExist("resources\icons\copy.png")
+		Menu, itemMenu, Icon, %Line%, resources\icons\copy.png
+}
+
+ItemMenu_AddHightlight(Line){
+	Menu, itemMenu, Add, *%Line%, ItemMenu_Hightlight
+	If FileExist("resources\icons\highlight.png")
+		Menu, itemMenu, Icon, *%Line%, resources\icons\highlight.png
+}
+
 ItemMenu_CopyInBuffer(Line){
-	Line:=SubStr(Line, 3)
 	Clipboard:=Line
 	showToolTip("Скопировано в буфер обмена!`n-----------------------------------`n" Line, 3000)
 }
 
 ItemMenu_Hightlight(Line){
-	Line:=SubStr(Line, 3)
+	Line:=SubStr(Line, 2)
 	DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", 0x50, "UInt", 0x4090409, "UInt", 0x4090409)
 	sleep 25
 	BlockInput On
