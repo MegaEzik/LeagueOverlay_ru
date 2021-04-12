@@ -447,23 +447,23 @@ showStartUI(){
 		initMsg:=NewInitMsg
 	}
 	
-	dNames:=["AbyssSPIRIT", "milcart", "Pip4ik", "Данил А. Р."]
+	dNames:=["AbyssSPIRIT", "milcart", "Pip4ik", "Данил А. Р.", "MON9"]
 	Random, randomNum, 1, dNames.MaxIndex()
-	dName:="Спасибо, " dNames[randomNum] ")"
+	dName:="Спасибо, " dNames[randomNum] ") "
 	
-	Gui, StartUI:Add, Progress, w500 h26 x0 y0 Background1496A0
+	Gui, StartUI:Add, Progress, w500 h26 x0 y0 Background481D05
 
-	Gui, StartUI:Font, s12 cFFFFFF bold
+	Gui, StartUI:Font, s12 cFEC076 bold
 	Gui, StartUI:Add, Text, x5 y3 h20 w490 +Center BackgroundTrans, %prjName% %verScript% | AHK %A_AhkVersion%
 	
-	Gui, StartUI:Font, s10 c000000 bold italic
+	Gui, StartUI:Color, 030405
+	Gui, StartUI:Font, cFEEAC5
+	
+	Gui, StartUI:Font, s10 bold italic
 	Gui, StartUI:Add, Text, x0 y+10 h18 w500 +Center BackgroundTrans, %initMsg%
 	
 	Gui, StartUI:Font, s8 norm italic
-	Gui, StartUI:Add, Text, x5 y+3 w340 BackgroundTrans, %dName%
-	
-	Gui, StartUI:Font, s8 norm
-	Gui, StartUI:Add, Link, x+0 yp+0 w150 +Right, <a href="https://qiwi.me/megaezik">Поддержать %githubUser%</a>
+	Gui, StartUI:Add, Text, x5 y+3 w490 BackgroundTrans +Right, %dName%
 	
 	Gui, StartUI:+ToolWindow -Caption +Border +AlwaysOnTop
 	Gui, StartUI:Show, w500 h70, %prjName% %VerScript% 
@@ -500,7 +500,7 @@ showSettings(){
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
 	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, %A_Space%
-	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, !c
+	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
 	
 	;Настройки второй вкладки
 	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
@@ -714,9 +714,9 @@ setHotkeys(){
 }
 
 menuCreate(){
-	Menu, Tray, Add, Поддержать, showDonateUI
 	If FileExist("LICENSE.md")
 		Menu, Tray, Add, Лицензия, showLicense
+	Menu, Tray, Add, Поддержать %githubUser%, showDonateUI
 	Menu, Tray, Add, История изменений, showUpdateHistory
 	Menu, Tray, Add
 	Menu, Tray, Add, Выполнить обновление, CheckUpdateFromMenu
@@ -832,7 +832,7 @@ showDonateUI() {
 	Gui, DonateUI:Add, Link, x30 yp+7 w260 +Center, Если хотите попасть на экран загрузки, то после совершения пожертвования напишите <a href="https://ru.pathofexile.com/private-messages/compose/to/MegaEzik@pc">мне в ЛС</a>)
 	
 	Gui, DonateUI:+AlwaysOnTop -MinimizeBox -MaximizeBox
-	Gui, DonateUI:Show, w320 h165, Поддержать/Задонатить
+	Gui, DonateUI:Show, w320 h165, Поддержать/Задонатить %githubUser%
 }
 
 showToolTip(msg, t=0) {

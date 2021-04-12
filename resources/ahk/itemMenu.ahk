@@ -123,26 +123,28 @@ ItemMenu_Hightlight(Line){
 
 ItemMenu_IDCLInit(){
 	FormatTime, CurrentDate, %A_Now%, yyyyMMdd
-	FileGetTime, LoadDate, resources\names.json, M
+	FileGetTime, LoadDate, resources\data\names.json, M
 	FormatTime, LoadDate, %LoadDate%, yyyyMMdd
 	
-	IfNotExist, resources\names.json
+	IfNotExist, resources\data\names.json
 		LoadDate:=0
 	
 	If (LoadDate!=CurrentDate) {
-		LoadFile("https://raw.githubusercontent.com/MegaEzik/PoE-TradeMacro_ru/master/data/ru/nameItemRuToEn.json", "resources\names.json")
-		LoadFile("https://raw.githubusercontent.com/MegaEzik/PoE-TradeMacro_ru/master/data_trade/ru/ru_en_stats.json", "resources\stats.json")
-		LoadFile("https://raw.githubusercontent.com/MegaEzik/PoE-TradeMacro_ru/master/data_trade/ru/ruPrefSufFlask.json", "resources\presufflask.json")
-		;LoadFile("https://raw.githubusercontent.com/MegaEzik/PoE-TradeMacro_ru/master/data/ru/sameNameItem.json", "resources\samename.json")
+		FileCreateDir, resources\data
+		LoadFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/names.json", "resources\data\names.json")
+		LoadFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/stats.json", "resources\data\stats.json")
+		IfNotExist, resources\data\presufflask.json
+			LoadFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/presufflask.json", "resources\data\presufflask.json")
+		;LoadFile("https://raw.githubusercontent.com/MegaEzik/PoE-TradeMacro_ru/master/resources/data/samename.json", "resources\data\samename.json")
 		sleep 500
 	}
 	
-	FileRead, stats_list, resources\stats.json
+	FileRead, stats_list, resources\data\stats.json
 	Globals.Set("item_stats", JSON.Load(stats_list))
-	FileRead, names_list, resources\names.json
+	FileRead, names_list, resources\data\names.json
 	Globals.Set("item_names", JSON.Load(names_list))
-	FileRead, presufflask_list, resources\presufflask.json
+	FileRead, presufflask_list, resources\data\presufflask.json
 	Globals.Set("item_presufflask", JSON.Load(presufflask_list))
-	;FileRead, samename_list, resources\samename.json
+	;FileRead, samename_list, resources\data\samename.json
 	;Globals.Set("item_samename", JSON.Load(samename_list))
 }
