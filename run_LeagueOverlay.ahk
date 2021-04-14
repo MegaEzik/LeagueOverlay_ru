@@ -51,7 +51,7 @@ global configFolder:=A_MyDocuments "\AutoHotKey\" prjName
 if InStr(FileExist(A_ScriptDir "\..\Profile"), "D")
 	configFolder:=A_ScriptDir "\..\Profile"
 global configFile:=configFolder "\settings.ini"
-global trayMsg, verScript, debugMode=0
+global trayMsg, verScript
 global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, textCmd11, textCmd12, textCmd13, textCmd14, textCmd15, textCmd16, textCmd17, textCmd18, textCmd19, textCmd20, cmdNum=20
 global presetData, LastImg, globalOverlayPosition, OverlayStatus=0
 global ItemDataFullText
@@ -61,13 +61,13 @@ FileReadLine, verScript, resources\Updates.txt, 1
 trayUpdate(prjName " " verScript " | AHK " A_AhkVersion)
 If FileExist("resources\icons\icon.png")
 	Menu, Tray, Icon, resources\icons\icon.png
-showStartUI()
 
 devInit()
+showStartUI()
 
 ;Проверка обновлений
 IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
-if autoUpdate && !debugMode {
+if autoUpdate {
 	CheckUpdateFromMenu("onStart")
 	SetTimer, CheckUpdate, 10800000
 }
@@ -76,11 +76,11 @@ if autoUpdate && !debugMode {
 IniRead, verConfig, %configFile%, info, verConfig, ""
 if (verConfig!=verScript) {
 	showSettings()
-	IniRead, debugMode, %configFile%, settings, debugMode, 0
 	FileDelete, %configFile%
 	sleep 25
 	FileCreateDir, %configFolder%\images
 	IniWrite, %verScript%, %configFile%, info, verConfig
+	debugMode:=Globals.Get("debugMode")
 	IniWrite, %debugMode%, %configFile%, settings, debugMode
 	saveSettings()
 }
@@ -407,6 +407,11 @@ delPreset(presetName){
 }
 
 showStartUI(){
+	If Globals.Get("debugMode") {
+		SplashTextOn, 350, 20, %prjName% %verScript% | AHK %A_AhkVersion%, Запуск %prjName% в режиме отладки...
+		return
+	}
+	
 	Gui, StartUI:Destroy
 	
 	initMsgs := ["Подготовка макроса к работе"
@@ -456,8 +461,9 @@ showStartUI(){
 	Gui, StartUI:Font, s12 cFEC076 bold
 	Gui, StartUI:Add, Text, x5 y3 h20 w490 +Center BackgroundTrans, %prjName% %verScript% | AHK %A_AhkVersion%
 	
-	Gui, StartUI:Color, 030405
-	Gui, StartUI:Font, cFEEAC5
+	;Gui, StartUI:Color, 030405
+	;Gui, StartUI:Font, cFEEAC5
+	Gui, StartUI:Font, c000000
 	
 	Gui, StartUI:Font, s10 bold italic
 	Gui, StartUI:Add, Text, x0 y+10 h18 w500 +Center BackgroundTrans, %initMsg%
@@ -470,10 +476,11 @@ showStartUI(){
 }
 
 closeStartUI(){
+	SplashTextOff
+	If Globals.Get("debugMode") && FileExist(A_WinDir "\Media\Windows Proximity Notification.wav")
+		SoundPlay, %A_WinDir%\Media\Windows Proximity Notification.wav
 	sleep 1000
 	Gui, StartUI:Destroy
-	If debugMode && FileExist(A_WinDir "\Media\Windows Proximity Notification.wav")
-		SoundPlay, %A_WinDir%\Media\Windows Proximity Notification.wav
 }
 
 showSettings(){
@@ -810,7 +817,7 @@ showStartNotify(){
 showDonateUIOnStart() {
 	;Иногда после запуска будем предлагать поддержать проект
 	Random, randomNum, 1, 10
-	if (randomNum=1 && !debugMode) {
+	if (randomNum=1 && !Globals.Get("debugMode")) {
 		showDonateUI()
 		Sleep 10000
 		Gui, DonateUI:Minimize
@@ -867,15 +874,6 @@ Exit:
 	sleep 250
 	ExitApp
 Return
-
-/*
-OnClipBoardChange:
-	ItemData:=Clipboard
-	If RegExMatch(ItemData, "Редкость: ") && debugMode {
-		showItemMenu()
-	}
-Return
-*/
 
 ;Нужно для работы с ItemDataConverter
 class Globals {

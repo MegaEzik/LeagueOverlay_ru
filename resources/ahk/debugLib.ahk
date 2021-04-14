@@ -2,17 +2,8 @@
 ;Инициализация
 devInit() {
 	IniRead, debugMode, %configFile%, settings, debugMode, 0
+	Globals.Set("debugMode", debugMode)
 	devMenu()
-	;if debugMode
-	;	trayUpdate("`nВключен режим отладки")
-	
-	/*
-	if debugMode {
-		IDCL_Init()
-		Hotkey, !c, showItemMenu, On
-		;showToolTip("Включен режим отладки", 2000)
-	}
-	*/
 }
 
 ;Создание меню разработчика
@@ -25,7 +16,7 @@ devMenu() {
 	Menu, devMenu2, Add, https://poelab.com/wfbra, devReloadLab
 	
 	Menu, devMenu, Add, Режим отладки, switchDebugMode
-	If debugMode
+	If Globals.Get("debugMode")
 		Menu, devMenu, Check, Режим отладки
 	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
 	Menu, devMenu, Add, Перезагрузить лабиринт, :devMenu2
@@ -33,7 +24,7 @@ devMenu() {
 }
 
 switchDebugMode() {
-	if debugMode {
+	if Globals.Get("debugMode") {
 		IniWrite, 0, %configFile%, settings, debugMode
 	} else {
 		MsgBox, 0x1024, %prjName%, Включение режима отладки может сделать работу %prjName% нестабильной!`n`nВы уверены, что хотите продолжить?

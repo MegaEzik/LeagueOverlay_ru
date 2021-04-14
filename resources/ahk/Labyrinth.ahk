@@ -24,12 +24,12 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra") {
 		
 	;Проверка наличия утилиты Curl
 	If !FileExist(A_WinDir "\System32\curl.exe") && !FileExist(configfolder "\curl.exe") {
-		msgbox, 0x1040, %prjName% - Загрузка лабиринта, В вашей системе не найдена утилита Curl!`nЗагрузка лабиринта без нее невозможна!`n`nДля устранения проблемы установите пакет 'cURL.zip'!, 15
+		msgbox, 0x1040, %prjName% - Загрузка лабиринта, В вашей системе не найдена утилита Curl.exe!`nЗагрузка лабиринта без нее невозможна!`n`nДля устранения проблемы скачайте 'Curl.exe' и поместите ее в 'Папку настроек'!, 15
 		return
 	}
 	
 	;Если режим разработчика не включен, то откроем сайт
-	If !debugMode
+	If !Globals.Get("debugMode")
 		run, %LabURL%
 	
 	/*
