@@ -185,7 +185,9 @@ loadPresetData(){
 	
 	;Подгружаем вторичный набор
 	IniRead, preset2, %configFile%, settings, preset2, %A_Space%
-	presetPath:=configFolder "\presets\" preset2
+	presetPath:=A_ScriptDir "\resources\presets\" preset2 ".preset"
+	If RegExMatch(preset2, ".preset$")
+		presetPath:=configFolder "\presets\" preset2
 	If (preset2!="" && FileExist(presetPath)) {
 		FileRead, preset2Data, %presetPath%
 		presetData.="`n---`n" preset2Data
@@ -327,6 +329,29 @@ showLicense(){
 }
 
 clearPoECache(){
+	SplashTextOn, 350, 20, %prjName%, Очистка кэша, пожалуйста подождите...
+	
+	PoEConfigFolderPath:=A_MyDocuments "\My Games\Path of Exile"
+	FileRemoveDir, %PoEConfigFolderPath%\OnlineFilters, 1
+	FileDelete, %PoEConfigFolderPath%\*.dmp
+	
+	
+	IniRead, cache_directory, %PoEConfigFolderPath%\production_Config.ini, GENERAL, cache_directory, %A_Space%
+	If (cache_directory="")
+		cache_directory:=A_AppData "\Path of Exile\"
+	FileRemoveDir, %cache_directory%, 1
+	
+	
+	SplashTextOff	
+	/*				;Резервный способ
+	tmpCmdFile:=A_Temp "\ClearPoE.cmd"
+	FileDelete, %tmpCmdFile%
+	sleep 100
+	FileAppend, title Очистка кэша Path of Exile`n@Echo off`ncls`nrd "%cache_directory%" /S /Q, %tmpCmdFile%, CP866
+	RunWait "%tmpCmdFile%"
+	FileDelete, %tmpCmdFile%
+	*/
+	/*				;Устаревший способ
 	msgbox, 0x1044, %prjName%, Во время очистки кэша рекомендуется закрыть игру.`n`nХотите продолжить?
 	IfMsgBox Yes
 	{
@@ -351,6 +376,7 @@ clearPoECache(){
 		FileRemoveDir, %PoEConfigFolderPath%\OnlineFilters, 1
 		SplashTextOff
 	}
+	*/
 }
 
 copyPreset(){
@@ -407,11 +433,6 @@ delPreset(presetName){
 }
 
 showStartUI(){
-	If Globals.Get("debugMode") {
-		SplashTextOn, 350, 20, %prjName% %verScript% | AHK %A_AhkVersion%, Запуск %prjName% в режиме отладки...
-		return
-	}
-	
 	Gui, StartUI:Destroy
 	
 	initMsgs := ["Подготовка макроса к работе"
@@ -476,11 +497,10 @@ showStartUI(){
 }
 
 closeStartUI(){
-	SplashTextOff
-	If Globals.Get("debugMode") && FileExist(A_WinDir "\Media\Windows Proximity Notification.wav")
-		SoundPlay, %A_WinDir%\Media\Windows Proximity Notification.wav
 	sleep 1000
 	Gui, StartUI:Destroy
+	If Globals.Get("debugMode") && FileExist(A_WinDir "\Media\Windows Proximity Notification.wav")
+		SoundPlay, %A_WinDir%\Media\Windows Proximity Notification.wav
 }
 
 showSettings(){
@@ -545,16 +565,12 @@ showSettings(){
 	Gui, Settings:Add, Edit, vposH x+17 w55 h18 Number, %posH%
 	Gui, Settings:Add, UpDown, Range1-99999 0x80, %posH%
 	
-	presetList1:=""
-	Loop, resources\presets\*.preset, 1
-		presetList1.="|" RegExReplace(A_LoopFileName, ".preset$", "")
-	Loop, %configFolder%\presets\*.preset, 1
-		presetList1.="|" A_LoopFileName
-	presetList1:=SubStr(presetList1, 2)
-	
 	presetList2:=""
+	Loop, resources\presets\*.preset, 1
+		presetList2.="|" RegExReplace(A_LoopFileName, ".preset$", "")
 	Loop, %configFolder%\presets\*.preset, 1
 		presetList2.="|" A_LoopFileName
+	presetList1:=SubStr(presetList2, 2)
 	
 	Gui, Settings:Add, Text, x10 yp+24 w245, Наборы:
 	;Gui, Settings:Add, Button, x+1 yp-4 w23 h23 gcopyPreset, 📄
@@ -640,9 +656,12 @@ saveSettings(){
 	Gui, Settings:Submit
 	
 	If (preset1="")
-		preset1:="Default"
+		preset1:=preset2
 	If (preset1=preset2)
 		preset2:=""
+	If (preset1="")
+		preset1:="Default"
+	
 	If (mouseDistance<5)
 		mouseDistance:=5
 	If (mouseDistance>99999)
