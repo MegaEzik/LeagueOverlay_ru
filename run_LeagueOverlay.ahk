@@ -563,7 +563,7 @@ showSettings(){
 	Gui, Settings:Add, Edit, vposW x+17 w55 h18 Number, %posW%
 	Gui, Settings:Add, UpDown, Range0-99999 0x80, %posW%
 	Gui, Settings:Add, Edit, vposH x+17 w55 h18 Number, %posH%
-	Gui, Settings:Add, UpDown, Range1-99999 0x80, %posH%
+	Gui, Settings:Add, UpDown, Range0-99999 0x80, %posH%
 	
 	presetList2:=""
 	Loop, resources\presets\*.preset, 1
