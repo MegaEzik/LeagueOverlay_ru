@@ -24,9 +24,9 @@ ItemMenu_Show(){
 	ItemDataSplit:=StrSplit(ItemData, "`n")
 	
 	;Определим имя предмета
-	ItemName:=ItemDataSplit[2]
+	ItemName:=ItemDataSplit[3]
 	If (rlvl=3 && !RegExMatch(ItemData, "Неопознано"))
-		ItemName:=ItemDataSplit[3]
+		ItemName:=ItemDataSplit[4]
 	
 	;Пункт для копирования имени предмета
 	ItemMenu_AddCopyInBuffer(ItemName)
@@ -44,6 +44,9 @@ ItemMenu_Show(){
 	Menu, itemMenu, Add	
 	
 	;Создадим меню для подсветки
+	RegExMatch(ItemDataSplit[1], "Класс предмета: (.*)", class_item)
+		ItemMenu_AddHightlight(class_item1)
+		
 	ItemMenu_AddHightlight(ItemName)
 	
 	tempItemName:=ItemName
