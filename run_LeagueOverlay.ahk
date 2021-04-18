@@ -550,7 +550,7 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x10 y+3 w485 h1 0x10
 
-	Gui, Settings:Add, Text, x10 yp+6 w190, Позиция области под изображения:
+	Gui, Settings:Add, Text, x10 yp+6 w190, Позиция области изображений:
 	Gui, Settings:Add, Text, x+7 w12 +Right, X
 	Gui, Settings:Add, Text, x+60 w12 +Right, Y
 	Gui, Settings:Add, Text, x+60 w12 +Right, W
@@ -608,10 +608,10 @@ showSettings(){
 	
 	Gui, Settings:Tab, 2 ; Вторая вкладка
 	
-	Gui, Settings:Add, Text, x10 y30 w120, /exit(выбор персонажа)
+	Gui, Settings:Add, Text, x10 y30 w120 +right, /exit(к персонажам):
 	Gui, Settings:Add, Hotkey, vhotkeyToCharacterSelection x+1 yp-2 w105 h17, %hotkeyToCharacterSelection%
 	
-	Gui, Settings:Add, Text, x+30 yp+2 w120 +right, /oos(синхронизация)
+	Gui, Settings:Add, Text, x+30 yp+2 w120 +right, /oos(синхронизация):
 	Gui, Settings:Add, Hotkey, vhotkeyForceSync x+1 yp-2 w105 h17, %hotkeyForceSync%
 	
 	Gui, Settings:Add, Text, x10 y+3 w485 h1 0x10
@@ -668,6 +668,10 @@ saveSettings(){
 		mouseDistance:=99999
 	
 	IniWrite, %lastImg%, %configFile%, info, lastImg
+	
+	;Временное решение проблемы из моей ошибки
+	If (posH=1)
+		posH:=0
 	
 	;Настройки первой вкладки
 	IniWrite, %posX%/%posY%/%posW%/%posH%, %configFile%, settings, overlayPosition
@@ -811,7 +815,7 @@ LoadFile(URL, FilePath) {
 		return
 	}
 	
-	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36"
+	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.72 Safari/537.36"
 	CurlLine.="-L -A """ UserAgent """ -o "
 	
 	CurlLine.="""" FilePath """" " " """" URL """"
