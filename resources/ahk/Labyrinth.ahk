@@ -135,7 +135,7 @@ showLabTrials() {
 	WinSet, Transparent, 210, Испытания лабиринта
 	WinMove,Испытания лабиринта,,,,,145
 	sleep 50
-	SetTimer, autoSaveLabTrials, 200
+	SetTimer, autoSaveLabTrials, 50
 }
 
 ;Сохранение информации и удаление интерфейса

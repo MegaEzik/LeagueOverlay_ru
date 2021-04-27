@@ -874,7 +874,7 @@ showToolTip(msg, t=0) {
 	MouseGetPos, CurrX, CurrY
 	Globals.Set("ttCurrStartPosX", CurrX)
 	Globals.Set("ttCurrStartPosY", CurrY)
-	SetTimer, timerToolTip, 200
+	SetTimer, timerToolTip, 50
 }
 
 removeToolTip() {

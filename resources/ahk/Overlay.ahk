@@ -69,7 +69,7 @@ shOverlay(ImgPath, MultImg=1, winPosition=""){
 		MouseGetPos, CurrX, CurrY
 		Globals.Set("overlayCurrStartPosX", CurrX)
 		Globals.Set("overlayCurrStartPosY", CurrY)
-		SetTimer, checkWindowTimer, 200 ;Установим таймер на проверку активного окна
+		SetTimer, checkWindowTimer, 50 ;Установим таймер на проверку активного окна
 		if (LastImg!=ImgPath "|" MultImg "|" winPosition) {
 			LastImg:=ImgPath "|" MultImg "|" winPosition
 			IniWrite, %LastImg%, %configFile%, info, lastImg
