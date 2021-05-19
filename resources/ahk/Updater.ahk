@@ -16,7 +16,7 @@ CheckUpdate() {
 CheckUpdateFromMenu(PressedBtn=""){
 	statusUpdate:=CheckUpdate()
 	if (statusUpdate="noupdate" && PressedBtn!="onStart") {
-		MsgBox, 0x1040, %prjName%, Вы используете актуальную версию), 2
+		TrayTip, %prjName%, Вы используете актуальную версию)
 	}
 	else if (statusUpdate!="noupdate" && statusUpdate!="") {
 		MsgBox, 0x1024, %prjName%, Установлена версия: %verScript%`nДоступна версия: %statusUpdate%`n`nХотите выполнить обновление до версии %statusUpdate%?

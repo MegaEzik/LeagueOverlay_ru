@@ -277,6 +277,14 @@ IDCL_ConvertAllStats(idft) {
 			lidft[k]:= IDCL_ConvertStat(lidft[k])
 			lidft[k]:= StrReplace(lidft[k], "#", v)
 		}
+		;Класс предмета
+		If RegExMatch(lidft[k], "Класс предмета: (.*)", itemclass)
+			If (itemclass1!=IDCL_ConvertStat(itemclass1))
+				lidft[k]:="Item Class: " IDCL_ConvertStat(itemclass1)
+		;Зачарованные пассивные умения
+		If RegExMatch(lidft[k], "Активирует (.*)", passive)
+			If (passive1!=IDCL_ConvertStat(passive1))
+				lidft[k]:="Allocates " IDCL_ConvertStat(passive1)
 		;Флаконы
 		If RegExMatch(lidft[k], "Восстанавливает (ману|здоровье): ", tflask) && InStr(lidft[k], " за ") {
 			lidft[k]:=RegExReplace(lidft[k], tflask, "Recovers ")
@@ -285,9 +293,9 @@ IDCL_ConvertAllStats(idft) {
 			lidft[k]:=RegExReplace(lidft[k], " за", slidft " " tflask " over")
 			slidft:=""
 		}
-		;Кластерные смоцветы
-		If RegExMatch(lidft[k], "Добавленные малые пассивные умения даруют: ") {
-			pstring:=Trim(StrReplace(lidft[k], "Добавленные малые пассивные умения даруют: ", ""))
+		;Кластерные самоцветы
+		If RegExMatch(lidft[k], "Добавленные малые пассивные умения даруют: (.*)", pstring) {
+			pstring:=pstring1
 			v:=IDCL_Value(pstring)
 			pstring:=StrReplace(pstring, v, "#")
 			pstring:=IDCL_ConvertStat(pstring)

@@ -92,7 +92,6 @@ fastCmd20(){
 }
 
 customCommandsEdit() {
-	Gui, Settings:Destroy
 	textFileWindow("Редактирование 'Меню команд'", configFolder "\commands.txt", false, "run https://pathofexile.gamepedia.com/Chat_console`n---`n@<last> sure`n/global 820`n/whois <last>`n/deaths`n/passives")
 }
 

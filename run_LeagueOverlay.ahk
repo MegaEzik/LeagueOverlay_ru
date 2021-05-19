@@ -45,25 +45,23 @@ GroupAdd, WindowGrp, Path of Exile ahk_class POEWindowClass
 GroupAdd, WindowGrp, ahk_exe GeForceNOWStreamer.exe
 
 ;Объявление и загрузка основных переменных
-global prjName:="LeagueOverlay_ru"
-global githubUser:="MegaEzik"
+global prjName="LeagueOverlay_ru", githubUser="MegaEzik"
 global configFolder:=A_MyDocuments "\AutoHotKey\" prjName
 if InStr(FileExist(A_ScriptDir "\..\Profile"), "D")
 	configFolder:=A_ScriptDir "\..\Profile"
 global configFile:=configFolder "\settings.ini"
-global trayMsg, verScript
 global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, textCmd11, textCmd12, textCmd13, textCmd14, textCmd15, textCmd16, textCmd17, textCmd18, textCmd19, textCmd20, cmdNum=20
-global presetData, LastImg, globalOverlayPosition, OverlayStatus=0
-global ItemDataFullText
+global verScript, LastImg, globalOverlayPosition, OverlayStatus=0
 FileReadLine, verScript, resources\Updates.txt, 1
+Globals.Set("UserAgent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36")
 
 ;Подсказка в области уведомлений и сообщение при запуске
-trayUpdate(prjName " " verScript " | AHK " A_AhkVersion)
+Menu, Tray, Tip, %prjName% %verScript% | AHK %A_AhkVersion%
 If FileExist("resources\icons\icon.png")
 	Menu, Tray, Icon, resources\icons\icon.png
 
-devInit()
 showStartUI()
+devInit()
 
 ;Проверка обновлений
 IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
@@ -146,9 +144,9 @@ shLastImage(){
 
 firstAprilJoke(){
 	tmpPresetData:=""
-	presetDataSplit:=strSplit(presetData, "`n")
-	For k, val in presetDataSplit {
-		ImgSplit:=strSplit(presetDataSplit[k], "|")
+	presetsDataSplit:=strSplit(Globals.Get("presetsData"), "`n")
+	For k, val in presetsDataSplit {
+		ImgSplit:=strSplit(presetsDataSplit[k], "|")
 		If (ImgSplit[3]="" || ImgSplit[3]>1)
 			ImgSplit[3]:=1		
 		Random, randomNum, ImgSplit[3]/2.5, ImgSplit[3]
@@ -156,9 +154,9 @@ firstAprilJoke(){
 		If FileExist(StrReplace(ImgSplit[2], "<configFolder>", configFolder))
 			tmpPresetData.=StrReplace(ImgSplit[2], "<configFolder>", configFolder) "|" ImgSplit[3] "|" ImgSplit[4] "`n"
 	}
-	presetDataSplit:=strSplit(tmpPresetData, "`n")
-	Random, randomNum, 1, presetDataSplit.MaxIndex()-1
-	ImgSplit:=strSplit(presetDataSplit[randomNum], "|")
+	presetsDataSplit:=strSplit(tmpPresetData, "`n")
+	Random, randomNum, 1, presetsDataSplit.MaxIndex()-1
+	ImgSplit:=strSplit(presetsDataSplit[randomNum], "|")
 	If FileExist(ImgSplit[1]) {
 		shOverlay(ImgSplit[1], ImgSplit[2], ImgSplit[3])
 		return
@@ -174,48 +172,51 @@ shMainMenu(){
 	Menu, mainMenu, Show
 }
 
+loadPreset(presetName){
+	presetPath:=A_ScriptDir "\resources\presets\" presetName ".preset"
+	If RegExMatch(presetName, ".preset$")
+		presetPath:=configFolder "\presets\" presetName
+	If FileExist(presetPath)
+		FileRead, presetData, %presetPath%
+	return StrReplace(presetData, "`r", "")
+}
+
 loadPresetData(){
 	;Подгружаем первичный набор
 	IniRead, preset1, %configFile%, settings, preset1, %A_Space%
-	presetPath:=A_ScriptDir "\resources\presets\" preset1 ".preset"
-	If RegExMatch(preset1, ".preset$")
-		presetPath:=configFolder "\presets\" preset1
-	If FileExist(presetPath)
-		FileRead, presetData, %presetPath%
+	presetData1:=loadPreset(preset1)
 	
 	;Подгружаем вторичный набор
 	IniRead, preset2, %configFile%, settings, preset2, %A_Space%
-	presetPath:=A_ScriptDir "\resources\presets\" preset2 ".preset"
-	If RegExMatch(preset2, ".preset$")
-		presetPath:=configFolder "\presets\" preset2
-	If (preset2!="" && FileExist(presetPath)) {
-		FileRead, preset2Data, %presetPath%
-		presetData.="`n---`n" preset2Data
-	}
+	presetData2:=loadPreset(preset2)
 	
-	presetData:=StrReplace(presetData, "`r", "")
+	;Склейка и установка набора
+	presetsData:=presetData1
+	If (presetData2!="")
+		presetsData.="`n---`n" presetData2
+	Globals.Set("presetsData", presetsData)
 	
 	;Применим настройки наборов
-	presetDataSplit:=strSplit(presetData, "`n")
-	For k, val in presetDataSplit {
-		If RegExMatch(presetDataSplit[k], ";")=1 || !RegExMatch(presetDataSplit[k], "=")
+	presetsDataSplit:=strSplit(Globals.Get("presetsData"), "`n")
+	For k, val in presetsDataSplit {
+		If RegExMatch(presetsDataSplit[k], ";")=1 || !RegExMatch(presetsDataSplit[k], "=")
 			Continue
-		If RegExMatch(presetDataSplit[k], "OverlayPosition=(.*)", line) {
+		If RegExMatch(presetsDataSplit[k], "OverlayPosition=(.*)", line) {
 			globalOverlayPosition:=line1
 		}
-		If RegExMatch(presetDataSplit[k], "ahk_(class|exe)") && RegExMatch(presetDataSplit[k], "WindowLine=(.*)", line) {
+		If RegExMatch(presetsDataSplit[k], "ahk_(class|exe)") && RegExMatch(presetsDataSplit[k], "WindowLine=(.*)", line) {
 			GroupAdd, WindowGrp, %line1%
 		}
 	}
 }
 
 presetInMenu(){
-	If (presetData!="") {
-		presetDataSplit:=StrSplit(presetData, "`n")
-		For k, val in presetDataSplit {
-			If InStr(presetDataSplit[k], ";")=1
+	If (Globals.Get("presetsData")!="") {
+		presetsDataSplit:=StrSplit(Globals.Get("presetsData"), "`n")
+		For k, val in presetsDataSplit {
+			If InStr(presetsDataSplit[k], ";")=1
 				Continue
-			imageInfo:=StrSplit(presetDataSplit[k], "|")
+			imageInfo:=StrSplit(presetsDataSplit[k], "|")
 			ImgName:=imageInfo[1]
 			
 			If InStr(imageInfo[1], "=") ||  imageInfo[1]="" || (RegExMatch(imageInfo[2], ".(png|jpg|jpeg|bmp)$") && !FileExist(StrReplace(imageInfo[2],"<configFolder>", configFolder))){
@@ -241,11 +242,11 @@ presetInMenu(){
 }
 
 presetCmdInMenu(CmdName){
-	presetDataSplit:=StrSplit(presetData, "`n")
-	For k, val in presetDataSplit {
-		imageInfo:=StrSplit(presetDataSplit[k], "|")
+	presetsDataSplit:=StrSplit(Globals.Get("presetsData"), "`n")
+	For k, val in presetsDataSplit {
+		imageInfo:=StrSplit(presetsDataSplit[k], "|")
 		if (CmdName=imageInfo[1]) {
-			presetCmd:=SubStr(presetDataSplit[k], StrLen(imageInfo[1])+2)
+			presetCmd:=SubStr(presetsDataSplit[k], StrLen(imageInfo[1])+2)
 			commandFastReply(presetCmd)
 		}
 	}
@@ -329,25 +330,27 @@ showLicense(){
 }
 
 clearPoECache(){
-	SplashTextOn, 350, 20, %prjName%, Очистка кэша, пожалуйста подождите...
-	
-	PoEConfigFolderPath:=A_MyDocuments "\My Games\Path of Exile"
-	FileRemoveDir, %PoEConfigFolderPath%\OnlineFilters, 1
-	FileDelete, %PoEConfigFolderPath%\*.dmp
-	
-	
-	IniRead, cache_directory, %PoEConfigFolderPath%\production_Config.ini, GENERAL, cache_directory, %A_Space%
-	If (cache_directory="")
-		cache_directory:=A_AppData "\Path of Exile\"
-	FileRemoveDir, %cache_directory%, 1
-	
-	
-	SplashTextOff	
+	msgbox, 0x1044, %prjName%, Во время очистки кэша рекомендуется закрыть игру.`n`nХотите продолжить?
+	IfMsgBox Yes
+	{
+		SplashTextOn, 350, 20, %prjName%, Очистка кэша PoE, пожалуйста подождите...
+		
+		PoEConfigFolderPath:=A_MyDocuments "\My Games\Path of Exile"
+		FileRemoveDir, %PoEConfigFolderPath%\OnlineFilters, 1
+		FileDelete, %PoEConfigFolderPath%\*.dmp
+		
+		IniRead, PoECacheFolder, %PoEConfigFolderPath%\production_Config.ini, GENERAL, cache_directory, %A_Space%
+		If (PoECacheFolder="")
+			PoECacheFolder:=A_AppData "\Path of Exile\"
+		FileRemoveDir, %PoECacheFolder%, 1
+		
+		SplashTextOff
+	}
 	/*				;Резервный способ
 	tmpCmdFile:=A_Temp "\ClearPoE.cmd"
 	FileDelete, %tmpCmdFile%
 	sleep 100
-	FileAppend, title Очистка кэша Path of Exile`n@Echo off`ncls`nrd "%cache_directory%" /S /Q, %tmpCmdFile%, CP866
+	FileAppend, title Очистка кэша Path of Exile`n@Echo off`ncls`nrd "%PoECacheFolder%" /S /Q, %tmpCmdFile%, CP866
 	RunWait "%tmpCmdFile%"
 	FileDelete, %tmpCmdFile%
 	*/
@@ -399,12 +402,14 @@ editPreset(presetName){
 	FileCreateDir, %configFolder%\presets
 	If !FileExist(configFolder "\presets\" presetName) {
 		InputBox, presetName, Укажите имя набора,,, 300, 100,,,,, My.preset
+		If (presetName="")
+			presetName:="My.preset"
 		If !RegExMatch(presetName, ".preset$")
 			presetName.=".preset"
 	}
 	if (presetName="" || ErrorLevel)
 		return
-	textFileWindow("Редактирование " presetName, configFolder "\presets\" presetName, false, presetData)
+	textFileWindow("Редактирование " presetName, configFolder "\presets\" presetName, false, loadPreset("Default"))
 }
 
 cfgPresetMenuShow(){
@@ -473,7 +478,7 @@ showStartUI(){
 		initMsg:=NewInitMsg
 	}
 	
-	dNames:=["AbyssSPIRIT", "milcart", "Pip4ik", "Данил А. Р.", "MON9"]
+	dNames:=["AbyssSPIRIT", "milcart", "Pip4ik", "Данил А. Р.", "MON9", "Иван А. К."]
 	Random, randomNum, 1, dNames.MaxIndex()
 	dName:="Спасибо, " dNames[randomNum] ") "
 	
@@ -540,12 +545,10 @@ showSettings(){
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
 	Gui, Settings:Add, Checkbox, vautoUpdate x10 y30 w295 Checked%autoUpdate%, Автоматически проверять наличие обновлений
-	Gui, Settings:Add, Text, x10 yp+22 w375, Открыть папку настроек:
-	Gui, Settings:Add, Button, x+1 yp-4 w107 h23 gopenConfigFolder, Открыть папку
 	
 	;openConfigFolder
 	
-	Gui, Settings:Add, Text, x10 yp+26 w150, Другое окно для проверки:
+	Gui, Settings:Add, Text, x10 yp+21 w150, Другое окно для проверки:
 	Gui, Settings:Add, Edit, vwindowLine x+2 yp-2 w330 h17, %windowLine%
 	
 	Gui, Settings:Add, Text, x10 y+3 w485 h1 0x10
@@ -754,7 +757,6 @@ menuCreate(){
 	Menu, Tray, Default, Настройки
 	Menu, Tray, Add
 	Menu, Tray, Add, Испытания лабиринта, showLabTrials
-	Menu, Tray, Add, Очистить кэш Path of Exile, clearPoECache
 	Menu, Tray, Add, Меню разработчика, :devMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить, ReStart
@@ -796,11 +798,6 @@ openConfigFolder(){
 	Run, explorer "%configFolder%"
 }
 
-trayUpdate(nLine=""){
-	trayMsg.=nLine
-	Menu, Tray, Tip, %trayMsg%
-}
-
 LoadFile(URL, FilePath) {
 	FileDelete, %FilePath%
 	Sleep 100
@@ -815,10 +812,7 @@ LoadFile(URL, FilePath) {
 		return
 	}
 	
-	UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.72 Safari/537.36"
-	CurlLine.="-L -A """ UserAgent """ -o "
-	
-	CurlLine.="""" FilePath """" " " """" URL """"
+	CurlLine.="-L -A """ Globals.Get("UserAgent") """ -o """ FilePath """" " " """" URL """"
 	RunWait, %CurlLine%
 }
 
@@ -904,10 +898,6 @@ class Globals {
 		Globals[name] := value
 	}
 	Get(name, value_default="") {
-		result := Globals[name]
-		If (result == "") {
-			result := value_default
-		}
-		return result
+		return Globals[name]
 	}
 }
