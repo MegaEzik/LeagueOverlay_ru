@@ -62,7 +62,6 @@ If FileExist("resources\icons\icon.png")
 	Menu, Tray, Icon, resources\icons\icon.png
 
 showStartUI()
-checkRequirements()
 devInit()
 
 ;Проверка обновлений
@@ -71,6 +70,8 @@ if autoUpdate {
 	CheckUpdateFromMenu("onStart")
 	SetTimer, CheckUpdate, 10800000
 }
+
+checkRequirements()
 
 ;Проверим файл конфигурации
 IniRead, verConfig, %configFile%, info, verConfig, ""
