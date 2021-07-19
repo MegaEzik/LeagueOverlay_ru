@@ -74,7 +74,7 @@ ItemMenu_Show(){
 		If (RegExMatch(ItemClass1, "Камни") && RegExMatch(ItemName, "(Пробужденный|Аномальный|Искривлённый|Фантомный): ", findtext))
 			ItemMenu_AddHightlight(findtext1)
 		If (ItemClass1="Кольца" && RegExMatch(ItemData, "Редкость: Уникальный"))
-			ItemMenu_AddHightlight("""Кольцa""" " " """Уник""")
+			ItemMenu_AddHightlight("""Кольца""" " " """Уник""")
 		If (RegExMatch(ItemClass1, "Камни") && RegExMatch(ItemData, "Качество: "))
 			ItemMenu_AddHightlight("""Камни""" " " """Качество""")
 		

@@ -18,10 +18,10 @@ devMenu() {
 	Menu, devMenu, Add, Режим отладки, switchDebugMode
 	If Globals.Get("debugMode")
 		Menu, devMenu, Check, Режим отладки
-	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
-	Menu, devMenu, Add, Перезагрузить лабиринт, :devMenu2
 	Menu, devMenu, Add, Открыть папку настроек, openConfigFolder
-	Menu, devMenu, Add, Очистить кэш Path of Exile, clearPoECache
+	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
+	Menu, devMenu, Add, Перезагрузить данные, devReloadData
+	Menu, devMenu, Add, Перезагрузить лабиринт, :devMenu2
 	Menu, devMenu, Add, AutoHotkey, :devMenu1
 }
 
@@ -50,4 +50,11 @@ devReloadLab(LabURL){
 	FileDelete, %configFolder%\images\Labyrinth.jpg
 	sleep 25
 	downloadLabLayout(LabURL)
+}
+
+;Перезагрузить данные
+devReloadData(){
+	FileRemoveDir, resources\data, 1
+	Sleep 500
+	Reload
 }

@@ -39,6 +39,7 @@ if (!A_IsAdmin) {
 #Include, %A_ScriptDir%\resources\ahk\debugLib.ahk
 #Include, %A_ScriptDir%\resources\ahk\ItemDataConverterLib.ahk
 #Include, %A_ScriptDir%\resources\ahk\itemMenu.ahk
+#Include, %A_ScriptDir%\resources\ahk\MD5.ahk
 
 ;Список окон Path of Exile
 GroupAdd, WindowGrp, Path of Exile ahk_class POEWindowClass
@@ -53,7 +54,7 @@ global configFile:=configFolder "\settings.ini"
 global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, textCmd11, textCmd12, textCmd13, textCmd14, textCmd15, textCmd16, textCmd17, textCmd18, textCmd19, textCmd20, cmdNum=20
 global verScript, LastImg, globalOverlayPosition, OverlayStatus=0
 FileReadLine, verScript, resources\Updates.txt, 1
-Globals.Set("UserAgent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36")
+Globals.Set("UserAgent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.164 Safari/537.36")
 
 ;Подсказка в области уведомлений и сообщение при запуске
 Menu, Tray, Tip, %prjName% %verScript% | AHK %A_AhkVersion%
@@ -61,6 +62,7 @@ If FileExist("resources\icons\icon.png")
 	Menu, Tray, Icon, resources\icons\icon.png
 
 showStartUI()
+checkRequirements()
 devInit()
 
 ;Проверка обновлений
@@ -92,7 +94,7 @@ If loadLab
 If !pToken:=Gdip_Startup()
 	{
 	   ;MsgBox, 48, gdiplus error!, Gdiplus failed to start. Please ensure you have gdiplus on your system
-	   MsgBox, 48, Ошибка gdi+!, Не удалось запустить gdi+. Пожалуйста, убедитесь, что в вашей системе он есть
+	   MsgBox, 48, %prjName%, Не удалось запустить gdi+! Пожалуйста, убедитесь, что в вашей системе он есть!
 	}
 OnExit, Exit
 
@@ -345,6 +347,7 @@ clearPoECache(){
 		FileRemoveDir, %PoECacheFolder%, 1
 		
 		SplashTextOff
+		TrayTip, %prjName%, Очистка кэша завершена)
 	}
 	/*				;Резервный способ
 	tmpCmdFile:=A_Temp "\ClearPoE.cmd"
@@ -482,9 +485,12 @@ showStartUI(){
 	Random, randomNum, 1, dNames.MaxIndex()
 	dName:="Спасибо, " dNames[randomNum] ") "
 	
-	Gui, StartUI:Add, Progress, w500 h26 x0 y0 Background481D05
+	Gui, StartUI:Add, Progress, w500 h26 x0 y0 Background6190B7
+	;Gui, StartUI:Add, Progress, w500 h26 x0 y0 Background481D05
 
-	Gui, StartUI:Font, s12 cFEC076 bold
+	Gui, StartUI:Font, s12 c1F313B bold
+	;Gui, StartUI:Font, s12 cFEC076 bold
+	
 	Gui, StartUI:Add, Text, x5 y3 h20 w490 +Center BackgroundTrans, %prjName% %verScript% | AHK %A_AhkVersion%
 	
 	;Gui, StartUI:Color, 030405
@@ -757,6 +763,7 @@ menuCreate(){
 	Menu, Tray, Default, Настройки
 	Menu, Tray, Add
 	Menu, Tray, Add, Испытания лабиринта, showLabTrials
+	Menu, Tray, Add, Очистить кэш PoE, clearPoECache
 	Menu, Tray, Add, Меню разработчика, :devMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить, ReStart
@@ -883,6 +890,41 @@ timerToolTip() {
 		removeToolTip()
 }
 
+checkRequirements() {
+	;RegExMatch(A_OSVersion, "(\d+)$", OSBuild)
+	OSBuild:=DllCall("GetVersion") >> 16 & 0xFFFF        
+	If (OSBuild<7601) {
+		MsgBox, 0x1010, %prjName%, Для работы %prjName% требуется операционная система Windows 7 Service Pack 1 или выше!
+		ExitApp
+	}
+	If (A_PtrSize!=8) {
+		msgtext:="Для работы " prjName " требуется 64-разрядный интерпретатор AutoHotkey!"
+		Loop, %A_AhkPath%
+			AhkDir:=A_LoopFileDir
+		If FileExist(AhkDir "\Installer.ahk")
+			msgtext.="`n`nПосле нажатия кнопки 'ОК' откроется 'AutoHotkey Setup', выберите в нем 'Modify', а затем 'Unicode 64-bit'."
+		MsgBox, 0x1010, %prjName%, %msgtext%
+		If FileExist(AhkDir "\Installer.ahk")
+			Run *RunAs "%AhkDir%\Installer.ahk"
+		ExitApp
+	}
+	If !FileExist(A_WinDir "\System32\curl.exe") {
+		If !FileExist(configfolder "\curl.exe") {
+			FileCreateDir, %configFolder%
+			SplashTextOn, 300, 20, %prjName%, Загрузка 'curl.exe'...
+			LoadFile("https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/210520/CURL.EXE", configfolder "\curl.exe")
+			MD5Curl:=MD5_File(configfolder "\curl.exe")
+			SplashTextOff
+			If (MD5Curl!="ED0470274773DF7CA65C7D3ED3E9335C") {
+				FileDelete, %configfolder%\curl.exe
+				msgtext:="В вашей системе не найдена утилита 'curl.exe', без нее работа " prjName " невозможна!`n`nДля устранения этой проблемы скачайте утилиту 'curl.exe' вручную и поместите ее в папку: " configFolder
+				MsgBox, 0x1010, %prjName%, %msgtext%
+				ExitApp
+			}
+		}
+	}
+}
+
 ;#################################################
 
 Exit:
@@ -899,5 +941,5 @@ class Globals {
 	}
 	Get(name, value_default="") {
 		return Globals[name]
-	}
 }
+	}
