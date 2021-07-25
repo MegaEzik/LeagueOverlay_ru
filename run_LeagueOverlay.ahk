@@ -54,7 +54,7 @@ global configFile:=configFolder "\settings.ini"
 global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, textCmd11, textCmd12, textCmd13, textCmd14, textCmd15, textCmd16, textCmd17, textCmd18, textCmd19, textCmd20, cmdNum=20
 global verScript, LastImg, globalOverlayPosition, OverlayStatus=0
 FileReadLine, verScript, resources\Updates.txt, 1
-Globals.Set("UserAgent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.164 Safari/537.36")
+Globals.Set("UserAgent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36")
 
 ;Подсказка в области уведомлений и сообщение при запуске
 Menu, Tray, Tip, %prjName% %verScript% | AHK %A_AhkVersion%
@@ -66,7 +66,7 @@ devInit()
 
 ;Проверка обновлений
 IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
-if autoUpdate {
+if (autoUpdate && !Globals.Get("debugMode")) {
 	CheckUpdateFromMenu("onStart")
 	SetTimer, CheckUpdate, 10800000
 }
@@ -509,10 +509,10 @@ showStartUI(){
 }
 
 closeStartUI(){
-	sleep 1000
+	sleep 500
 	Gui, StartUI:Destroy
-	If Globals.Get("debugMode") && FileExist(A_WinDir "\Media\Windows Proximity Notification.wav")
-		SoundPlay, %A_WinDir%\Media\Windows Proximity Notification.wav
+	;If Globals.Get("debugMode") && FileExist(A_WinDir "\Media\Windows Proximity Notification.wav")
+		;SoundPlay, %A_WinDir%\Media\Windows Proximity Notification.wav
 }
 
 showSettings(){
@@ -678,10 +678,6 @@ saveSettings(){
 		mouseDistance:=99999
 	
 	IniWrite, %lastImg%, %configFile%, info, lastImg
-	
-	;Временное решение проблемы из моей ошибки
-	If (posH=1)
-		posH:=0
 	
 	;Настройки первой вкладки
 	IniWrite, %posX%/%posY%/%posW%/%posH%, %configFile%, settings, overlayPosition
@@ -912,7 +908,7 @@ checkRequirements() {
 	If !FileExist(A_WinDir "\System32\curl.exe") {
 		If !FileExist(configfolder "\curl.exe") {
 			FileCreateDir, %configFolder%
-			SplashTextOn, 300, 20, %prjName%, Загрузка 'curl.exe'...
+			SplashTextOn, 300, 20, %prjName%, Загрузка утилиты 'curl.exe'...
 			LoadFile("https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/210520/CURL.EXE", configfolder "\curl.exe")
 			MD5Curl:=MD5_File(configfolder "\curl.exe")
 			SplashTextOff
