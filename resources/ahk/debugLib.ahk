@@ -20,7 +20,6 @@ devMenu() {
 		Menu, devMenu, Check, Режим отладки
 	Menu, devMenu, Add, Открыть папку настроек, openConfigFolder
 	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
-	Menu, devMenu, Add, Перезагрузить данные, devReloadData
 	Menu, devMenu, Add, Перезагрузить лабиринт, :devMenu2
 	Menu, devMenu, Add, AutoHotkey, :devMenu1
 }
@@ -29,9 +28,11 @@ switchDebugMode() {
 	if Globals.Get("debugMode") {
 		IniWrite, 0, %configFile%, settings, debugMode
 	} else {
-		MsgBox, 0x1024, %prjName%, Включение режима отладки может сделать работу %prjName% нестабильной!`n`nВы уверены, что хотите продолжить?
-		IfMsgBox No
-			return
+		If !lessMsgs {
+			MsgBox, 0x1024, %prjName%, Включение режима отладки может сделать работу %prjName% нестабильной!`n`nВы уверены, что хотите продолжить?
+			IfMsgBox No
+				return
+		}
 		IniWrite, 1, %configFile%, settings, debugMode
 	}
 	Sleep 500
@@ -50,11 +51,4 @@ devReloadLab(LabURL){
 	FileDelete, %configFolder%\images\Labyrinth.jpg
 	sleep 25
 	downloadLabLayout(LabURL)
-}
-
-;Перезагрузить данные
-devReloadData(){
-	FileRemoveDir, resources\data, 1
-	Sleep 500
-	Reload
 }

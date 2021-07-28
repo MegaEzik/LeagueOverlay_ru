@@ -52,9 +52,9 @@ if InStr(FileExist(A_ScriptDir "\..\Profile"), "D")
 	configFolder:=A_ScriptDir "\..\Profile"
 global configFile:=configFolder "\settings.ini"
 global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, textCmd11, textCmd12, textCmd13, textCmd14, textCmd15, textCmd16, textCmd17, textCmd18, textCmd19, textCmd20, cmdNum=20
-global verScript, LastImg, globalOverlayPosition, OverlayStatus=0
+global verScript, LastImg, lessMsgs, globalOverlayPosition, OverlayStatus=0
 FileReadLine, verScript, resources\Updates.txt, 1
-Globals.Set("UserAgent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36")
+IniRead, lessMsgs, %configFile%, settings, lessMsgs, 0
 
 ;Подсказка в области уведомлений и сообщение при запуске
 Menu, Tray, Tip, %prjName% %verScript% | AHK %A_AhkVersion%
@@ -333,23 +333,26 @@ showLicense(){
 }
 
 clearPoECache(){
-	msgbox, 0x1044, %prjName%, Во время очистки кэша рекомендуется закрыть игру.`n`nХотите продолжить?
-	IfMsgBox Yes
-	{
-		SplashTextOn, 350, 20, %prjName%, Очистка кэша PoE, пожалуйста подождите...
-		
-		PoEConfigFolderPath:=A_MyDocuments "\My Games\Path of Exile"
-		FileRemoveDir, %PoEConfigFolderPath%\OnlineFilters, 1
-		FileDelete, %PoEConfigFolderPath%\*.dmp
-		
-		IniRead, PoECacheFolder, %PoEConfigFolderPath%\production_Config.ini, GENERAL, cache_directory, %A_Space%
-		If (PoECacheFolder="")
-			PoECacheFolder:=A_AppData "\Path of Exile\"
-		FileRemoveDir, %PoECacheFolder%, 1
-		
-		SplashTextOff
-		TrayTip, %prjName%, Очистка кэша завершена)
+	If !lessMsgs {
+		msgbox, 0x1044, %prjName%, Во время очистки кэша рекомендуется закрыть игру.`n`nХотите продолжить?
+		IfMsgBox No
+			return
 	}
+
+	SplashTextOn, 350, 20, %prjName%, Очистка кэша PoE, пожалуйста подождите...
+	
+	PoEConfigFolderPath:=A_MyDocuments "\My Games\Path of Exile"
+	FileRemoveDir, %PoEConfigFolderPath%\OnlineFilters, 1
+	FileDelete, %PoEConfigFolderPath%\*.dmp
+	
+	IniRead, PoECacheFolder, %PoEConfigFolderPath%\production_Config.ini, GENERAL, cache_directory, %A_Space%
+	If (PoECacheFolder="")
+		PoECacheFolder:=A_AppData "\Path of Exile\"
+	FileRemoveDir, %PoECacheFolder%, 1
+	
+	SplashTextOff
+	TrayTip, %prjName%, Очистка кэша завершена)
+	
 	/*				;Резервный способ
 	tmpCmdFile:=A_Temp "\ClearPoE.cmd"
 	FileDelete, %tmpCmdFile%
@@ -432,9 +435,11 @@ cfgPresetMenuShow(){
 
 delPreset(presetName){
 	presetName:=SubStr(presetName, 9)
-	msgbox, 0x1024, %prjName%, Удалить набор '%presetName%'?
-	IfMsgBox No
-		return
+	If !lessMsgs {
+		msgbox, 0x1024, %prjName%, Удалить набор '%presetName%'?
+		IfMsgBox No
+			return
+	}
 	FileDelete, %configFolder%\presets\%presetName%
 	Gui, Settings:Destroy
 	Sleep 25
@@ -540,6 +545,10 @@ showSettings(){
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
 	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, %A_Space%
 	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
+	IniRead, lessMsgs, %configFile%, settings, lessMsgs, 0
+	
+	IniRead, lr, %configFile%, curl, limit-rate, 0
+	IniRead, ct, %configFile%, curl, connect-timeout, 5
 	
 	;Настройки второй вкладки
 	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
@@ -551,15 +560,17 @@ showSettings(){
 	Gui, Settings:Add, Tab, x0 y0 w500 h420, Общие|Быстрые команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
-	Gui, Settings:Add, Checkbox, vautoUpdate x10 y30 w295 Checked%autoUpdate%, Автоматически проверять наличие обновлений
+	Gui, Settings:Add, Checkbox, vautoUpdate x10 y30 w375 Checked%autoUpdate%, Автоматически проверять наличие обновлений
 	
 	;openConfigFolder
 	
 	Gui, Settings:Add, Text, x10 yp+21 w150, Другое окно для проверки:
 	Gui, Settings:Add, Edit, vwindowLine x+2 yp-2 w330 h17, %windowLine%
 	
+	Gui, Settings:Add, Checkbox, vlessMsgs x10 yp+21 w375 Checked%lessMsgs%, Пропускать необязательные предупреждения
+	
 	Gui, Settings:Add, Text, x10 y+3 w485 h1 0x10
-
+	
 	Gui, Settings:Add, Text, x10 yp+6 w190, Позиция области изображений:
 	Gui, Settings:Add, Text, x+7 w12 +Right, X
 	Gui, Settings:Add, Text, x+60 w12 +Right, Y
@@ -592,7 +603,7 @@ showSettings(){
 	Gui, Settings:Add, DropDownList, vpreset2 x+2 w105, %presetList2%
 	GuiControl,Settings:ChooseString, preset2, %preset2%
 	
-	Gui, Settings:Add, Text, x10 yp+25 w375, Смещение указателя:
+	Gui, Settings:Add, Text, x10 yp+25 w375, Смещение указателя(пиксели):
 	Gui, Settings:Add, Edit, vmouseDistance x+2 yp-2 w105 h18 Number, %mouseDistance%
 	Gui, Settings:Add, UpDown, Range5-99999 0x80, %mouseDistance%
 	
@@ -615,6 +626,18 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x10 yp+21 w375, Меню команд:
 	Gui, Settings:Add, Hotkey, vhotkeyCustomCommandsMenu x+2 yp-2 w105 h17, %hotkeyCustomCommandsMenu%
+	
+	Gui, Settings:Add, Text, x10 y+3 w485 h1 0x10
+	
+	Gui, Settings:Add, Text, x10 yp+6 w375, cURL | Ограничение загрузки(Кб/с, 0 - без лимита):
+	Gui, Settings:Add, Edit, vlr x+2 yp-2 w105 h18 Number, %lr%
+	Gui, Settings:Add, UpDown, Range0-99999 0x80, %lr%
+	
+	Gui, Settings:Add, Text, x10 yp+22 w375, cURL | Время соединения(сек.):
+	Gui, Settings:Add, Edit, vct x+2 yp-2 w105 h18 Number, %ct%
+	Gui, Settings:Add, UpDown, Range3-99999 0x80, %ct%
+	
+	
 	
 	Gui, Settings:Tab, 2 ; Вторая вкладка
 	
@@ -693,6 +716,10 @@ saveSettings(){
 	IniWrite, %hotkeyMainMenu%, %configFile%, hotkeys, hotkeyMainMenu
 	IniWrite, %hotkeyItemMenu%, %configFile%, hotkeys, hotkeyItemMenu
 	IniWrite, %hotkeyCustomCommandsMenu%, %configFile%, hotkeys, hotkeyCustomCommandsMenu
+	IniWrite, %lessMsgs%, %configFile%, settings, lessMsgs
+	
+	IniWrite, %lr%, %configFile%, curl, limit-rate
+	IniWrite, %ct%, %configFile%, curl, connect-timeout
 	
 	;Настройки второй вкладки
 	IniWrite, %hotkeyForceSync%, %configFile%, hotkeys, hotkeyForceSync
@@ -802,36 +829,20 @@ openConfigFolder(){
 	Run, explorer "%configFolder%"
 }
 
-LoadFile(URL, FilePath) {
-	FileDelete, %FilePath%
-	Sleep 100
-	
-	;Проверка наличия утилиты Curl
-	If FileExist(A_WinDir "\System32\curl.exe") {
-		CurlLine:="curl "
-	} Else If FileExist(configfolder "\curl.exe") {
-		CurlLine:="""" configFolder "\curl.exe"" "
-	} Else {
-		UrlDownloadToFile, %URL%, %FilePath%
-		return
-	}
-	
-	CurlLine.="-L -A """ Globals.Get("UserAgent") """ -o """ FilePath """" " " """" URL """"
-	RunWait, %CurlLine%
-}
-
 ReStart(){
 	Gdip_Shutdown(pToken)
 	sleep 250
 	Reload
 }
 
+;метка
 showStartNotify(){
-	If (FileExist("readme.txt")) {
-		FileRead, notifyMsg, readme.txt
-		If (notifyMsg!="")
-			msgbox, 0x1040, %prjName% - Уведомление, %notifyMsg%
-		FileDelete, readme.txt
+	If !lessMsgs {
+		If (FileExist("readme.txt")) {
+			textFileWindow("Что нового?", "readme.txt")
+			sleep 500
+			FileDelete, readme.txt
+		}
 	}
 }
 
@@ -887,6 +898,40 @@ timerToolTip() {
 		removeToolTip()
 }
 
+LoadFile(URL, FilePath, MD5="") {
+	FileDelete, %FilePath%
+	Sleep 100
+	
+	;Проверка наличия утилиты Curl
+	If FileExist(A_WinDir "\System32\curl.exe") {
+		CurlLine:="curl "
+	} Else If FileExist(configfolder "\curl.exe") {
+		CurlLine:="""" configFolder "\curl.exe"" "
+	}
+	
+	If (CurlLine!="") {
+		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36"
+		IniRead, lr, %configFile%, curl, limit-rate, 0
+		IniRead, ct, %configFile%, curl, connect-timeout, 5
+		
+		CurlLine.="-L -A """ UserAgent """ -o """ FilePath """" " " """" URL """"
+		If ct>0
+			CurlLine.=" --connect-timeout " ct
+		If lr>0
+			CurlLine.=" --limit-rate " lr "K"
+		RunWait, %CurlLine%, , hide
+	} else {
+		UrlDownloadToFile, %URL%, %FilePath%
+	}
+	
+	If (MD5!="" && MD5!=MD5_File(FilePath)) {
+		FileDelete, %FilePath%
+		Sleep 100
+		return false
+	}
+	return true	
+}
+
 checkRequirements() {
 	;RegExMatch(A_OSVersion, "(\d+)$", OSBuild)
 	OSBuild:=DllCall("GetVersion") >> 16 & 0xFFFF        
@@ -909,15 +954,15 @@ checkRequirements() {
 		If !FileExist(configfolder "\curl.exe") {
 			FileCreateDir, %configFolder%
 			SplashTextOn, 300, 20, %prjName%, Загрузка утилиты 'curl.exe'...
-			LoadFile("https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/210520/CURL.EXE", configfolder "\curl.exe")
-			MD5Curl:=MD5_File(configfolder "\curl.exe")
-			SplashTextOff
-			If (MD5Curl!="ED0470274773DF7CA65C7D3ED3E9335C") {
-				FileDelete, %configfolder%\curl.exe
+			If LoadFile("https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/210520.5/curl.zip", A_Temp "\lo_curl.zip", "F9A76C4CC50F15506A880AB2F94634BC") {
+				unZipArchive(A_Temp "\lo_curl.zip", configFolder "\")
+				FileDelete, %A_Temp%\lo_curl.zip
+			} else {
 				msgtext:="В вашей системе не найдена утилита 'curl.exe', без нее работа " prjName " невозможна!`n`nДля устранения этой проблемы скачайте утилиту 'curl.exe' вручную и поместите ее в папку: " configFolder
 				MsgBox, 0x1010, %prjName%, %msgtext%
 				ExitApp
 			}
+			SplashTextOff
 		}
 	}
 }

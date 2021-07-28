@@ -22,12 +22,6 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra") {
 		return
 	}
 		
-	;Проверка наличия утилиты Curl
-	If !FileExist(A_WinDir "\System32\curl.exe") && !FileExist(configfolder "\curl.exe") {
-		msgbox, 0x1040, %prjName% - Загрузка лабиринта, В вашей системе не найдена утилита Curl.exe!`nЗагрузка лабиринта без нее невозможна!`n`nДля устранения проблемы скачайте 'Curl.exe' и поместите ее в 'Папку настроек'!, 15
-		return
-	}
-	
 	;Если режим разработчика не включен, то откроем сайт
 	If !Globals.Get("debugMode")
 		run, %LabURL%
@@ -84,22 +78,6 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra") {
 		return
 	}
 	
-	/*
-	;Удалим и другие лабиринты
-	If FileExist(configFolder "\images\Labyrinth.jpg") {
-		FileDelete, %configFolder%\images\*_normal.jpg
-		FileDelete, %configFolder%\images\*_cruel.jpg
-		FileDelete, %configFolder%\images\*_merciless.jpg
-		FileDelete, %configFolder%\images\*_uber.jpg
-	}
-	*/
-	
-	;MiniLab
-	/*
-	If FileExist(configfolder "\MiniLab\ImageMagick_Convert.exe")
-		RunWait *RunAs "%configFolder%\MiniLab\ImageMagick_Convert.exe" "%configFolder%\images\Labyrinth.jpg" -crop 806x250+305+130 "%configFolder%\MiniLab\Lab.jpg"
-	*/
-	
 	;Запишем дату загрузки лабиринта
 	IniWrite, %CurrentDate%, %cfgLab%, info, labLoadDate
 	sleep 100
@@ -151,7 +129,7 @@ autoSaveLabTrials() {
 		IniWrite, %trialD%, %cfgLab%, LabTrials, trialD
 		IniWrite, %trialE%, %cfgLab%, LabTrials, trialE
 		IniWrite, %trialF%, %cfgLab%, LabTrials, trialF
-		If (trialsStatus<сompletionLabTrials()){
+		If (trialsStatus<сompletionLabTrials() && !lessMsgs){
 			msgtext:="Поздравляю, вы завершили все испытания лабиринта)`n" prjName " уберет этот пункт из 'Быстрого доступа'!`n`nЕсли понадобится вернуть, то уберите отметки, через аналогичный пункт в 'Области уведомлений'!"
 			msgbox, 0x1040, %prjName% - Испытания завершены, %msgtext%, 15
 		}

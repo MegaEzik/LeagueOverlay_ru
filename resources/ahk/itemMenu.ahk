@@ -25,8 +25,10 @@ ItemMenu_Show(){
 	
 	If (RegExMatch(ItemDataSplit[1], "Класс предмета: (.*)", ItemClass) && RegExMatch(ItemDataSplit[2], "Редкость: (.*)", Rarity)) {
 		;Пункт для открытия на PoEDB
-		Menu, itemMenu, Add, >%ItemName%, ItemMenu_OpenOnPoEDB
-		Menu, itemMenu, Add
+		If (Rarity1!="Волшебный") {
+			Menu, itemMenu, Add, PoEDB>%ItemName%, ItemMenu_OpenOnPoEDB
+			Menu, itemMenu, Add
+		}
 		;Пункт для копирования имени предмета
 		ItemMenu_AddCopyInBuffer(ItemName)
 		rlvl:=IDCL_lvlRarity(ItemData) ;Оценим тип предмета по его редкости и описанию
@@ -144,7 +146,7 @@ ItemMenu_AddHightlight(Line){
 }
 
 ItemMenu_OpenOnPoEDB(Line){
-	Line:=SubStr(Line, 2)
+	Line:=SubStr(Line, 7)
 	run, "https://poedb.tw/ru/search.php?q=%Line%"
 	return
 }
