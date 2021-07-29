@@ -28,11 +28,9 @@ switchDebugMode() {
 	if Globals.Get("debugMode") {
 		IniWrite, 0, %configFile%, settings, debugMode
 	} else {
-		If !lessMsgs {
-			MsgBox, 0x1024, %prjName%, Включение режима отладки может сделать работу %prjName% нестабильной!`n`nВы уверены, что хотите продолжить?
-			IfMsgBox No
-				return
-		}
+		MsgBox, 0x1024, %prjName%, Включение режима отладки может сделать работу %prjName% нестабильной!`n`nВы уверены, что хотите продолжить?
+		IfMsgBox No
+			return
 		IniWrite, 1, %configFile%, settings, debugMode
 	}
 	Sleep 500

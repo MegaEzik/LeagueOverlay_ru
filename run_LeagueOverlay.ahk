@@ -52,9 +52,8 @@ if InStr(FileExist(A_ScriptDir "\..\Profile"), "D")
 	configFolder:=A_ScriptDir "\..\Profile"
 global configFile:=configFolder "\settings.ini"
 global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, textCmd11, textCmd12, textCmd13, textCmd14, textCmd15, textCmd16, textCmd17, textCmd18, textCmd19, textCmd20, cmdNum=20
-global verScript, LastImg, lessMsgs, globalOverlayPosition, OverlayStatus=0
+global verScript, LastImg, globalOverlayPosition, OverlayStatus=0
 FileReadLine, verScript, resources\Updates.txt, 1
-IniRead, lessMsgs, %configFile%, settings, lessMsgs, 0
 
 ;Подсказка в области уведомлений и сообщение при запуске
 Menu, Tray, Tip, %prjName% %verScript% | AHK %A_AhkVersion%
@@ -74,7 +73,7 @@ if (autoUpdate && !Globals.Get("debugMode")) {
 checkRequirements()
 
 ;Проверим файл конфигурации
-IniRead, verConfig, %configFile%, info, verConfig, ""
+IniRead, verConfig, %configFile%, info, verConfig, 0
 if (verConfig!=verScript) {
 	showSettings()
 	FileDelete, %configFile%
@@ -127,12 +126,6 @@ setHotkeys()
 
 ;Скроем сообщение загрузки
 closeStartUI()
-
-;Покажем уведомление, если таковое было вложено в пакет с макросом
-showStartNotify()
-
-;Иногда после запуска будем предлагать поддержать проект
-showDonateUIOnStart()
 
 Return
 
@@ -333,11 +326,9 @@ showLicense(){
 }
 
 clearPoECache(){
-	If !lessMsgs {
-		msgbox, 0x1044, %prjName%, Во время очистки кэша рекомендуется закрыть игру.`n`nХотите продолжить?
-		IfMsgBox No
-			return
-	}
+	msgbox, 0x1044, %prjName%, Во время очистки кэша рекомендуется закрыть игру.`n`nХотите продолжить?
+	IfMsgBox No
+		return
 
 	SplashTextOn, 350, 20, %prjName%, Очистка кэша PoE, пожалуйста подождите...
 	
@@ -435,11 +426,9 @@ cfgPresetMenuShow(){
 
 delPreset(presetName){
 	presetName:=SubStr(presetName, 9)
-	If !lessMsgs {
-		msgbox, 0x1024, %prjName%, Удалить набор '%presetName%'?
-		IfMsgBox No
-			return
-	}
+	msgbox, 0x1024, %prjName%, Удалить набор '%presetName%'?
+	IfMsgBox No
+		return
 	FileDelete, %configFolder%\presets\%presetName%
 	Gui, Settings:Destroy
 	Sleep 25
@@ -518,6 +507,12 @@ closeStartUI(){
 	Gui, StartUI:Destroy
 	;If Globals.Get("debugMode") && FileExist(A_WinDir "\Media\Windows Proximity Notification.wav")
 		;SoundPlay, %A_WinDir%\Media\Windows Proximity Notification.wav
+	IniRead, showHistory, %configFile%, info, showHistory, 1
+	If showHistory {
+		showUpdateHistory()
+		IniWrite, 0, %configFile%, info, showHistory
+	}
+	showDonateUIOnStart()
 }
 
 showSettings(){
@@ -545,8 +540,8 @@ showSettings(){
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
 	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, %A_Space%
 	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
-	IniRead, lessMsgs, %configFile%, settings, lessMsgs, 0
 	
+	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	IniRead, lr, %configFile%, curl, limit-rate, 0
 	IniRead, ct, %configFile%, curl, connect-timeout, 5
 	
@@ -566,8 +561,6 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x10 yp+21 w150, Другое окно для проверки:
 	Gui, Settings:Add, Edit, vwindowLine x+2 yp-2 w330 h17, %windowLine%
-	
-	Gui, Settings:Add, Checkbox, vlessMsgs x10 yp+21 w375 Checked%lessMsgs%, Пропускать необязательные предупреждения
 	
 	Gui, Settings:Add, Text, x10 y+3 w485 h1 0x10
 	
@@ -629,7 +622,10 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x10 y+3 w485 h1 0x10
 	
-	Gui, Settings:Add, Text, x10 yp+6 w375, cURL | Ограничение загрузки(Кб/с, 0 - без лимита):
+	Gui, Settings:Add, Text, x10 yp+6 w150, cURL | User Agent:
+	Gui, Settings:Add, Edit, vUserAgent x+2 yp-2 w330 h17, %UserAgent%
+	
+	Gui, Settings:Add, Text, x10 yp+21 w375, cURL | Ограничение загрузки(Кб/с, 0 - без лимита):
 	Gui, Settings:Add, Edit, vlr x+2 yp-2 w105 h18 Number, %lr%
 	Gui, Settings:Add, UpDown, Range0-99999 0x80, %lr%
 	
@@ -716,8 +712,8 @@ saveSettings(){
 	IniWrite, %hotkeyMainMenu%, %configFile%, hotkeys, hotkeyMainMenu
 	IniWrite, %hotkeyItemMenu%, %configFile%, hotkeys, hotkeyItemMenu
 	IniWrite, %hotkeyCustomCommandsMenu%, %configFile%, hotkeys, hotkeyCustomCommandsMenu
-	IniWrite, %lessMsgs%, %configFile%, settings, lessMsgs
 	
+	IniWrite, %UserAgent%, %configFile%, curl, user-agent
 	IniWrite, %lr%, %configFile%, curl, limit-rate
 	IniWrite, %ct%, %configFile%, curl, connect-timeout
 	
@@ -835,17 +831,6 @@ ReStart(){
 	Reload
 }
 
-;метка
-showStartNotify(){
-	If !lessMsgs {
-		If (FileExist("readme.txt")) {
-			textFileWindow("Что нового?", "readme.txt")
-			sleep 500
-			FileDelete, readme.txt
-		}
-	}
-}
-
 showDonateUIOnStart() {
 	;Иногда после запуска будем предлагать поддержать проект
 	Random, randomNum, 1, 10
@@ -910,9 +895,9 @@ LoadFile(URL, FilePath, MD5="") {
 	}
 	
 	If (CurlLine!="") {
-		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36"
-		If FileExist(configfolder "\UserAgent.txt")
-			FileReadLine, UserAgent, %configFolder%\UserAgent.txt, 1
+		IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
+		If (UserAgent="")
+			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36"
 		IniRead, lr, %configFile%, curl, limit-rate, 0
 		IniRead, ct, %configFile%, curl, connect-timeout, 5
 		
