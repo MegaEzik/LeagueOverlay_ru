@@ -911,6 +911,8 @@ LoadFile(URL, FilePath, MD5="") {
 	
 	If (CurlLine!="") {
 		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36"
+		If FileExist(configfolder "\UserAgent.txt")
+			FileReadLine, UserAgent, %configFolder%\UserAgent.txt, 1
 		IniRead, lr, %configFile%, curl, limit-rate, 0
 		IniRead, ct, %configFile%, curl, connect-timeout, 5
 		
