@@ -92,7 +92,7 @@ ItemMenu_Show(){
 				ItemMenu_AddHightlight(findtext1)
 			If RegExMatch(ItemDataSplit[k], "Уровень карты: (.*)", findtext)
 				ItemMenu_AddHightlight("tier:" findtext1)
-			If ((ItemClass1="Чертёж" || ItemClass1="Контракт") && RegExMatch(ItemDataSplit[k], "Требуется (.*) \(", findtext))
+			If ((ItemClass1="Чертежи" || ItemClass1="Контракты") && RegExMatch(ItemDataSplit[k], "Требуется (.*) \(", findtext))
 				ItemMenu_AddHightlight(findtext1)
 			;If (ItemName="Хроники Ацоатля" && RegExMatch(ItemDataSplit[k], "(.*) \(Уровень \d+\)", findtext))
 			If (ItemName="Хроники Ацоатля" && RegExMatch(ItemDataSplit[k], "(.*) \(Уровень 3\)", findtext))
@@ -147,7 +147,8 @@ ItemMenu_AddHightlight(Line){
 
 ItemMenu_OpenOnPoEDB(Line){
 	Line:=SubStr(Line, 7)
-	run, "https://poedb.tw/ru/search.php?q=%Line%"
+	;run, "https://poedb.tw/ru/search.php?q=%Line%"
+	run, "https://poedb.tw/ru/search?q=%Line%"
 	return
 }
 
