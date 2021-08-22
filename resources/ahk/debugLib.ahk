@@ -46,7 +46,17 @@ devRestoreRelease() {
 
 ;Перезагрузить лабиринт
 devReloadLab(LabURL){
+	msg:="Загрузка лабиринта, пожалуйста подождите..."
+	SplashTextOn, 400, 20, %prjName%, %msg%
 	FileDelete, %configFolder%\images\Labyrinth.jpg
 	sleep 25
-	downloadLabLayout(LabURL)
+	downloadLabLayout(LabURL, true)
+	SplashTextOff
+}
+
+devLog(msg){
+	If Globals.Get("debugMode") {
+		FormatTime, Time, dddd MMMM, dd.MM HH:mm:ss
+		FileAppend, %Time% - %msg%`n, %configFolder%\dev.log, UTF-8
+	}
 }

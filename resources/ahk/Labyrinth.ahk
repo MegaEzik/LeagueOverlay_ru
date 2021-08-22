@@ -1,7 +1,11 @@
 ﻿
 ;Загрузка изображения с раскладкой лабиринта соответствующего уровня
-downloadLabLayout(LabURL="https://www.poelab.com/wfbra") {
+downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false) {
 	cfgLab:=configFolder "\trials.ini"
+	
+	IniRead, loadLab, %configFile%, settings, loadLab, 0
+	If !loadLab
+		return
 
 	;Сравним текущую дату UTC с датой загрузки лабиринта 
 	IniRead, labLoadDate, %cfgLab%, info, labLoadDate, %A_Space%
@@ -9,22 +13,21 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra") {
 	If (CurrentDate==labLoadDate && FileExist(configFolder "\images\Labyrinth.jpg"))
 		return
 	
+	;В это время раскладка лабиринта может быть недоступной
+	FormatTime, Hour, %A_NowUTC%, H
+	If (Hour<1) {
+		;msgbox, 0x1040, %prjName% - Загрузка лабиринта, Повторите попытку после 4:00 по МСК), 3
+		return
+	}
+	
+	;Отроем сайт, если загрузка осуществляется по время запуска макроса
+	If openPage
+		run, %LabURL%
+		
 	;Очистка файлов
 	FileDelete, %A_Temp%\labmain.html
 	FileDelete, %A_Temp%\labpage.html
 	FileDelete, %configFolder%\images\Labyrinth.jpg
-	;FileDelete, %A_ScriptDir%\MiniLab\Lab.jpg
-	
-	;В это время раскладка лабиринта может быть недоступной
-	FormatTime, Hour, %A_NowUTC%, H
-	If (Hour<1) {
-		msgbox, 0x1040, %prjName% - Загрузка лабиринта, Повторите попытку после 4:00 по МСК), 3
-		return
-	}
-		
-	;Если режим разработчика не включен, то откроем сайт
-	If !Globals.Get("debugMode")
-		run, %LabURL%
 	
 	/*
 	;Загружаем основную страницу и извлекаем ссылку на страницу с убер-лабой
@@ -62,7 +65,9 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra") {
 	}
 	FileDelete, %A_Temp%\labpage.html
 	If (StrLen(URL1)<23 || StrLen(URL1)>100) {
-		msgbox, 0x1010, %prjName% - Загрузка лабиринта, Не удалось скачать страницу с раскладкой!, 3
+		TrayTip, %prjName% - Загрузка лабиринта, Не удалось скачать страницу с раскладкой!
+		devLog("Не удалось скачать страницу с раскладкой!")
+		;msgbox, 0x1010, %prjName% - Загрузка лабиринта, Не удалось скачать страницу с раскладкой!, 3
 		return
 	}
 	
@@ -74,13 +79,20 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra") {
 	FileReadLine, Line, %configFolder%\images\Labyrinth.jpg, 1
 	If (Line="" || (InStr(Line, "<") && InStr(Line, ">")) || InStr(Line, "ban") || InStr(Line, "error")) {
 		FileDelete, %configFolder%\images\Labyrinth.jpg
-		MsgBox, 0x1010, %prjName% - Загрузка лабиринта, Получен некорректный файл лабиринта!, 5
+		TrayTip, %prjName% - Загрузка лабиринта, Получен некорректный файл лабиринта!
+		devLog("Получен некорректный файл лабиринта!")
+		;MsgBox, 0x1010, %prjName% - Загрузка лабиринта, Получен некорректный файл лабиринта!, 5
 		return
 	}
 	
 	;Запишем дату загрузки лабиринта
 	IniWrite, %CurrentDate%, %cfgLab%, info, labLoadDate
 	sleep 100
+}
+
+checkLab(){
+	downloadLabLayout(,true)
+	SetTimer, downloadLabLayout, 3600000
 }
 
 ;Создание интерфейса с испытаниями

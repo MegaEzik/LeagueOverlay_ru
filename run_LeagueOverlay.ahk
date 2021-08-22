@@ -86,9 +86,7 @@ if (verConfig!=verScript) {
 }
 
 ;Скачаем раскладку лабиринта
-IniRead, loadLab, %configFile%, settings, loadLab, 0
-If loadLab
-	downloadLabLayout()
+checkLab()
 
 ;Запуск gdi+
 If !pToken:=Gdip_Startup()
@@ -287,13 +285,13 @@ textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 	Gui, tfwGui:Font, s10, Consolas
 	FileRead, tfwContentFile, %tfwFilePath%
 	if ReadOnlyStatus {
-		Gui, tfwGui:Add, Edit, w580 h400 +ReadOnly, %tfwContentFile%
+		Gui, tfwGui:Add, Edit, w615 h380 +ReadOnly, %tfwContentFile%
 	} else {
 		if (tfwContentFile="" && contentDefault!="")
 			tfwContentFile:=contentDefault
 		Menu, tfwMenuBar, Add, Сохранить `tCtrl+S, tfwSave
 		Gui, tfwGui:Menu, tfwMenuBar
-		Gui, tfwGui:Add, Edit, w580 h400 vtfwContentFile, %tfwContentFile%
+		Gui, tfwGui:Add, Edit, w615 h380 vtfwContentFile, %tfwContentFile%
 	}
 	Gui, tfwGui:+AlwaysOnTop -MinimizeBox -MaximizeBox
 	Gui, tfwGui:Show,, %prjName% - %Title%
@@ -480,11 +478,9 @@ showStartUI(){
 	Random, randomNum, 1, dNames.MaxIndex()
 	dName:="Спасибо, " dNames[randomNum] ") "
 	
-	Gui, StartUI:Add, Progress, w500 h26 x0 y0 Background6190B7
-	;Gui, StartUI:Add, Progress, w500 h26 x0 y0 Background481D05
+	Gui, StartUI:Add, Progress, w500 h26 x0 y0 Background481D05
 
-	Gui, StartUI:Font, s12 c1F313B bold
-	;Gui, StartUI:Font, s12 cFEC076 bold
+	Gui, StartUI:Font, s12 cFEC076 bold
 	
 	Gui, StartUI:Add, Text, x5 y3 h20 w490 +Center BackgroundTrans, %prjName% %verScript% | AHK %A_AhkVersion%
 	
@@ -543,28 +539,28 @@ showSettings(){
 	
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	IniRead, lr, %configFile%, curl, limit-rate, 0
-	IniRead, ct, %configFile%, curl, connect-timeout, 5
+	IniRead, ct, %configFile%, curl, connect-timeout, 10
 	
 	;Настройки второй вкладки
 	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
 	IniRead, hotkeyToCharacterSelection, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
 	
-	Gui, Settings:Add, Button, x0 y420 w500 h25 gsaveSettings, Применить и перезапустить ;💾 465
-	Gui, Settings:Add, Link, x200 y4 w295 +Right, <a href="https://www.autohotkey.com/download/">AutoHotKey</a> | <a href="https://ru.pathofexile.com/forum/view-thread/2694683">Тема на Форуме</a> | <a href="https://github.com/MegaEzik/LeagueOverlay_ru/releases">Страница на GitHub</a>
+	Gui, Settings:Add, Button, x0 y385 w640 h30 gsaveSettings, Применить и перезапустить ;💾 465
+	Gui, Settings:Add, Link, x230 y4 w405 +Right, <a href="https://www.autohotkey.com/download/">AutoHotKey</a> | <a href="https://ru.pathofexile.com/forum/view-thread/2694683">Тема на Форуме</a> | <a href="https://github.com/MegaEzik/LeagueOverlay_ru/releases">Страница на GitHub</a>
 	
-	Gui, Settings:Add, Tab, x0 y0 w500 h420, Общие|Быстрые команды ;Вкладки
+	Gui, Settings:Add, Tab, x0 y0 w640 h385, Основные|cURL|Команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
-	Gui, Settings:Add, Checkbox, vautoUpdate x10 y30 w375 Checked%autoUpdate%, Автоматически проверять наличие обновлений
+	Gui, Settings:Add, Checkbox, vautoUpdate x12 y30 w525 Checked%autoUpdate%, Автоматически проверять наличие обновлений
 	
 	;openConfigFolder
 	
-	Gui, Settings:Add, Text, x10 yp+21 w150, Другое окно для проверки:
-	Gui, Settings:Add, Edit, vwindowLine x+2 yp-2 w330 h17, %windowLine%
+	Gui, Settings:Add, Text, x12 yp+21 w150, Другое окно для проверки:
+	Gui, Settings:Add, Edit, vwindowLine x+2 yp-2 w465 h17, %windowLine%
 	
-	Gui, Settings:Add, Text, x10 y+3 w485 h1 0x10
+	Gui, Settings:Add, Text, x10 y+3 w620 h1 0x12
 	
-	Gui, Settings:Add, Text, x10 yp+6 w190, Позиция области изображений:
+	Gui, Settings:Add, Text, x12 yp+6 w325, Позиция области изображений:
 	Gui, Settings:Add, Text, x+7 w12 +Right, X
 	Gui, Settings:Add, Text, x+60 w12 +Right, Y
 	Gui, Settings:Add, Text, x+60 w12 +Right, W
@@ -586,69 +582,70 @@ showSettings(){
 		presetList2.="|" A_LoopFileName
 	presetList1:=SubStr(presetList2, 2)
 	
-	Gui, Settings:Add, Text, x10 yp+24 w245, Наборы:
+	Gui, Settings:Add, Text, x12 yp+24 w410, Наборы:
 	;Gui, Settings:Add, Button, x+1 yp-4 w23 h23 gcopyPreset, 📄
 	;Gui, Settings:Add, Button, x+0 w23 h23 geditPreset, ✏
 	Gui, Settings:Add, Button, x+1 yp-4 w23 h23 gcfgPresetMenuShow, ☰
-	Gui, Settings:Add, DropDownList, vpreset1 x+1 yp+1 w105, %presetList1%
+	Gui, Settings:Add, DropDownList, vpreset1 x+1 yp+1 w90, %presetList1%
 	GuiControl,Settings:ChooseString, preset1, %preset1%
 	
-	Gui, Settings:Add, DropDownList, vpreset2 x+2 w105, %presetList2%
+	Gui, Settings:Add, DropDownList, vpreset2 x+2 w90, %presetList2%
 	GuiControl,Settings:ChooseString, preset2, %preset2%
 	
-	Gui, Settings:Add, Text, x10 yp+25 w375, Смещение указателя(пиксели):
-	Gui, Settings:Add, Edit, vmouseDistance x+2 yp-2 w105 h18 Number, %mouseDistance%
+	Gui, Settings:Add, Text, x12 yp+26 w525, Смещение указателя(пиксели):
+	Gui, Settings:Add, Edit, vmouseDistance x+2 yp-2 w90 h18 Number, %mouseDistance%
 	Gui, Settings:Add, UpDown, Range5-99999 0x80, %mouseDistance%
 	
-	Gui, Settings:Add, Checkbox, vexpandMyImages x10 yp+23 w375 Checked%expandMyImages%, Развернуть 'Мои изображения'
-	Gui, Settings:Add, Button, x+1 yp-4 w107 h23 gopenMyImagesFolder, Открыть папку
+	Gui, Settings:Add, Checkbox, vexpandMyImages x12 yp+24 w525 Checked%expandMyImages%, Развернуть 'Мои изображения'
+	Gui, Settings:Add, Button, x+1 yp-4 w92 h23 gopenMyImagesFolder, Открыть папку
 	
-	Gui, Settings:Add, Checkbox, vloadLab x10 yp+25 w375 Checked%loadLab%, Скачивать лабиринт(Мои изображения>Labyrinth.jpg)
-	Gui, Settings:Add, Link, x+2 yp+0, <a href="https://www.poelab.com/">POELab.com</a>
+	Gui, Settings:Add, Checkbox, vloadLab x12 yp+26 w525 Checked%loadLab%, Скачивать лабиринт(Мои изображения>Labyrinth.jpg)
+	Gui, Settings:Add, Link, x+2 yp+0 w90 +Right, <a href="https://www.poelab.com/">POELab.com</a>
 	
-	Gui, Settings:Add, Text, x10 y+3 w485 h1 0x10
+	Gui, Settings:Add, Text, x10 y+3 w620 h1 0x12
 	
-	Gui, Settings:Add, Text, x10 yp+6 w375, Последнее изображение:
-	Gui, Settings:Add, Hotkey, vhotkeyLastImg x+2 yp-2 w105 h17, %hotkeyLastImg%
+	Gui, Settings:Add, Text, x12 yp+6 w525, Последнее изображение:
+	Gui, Settings:Add, Hotkey, vhotkeyLastImg x+2 yp-2 w90 h17, %hotkeyLastImg%
 	
-	Gui, Settings:Add, Text, x10 yp+21 w375, Меню быстрого доступа:
-	Gui, Settings:Add, Hotkey, vhotkeyMainMenu x+2 yp-2 w105 h17, %hotkeyMainMenu%
+	Gui, Settings:Add, Text, x12 yp+21 w525, Меню быстрого доступа:
+	Gui, Settings:Add, Hotkey, vhotkeyMainMenu x+2 yp-2 w90 h17, %hotkeyMainMenu%
 	
-	Gui, Settings:Add, Text, x10 yp+21 w375, Меню предмета:
-	Gui, Settings:Add, Hotkey, vhotkeyItemMenu x+2 yp-2 w105 h17, %hotkeyItemMenu%
+	Gui, Settings:Add, Text, x12 yp+21 w525, Меню предмета:
+	Gui, Settings:Add, Hotkey, vhotkeyItemMenu x+2 yp-2 w90 h17, %hotkeyItemMenu%
 	
-	Gui, Settings:Add, Text, x10 yp+21 w375, Меню команд:
-	Gui, Settings:Add, Hotkey, vhotkeyCustomCommandsMenu x+2 yp-2 w105 h17, %hotkeyCustomCommandsMenu%
+	Gui, Settings:Tab, 2 ;Вторая вкладка
 	
-	Gui, Settings:Add, Text, x10 y+3 w485 h1 0x10
+	Gui, Settings:Add, Text, x12 y30 w150, User-Agent:
+	Gui, Settings:Add, Edit, vUserAgent x+2 yp-2 w465 h17, %UserAgent%
 	
-	Gui, Settings:Add, Text, x10 yp+6 w150, cURL | User Agent:
-	Gui, Settings:Add, Edit, vUserAgent x+2 yp-2 w330 h17, %UserAgent%
-	
-	Gui, Settings:Add, Text, x10 yp+21 w375, cURL | Ограничение загрузки(Кб/с, 0 - без лимита):
-	Gui, Settings:Add, Edit, vlr x+2 yp-2 w105 h18 Number, %lr%
+	Gui, Settings:Add, Text, x12 yp+21 w525, Ограничение загрузки(Кб/с, 0 - без лимита):
+	Gui, Settings:Add, Edit, vlr x+2 yp-2 w90 h18 Number, %lr%
 	Gui, Settings:Add, UpDown, Range0-99999 0x80, %lr%
 	
-	Gui, Settings:Add, Text, x10 yp+22 w375, cURL | Время соединения(сек.):
-	Gui, Settings:Add, Edit, vct x+2 yp-2 w105 h18 Number, %ct%
+	Gui, Settings:Add, Text, x12 yp+22 w525, Время соединения(сек.):
+	Gui, Settings:Add, Edit, vct x+2 yp-2 w90 h18 Number, %ct%
 	Gui, Settings:Add, UpDown, Range3-99999 0x80, %ct%
 	
+	Gui, Settings:Tab, 3 ; Третья вкладка
 	
+	Gui, Settings:Add, Text, x12 y30 w526, Меню команд:
+	Gui, Settings:Add, Hotkey, vhotkeyCustomCommandsMenu x+2 yp-2 w90 h17, %hotkeyCustomCommandsMenu%
 	
-	Gui, Settings:Tab, 2 ; Вторая вкладка
+	Gui, Settings:Add, Text, x10 y+3 w620 h1 0x12
 	
-	Gui, Settings:Add, Text, x10 y30 w120 +right, /exit(к персонажам):
-	Gui, Settings:Add, Hotkey, vhotkeyToCharacterSelection x+1 yp-2 w105 h17, %hotkeyToCharacterSelection%
+	Gui, Settings:Add, Text, x12 yp+6 w215, /exit(к персонажам):
+	Gui, Settings:Add, Hotkey, vhotkeyToCharacterSelection x+2 yp-2 w90 h17, %hotkeyToCharacterSelection%
 	
-	Gui, Settings:Add, Text, x+30 yp+2 w120 +right, /oos(синхронизация):
-	Gui, Settings:Add, Hotkey, vhotkeyForceSync x+1 yp-2 w105 h17, %hotkeyForceSync%
+	Gui, Settings:Add, Text, x+4 yp+2 w215, /oos(синхронизация):
+	Gui, Settings:Add, Hotkey, vhotkeyForceSync x+2 yp-2 w90 h17, %hotkeyForceSync%
 	
-	Gui, Settings:Add, Text, x10 y+3 w485 h1 0x10
+	;Gui, Settings:Add, Text, x12 y+3 w620 h1 0x12
 	
-	Gui, Settings:Add, Text, x10 yp-14 w0 h0
+	;Gui, Settings:Add, Text, x12 yp-14 w0 h0
 	
 	;Настраиваемые команды fastReply
-	Loop %cmdNum% {
+	LoopVar:=cmdNum/2
+	Loop %LoopVar% {
 		IniRead, tempVar, %configFile%, fastReply, textCmd%A_Index%, %A_Space%
 		if (tempVar="") {
 			If A_Index=1
@@ -668,14 +665,26 @@ showSettings(){
 			If A_Index=8
 				tempVar:="_ty & gl, exile)"
 		}
-		Gui, Settings:Add, Edit, vtextCmd%A_Index% x10 yp+18 w375 h17, %tempVar%
+		Gui, Settings:Add, Edit, vtextCmd%A_Index% x12 yp+19 w215 h17, %tempVar%
 		
 		IniRead, tempVar, %configFile%, fastReply, hotkeyCmd%A_Index%, %A_Space%
-		Gui, Settings:Add, Hotkey, vhotkeyCmd%A_Index% x+2 w105 h17, %tempVar%
+		Gui, Settings:Add, Hotkey, vhotkeyCmd%A_Index% x+2 w90 h17, %tempVar%
+		
+		TwoColumn:=Round(LoopVar+A_Index)
+		IniRead, tempVar, %configFile%, fastReply, textCmd%TwoColumn%, %A_Space%
+		Gui, Settings:Add, Edit, vtextCmd%TwoColumn% x+4 w215 h17, %tempVar%
+		IniRead, tempVar, %configFile%, fastReply, hotkeyCmd%TwoColumn%, %A_Space%
+		Gui, Settings:Add, Hotkey, vhotkeyCmd%TwoColumn% x+2 w90 h17, %tempVar%
+		;Msgbox, %TwoColumn%
 	}
 	
+	helptext:="/dance - простая команда чата`n/whois <last> - команда в отношении последнего игрока`n@<last> ty, gl) - сообщение последнему игроку`n_ty, gl) - сообщение в чат области`n%ty, gl) - сообщение в групповой чат`n>calc.exe - открытие программы или веб страницы`n<configFolder>\images\Labyrinth.jpg - изображение"
+	helptext2:="--- - разделитель(только в 'Меню команд')`n;/dance - комментарий(команда будет проигнорирована)`n<configFolder> - указывает папку настроек(переменная)`n<time> - время UTC(переменная)`n<inputbox> - позволяет ввести текст(переменная)"
+	Gui, Settings:Add, Text, x12 y+2 w307 cGray, %helptext%
+	Gui, Settings:Add, Text, x+2 w307 cGray, %helptext2%
+	
 	Gui, Settings:+AlwaysOnTop -MinimizeBox -MaximizeBox
-	Gui, Settings:Show, w500 h445, %prjName% %VerScript% | AHK %A_AhkVersion% - Настройки ;Отобразить окно настроек
+	Gui, Settings:Show, w640 h415, %prjName% %VerScript% | AHK %A_AhkVersion% - Настройки ;Отобразить окно настроек
 }
 
 saveSettings(){
@@ -859,16 +868,18 @@ showDonateUI() {
 	Gui, DonateUI:Show, w320 h165, Поддержать/Задонатить %githubUser%
 }
 
-showToolTip(msg, t=0) {
+showToolTip(msg, t=0, umd=true) {
 	ToolTip
 	sleep 5
 	ToolTip, %msg%
 	if t!=0
 		SetTimer, removeToolTip, %t%
-	MouseGetPos, CurrX, CurrY
-	Globals.Set("ttCurrStartPosX", CurrX)
-	Globals.Set("ttCurrStartPosY", CurrY)
-	SetTimer, timerToolTip, 50
+	if umd {
+		MouseGetPos, CurrX, CurrY
+		Globals.Set("ttCurrStartPosX", CurrX)
+		Globals.Set("ttCurrStartPosY", CurrY)
+		SetTimer, timerToolTip, 50
+	}
 }
 
 removeToolTip() {
@@ -899,7 +910,7 @@ LoadFile(URL, FilePath, MD5="") {
 		If (UserAgent="")
 			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36"
 		IniRead, lr, %configFile%, curl, limit-rate, 0
-		IniRead, ct, %configFile%, curl, connect-timeout, 5
+		IniRead, ct, %configFile%, curl, connect-timeout, 10
 		
 		CurlLine.="-L -A """ UserAgent """ -o """ FilePath """" " " """" URL """"
 		If ct>0
@@ -910,6 +921,8 @@ LoadFile(URL, FilePath, MD5="") {
 	} else {
 		UrlDownloadToFile, %URL%, %FilePath%
 	}
+	
+	devLog(CurlLine)
 	
 	If (MD5!="" && MD5!=MD5_File(FilePath)) {
 		FileDelete, %FilePath%
