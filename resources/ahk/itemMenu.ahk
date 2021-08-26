@@ -117,7 +117,15 @@ ItemMenu_Show(){
 		}
 		
 	} Else {
-		showToolTip("ОШИБКА: Буфер обмена пуст, окно не в фокусе`n`tили не удалось определить тип предмета!", 5000)
+		;showToolTip("ОШИБКА: Буфер обмена пуст, окно не в фокусе`n`tили не удалось определить тип предмета!", 5000)
+		FileRead, hightlightData, %configFolder%\highlight.txt
+		hightlightDataSplit:=strSplit(StrReplace(hightlightData, "`r", ""), "`n")
+		For k, val in hightlightDataSplit
+			ItemMenu_AddHightlight(hightlightDataSplit[k])
+		Menu, itemMenu, Add
+		Menu, itemMenu, Add, Добавить подсветку, ItemMenu_customHightlight
+		
+		Menu, itemMenu, Show
 		return
 	}
 	
@@ -126,7 +134,6 @@ ItemMenu_Show(){
 	For k, val in hightlightDataSplit
 		If RegExMatch(ItemData, hightlightDataSplit[k])
 			ItemMenu_AddHightlight(hightlightDataSplit[k])
-	
 	Menu, itemMenu, Add
 	Menu, itemMenu, Add, Добавить подсветку, ItemMenu_customHightlight
 	

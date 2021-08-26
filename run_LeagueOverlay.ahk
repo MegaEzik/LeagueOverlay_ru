@@ -65,7 +65,7 @@ devInit()
 
 ;Проверка обновлений
 IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
-if (autoUpdate && !Globals.Get("debugMode")) {
+if autoUpdate {
 	CheckUpdateFromMenu("onStart")
 	SetTimer, CheckUpdate, 10800000
 }
@@ -328,7 +328,7 @@ clearPoECache(){
 	IfMsgBox No
 		return
 
-	SplashTextOn, 350, 20, %prjName%, Очистка кэша PoE, пожалуйста подождите...
+	SplashTextOn, 400, 20, %prjName%, Очистка кэша PoE, пожалуйста подождите...
 	
 	PoEConfigFolderPath:=A_MyDocuments "\My Games\Path of Exile"
 	FileRemoveDir, %PoEConfigFolderPath%\OnlineFilters, 1
@@ -355,7 +355,7 @@ clearPoECache(){
 	IfMsgBox Yes
 	{
 		FileSelectFile, FilePath, , C:\Program Files (x86)\Grinding Gear Games\Path of Exile\Content.ggpk, Укажите путь к файлу Content.ggpk в папке с игрой, (Content.ggpk)
-		SplashTextOn, 350, 20, %prjName%, Очистка кэша, пожалуйста подождите...
+		SplashTextOn, 400, 20, %prjName%, Очистка кэша, пожалуйста подождите...
 		if (FilePath!="" && FileExist(FilePath)) {
 			SplitPath, FilePath, , PoEFolderPath
 			FileRemoveDir, %PoEFolderPath%\logs, 1
@@ -538,7 +538,7 @@ showSettings(){
 	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
 	
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
-	IniRead, lr, %configFile%, curl, limit-rate, 0
+	IniRead, lr, %configFile%, curl, limit-rate, 1000
 	IniRead, ct, %configFile%, curl, connect-timeout, 10
 	
 	;Настройки второй вкладки
@@ -760,6 +760,7 @@ setHotkeys(){
 	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, %A_Space%
 	if (hotkeyItemMenu!="") {
 		ItemMenu_IDCLInit()
+		SetTimer, ItemMenu_IDCLInit, 86400000
 		Hotkey, % hotkeyItemMenu, ItemMenu_Show, On
 	}
 	
@@ -908,8 +909,8 @@ LoadFile(URL, FilePath, MD5="") {
 	If (CurlLine!="") {
 		IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 		If (UserAgent="")
-			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36"
-		IniRead, lr, %configFile%, curl, limit-rate, 0
+			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36"
+		IniRead, lr, %configFile%, curl, limit-rate, 1000
 		IniRead, ct, %configFile%, curl, connect-timeout, 10
 		
 		CurlLine.="-L -A """ UserAgent """ -o """ FilePath """" " " """" URL """"
@@ -953,7 +954,7 @@ checkRequirements() {
 	If !FileExist(A_WinDir "\System32\curl.exe") {
 		If !FileExist(configfolder "\curl.exe") {
 			FileCreateDir, %configFolder%
-			SplashTextOn, 300, 20, %prjName%, Загрузка утилиты 'curl.exe'...
+			SplashTextOn, 400, 20, %prjName%, Загрузка утилиты 'curl.exe'...
 			If LoadFile("https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/210520.5/curl.zip", A_Temp "\lo_curl.zip", "F9A76C4CC50F15506A880AB2F94634BC") {
 				unZipArchive(A_Temp "\lo_curl.zip", configFolder "\")
 				FileDelete, %A_Temp%\lo_curl.zip

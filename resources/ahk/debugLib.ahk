@@ -46,8 +46,7 @@ devRestoreRelease() {
 
 ;Перезагрузить лабиринт
 devReloadLab(LabURL){
-	msg:="Загрузка лабиринта, пожалуйста подождите..."
-	SplashTextOn, 400, 20, %prjName%, %msg%
+	SplashTextOn, 400, 20, %prjName%, Загрузка лабиринта, пожалуйста подождите...
 	FileDelete, %configFolder%\images\Labyrinth.jpg
 	sleep 25
 	downloadLabLayout(LabURL, true)

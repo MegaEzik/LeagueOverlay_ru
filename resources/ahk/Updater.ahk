@@ -27,7 +27,7 @@ CheckUpdateFromMenu(PressedBtn=""){
 
 ;Запуск процесса обновления
 StartUpdate(verRelease) {
-	SplashTextOn, 400, 20, %prjName%, Выполняется обновление...
+	SplashTextOn, 400, 20, %prjName%, Выполняется обновление, пожалуйста подождите...
 	zipArchive:=A_Temp "\" prjName "-Update.zip"
 	FileDelete, %zipArchive%
 	sleep 25
