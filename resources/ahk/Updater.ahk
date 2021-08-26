@@ -4,7 +4,7 @@ CheckUpdate() {
 	releaseinfo:=DownloadToVar("https://api.github.com/repos/" githubUser "/" prjName "/releases/latest")
 	parsedJSON:=JSON.Load(releaseinfo)
 	verRelease:=parsedJSON.tag_name
-	if (verVar(verRelease)!="" && verVar(verScript)!="" && verVar(verRelease)>verVar(verScript)) {
+	if (verRelease!="" && verScript!="" && verRelease>verScript) {
 		TrayTip, %prjName%, Доступна версия %verRelease%!
 		return verRelease
 	} else {
@@ -46,13 +46,6 @@ StartUpdate(verRelease) {
 		Reload
 	}
 	SplashTextOff
-}
-
-;Извлечем версию из строки
-verVar(vLine){
-	If RegExMatch(vLine, "(\d+.\d+)", vVar)
-		return vVar1
-	return ""
 }
 
 ;Получение данных от api в переменную
