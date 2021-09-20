@@ -24,11 +24,6 @@
 #SingleInstance Force
 SetWorkingDir %A_ScriptDir%
 
-if (!A_IsAdmin) {
-	Run *RunAs "%A_AhkPath%" "%A_ScriptFullPath%"
-	ExitApp
-}
-
 ;Подключение библиотек
 #Include, %A_ScriptDir%\resources\ahk\Gdip_All.ahk
 #Include, %A_ScriptDir%\resources\ahk\JSON.ahk
@@ -48,33 +43,30 @@ GroupAdd, WindowGrp, ahk_exe GeForceNOWStreamer.exe
 ;Объявление и загрузка основных переменных
 global prjName="LeagueOverlay_ru", githubUser="MegaEzik"
 global configFolder:=A_MyDocuments "\AutoHotKey\" prjName
-if InStr(FileExist(A_ScriptDir "\..\Profile"), "D")
+If InStr(FileExist(A_ScriptDir "\..\Profile"), "D")
 	configFolder:=A_ScriptDir "\..\Profile"
 global configFile:=configFolder "\settings.ini"
 global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, textCmd11, textCmd12, textCmd13, textCmd14, textCmd15, textCmd16, textCmd17, textCmd18, textCmd19, textCmd20, cmdNum=20
 global verScript, LastImg, globalOverlayPosition, OverlayStatus=0
 FileReadLine, verScript, resources\Updates.txt, 1
 
-;Подсказка в области уведомлений и сообщение при запуске
-Menu, Tray, Tip, %prjName% %verScript% | AHK %A_AhkVersion%
-If FileExist("resources\icons\icon.png")
-	Menu, Tray, Icon, resources\icons\icon.png
+;Проверка требований
+checkRequirements()
 
+;UI загрузки и загрузка инструментов разработчика
 showStartUI()
 devInit()
 
 ;Проверка обновлений
 IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
-if autoUpdate {
+If autoUpdate {
 	CheckUpdateFromMenu("onStart")
 	SetTimer, CheckUpdate, 10800000
 }
 
-checkRequirements()
-
 ;Проверим файл конфигурации
 IniRead, verConfig, %configFile%, info, verConfig, 0
-if (verConfig!=verScript) {
+If (verConfig!=verScript) {
 	showSettings()
 	FileDelete, %configFile%
 	sleep 25
@@ -88,18 +80,10 @@ if (verConfig!=verScript) {
 ;Скачаем раскладку лабиринта
 checkLab()
 
-;Запуск gdi+
-If !pToken:=Gdip_Startup()
-	{
-	   ;MsgBox, 48, gdiplus error!, Gdiplus failed to start. Please ensure you have gdiplus on your system
-	   MsgBox, 48, %prjName%, Не удалось запустить gdi+! Пожалуйста, убедитесь, что в вашей системе он есть!
-	}
-OnExit, Exit
-
 ;Подгрузим некоторые значения
 IniRead, globalOverlayPosition, %configFile%, settings, overlayPosition, %A_Space%
 IniRead, windowLine, %configFile%, settings, windowLine, %A_Space%
-if (windowLine!="")
+If (windowLine!="")
 	GroupAdd, WindowGrp, %windowLine%
 IniRead, mouseDistance, %configFile%, settings, mouseDistance, 500
 Globals.Set("mouseDistance", mouseDistance)
@@ -114,7 +98,6 @@ Loop, %configFolder%\*_loader.ahk, 1
 	
 ;Назначим последнее изображение
 IniRead, lastImgC, %configFile%, info, lastImg, %A_Space%
-;If (lastImgC!="" && FileExist(lastImgC))
 If lastImgC!=""
 	LastImg:=lastImgC
 
@@ -122,7 +105,7 @@ If lastImgC!=""
 menuCreate()
 setHotkeys()
 
-;Скроем сообщение загрузки
+;Завершение загрузки
 closeStartUI()
 
 Return
@@ -130,6 +113,52 @@ Return
 ;#################################################
 
 #IfWinActive ahk_group WindowGrp
+
+checkRequirements() {
+	If (!A_IsAdmin) {
+		Run *RunAs "%A_AhkPath%" "%A_ScriptFullPath%"
+		ExitApp
+	}
+	;RegExMatch(A_OSVersion, "(\d+)$", OSBuild)
+	OSBuild:=DllCall("GetVersion") >> 16 & 0xFFFF        
+	If (OSBuild<7601) {
+		MsgBox, 0x1010, %prjName%, Для работы %prjName% требуется операционная система Windows 7 Service Pack 1 или выше!
+		ExitApp
+	}
+	If (A_PtrSize!=8) {
+		msgtext:="Для работы " prjName " требуется 64-разрядный интерпретатор AutoHotkey!"
+		Loop, %A_AhkPath%
+			AhkDir:=A_LoopFileDir
+		If FileExist(AhkDir "\Installer.ahk")
+			msgtext.="`n`nПосле нажатия кнопки 'ОК' откроется 'AutoHotkey Setup', выберите в нем 'Modify', а затем 'Unicode 64-bit'."
+		MsgBox, 0x1010, %prjName%, %msgtext%
+		If FileExist(AhkDir "\Installer.ahk")
+			Run *RunAs "%AhkDir%\Installer.ahk"
+		ExitApp
+	}
+	If !FileExist(A_WinDir "\System32\curl.exe") {
+		If !FileExist(configfolder "\curl.exe") {
+			FileCreateDir, %configFolder%
+			SplashTextOn, 400, 20, %prjName%, Загрузка утилиты 'curl.exe'...
+			If LoadFile("https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/210520.5/curl.zip", A_Temp "\lo_curl.zip", "F9A76C4CC50F15506A880AB2F94634BC") {
+				unZipArchive(A_Temp "\lo_curl.zip", configFolder "\")
+				FileDelete, %A_Temp%\lo_curl.zip
+			} else {
+				msgtext:="В вашей системе не найдена утилита 'curl.exe', без нее работа " prjName " невозможна!`n`nДля устранения этой проблемы скачайте утилиту 'curl.exe' вручную и поместите ее в папку: " configFolder
+				MsgBox, 0x1010, %prjName%, %msgtext%
+				ExitApp
+			}
+			SplashTextOff
+		}
+	}
+	;Запуск gdi+
+	If !pToken:=Gdip_Startup()
+		{
+		   ;MsgBox, 48, gdiplus error!, Gdiplus failed to start. Please ensure you have gdiplus on your system
+		   MsgBox, 48, %prjName%, Не удалось запустить gdi+! Пожалуйста, убедитесь, что в вашей системе он есть!
+		}
+	OnExit, Exit
+}
 
 shLastImage(){
 	SplitLastImg:=StrSplit(LastImg, "|")
@@ -215,7 +244,7 @@ presetInMenu(){
 			
 			If InStr(imageInfo[1], "=") ||  imageInfo[1]="" || (RegExMatch(imageInfo[2], ".(png|jpg|jpeg|bmp)$") && !FileExist(StrReplace(imageInfo[2],"<configFolder>", configFolder))){
 				Continue
-			} else if (imageInfo[1]="---") {
+			} else If (imageInfo[1]="---") {
 				Menu, mainMenu, Add
 			} else {
 				Menu, mainMenu, Add, %ImgName%, presetCmdInMenu
@@ -239,7 +268,7 @@ presetCmdInMenu(CmdName){
 	presetsDataSplit:=StrSplit(Globals.Get("presetsData"), "`n")
 	For k, val in presetsDataSplit {
 		imageInfo:=StrSplit(presetsDataSplit[k], "|")
-		if (CmdName=imageInfo[1]) {
+		If (CmdName=imageInfo[1]) {
 			presetCmd:=SubStr(presetsDataSplit[k], StrLen(imageInfo[1])+2)
 			commandFastReply(presetCmd)
 		}
@@ -259,19 +288,19 @@ openMyImagesFolder(){
 }
 
 myImagesMenuCreate(selfMenu=true){
-	if selfMenu {
+	If selfMenu {
 		Menu, myImagesMenu, Add
 		Menu, myImagesMenu, DeleteAll
 		
 		Loop, %configFolder%\images\*.*, 1
-			if RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp)$")
+			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp)$")
 				Menu, myImagesMenu, Add, %A_LoopFileName%, shMyImage
 			Menu, myImagesMenu, Add
 			Menu, myImagesMenu, Add, Открыть папку, openMyImagesFolder
 			Menu, mainMenu, Add, Мои изображения, :myImagesMenu
 	} else {
 		Loop, %configFolder%\images\*.*, 1
-			if RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp)$") {
+			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp)$") {
 				Menu, mainMenu, Add, %A_LoopFileName%, shMyImage
 			}
 		Menu, mainMenu, Add
@@ -284,10 +313,10 @@ textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 	Gui, tfwGui:Destroy
 	Gui, tfwGui:Font, s10, Consolas
 	FileRead, tfwContentFile, %tfwFilePath%
-	if ReadOnlyStatus {
+	If ReadOnlyStatus {
 		Gui, tfwGui:Add, Edit, w615 h380 +ReadOnly, %tfwContentFile%
 	} else {
-		if (tfwContentFile="" && contentDefault!="")
+		If (tfwContentFile="" && contentDefault!="")
 			tfwContentFile:=contentDefault
 		Menu, tfwMenuBar, Add, Сохранить `tCtrl+S, tfwSave
 		Gui, tfwGui:Menu, tfwMenuBar
@@ -298,7 +327,7 @@ textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 	
 	sleep 15
 	BlockInput On
-	if ReadOnlyStatus {
+	If ReadOnlyStatus {
 		SendInput, ^{Home}
 	} else {
 		SendInput, ^{End}
@@ -356,7 +385,7 @@ clearPoECache(){
 	{
 		FileSelectFile, FilePath, , C:\Program Files (x86)\Grinding Gear Games\Path of Exile\Content.ggpk, Укажите путь к файлу Content.ggpk в папке с игрой, (Content.ggpk)
 		SplashTextOn, 400, 20, %prjName%, Очистка кэша, пожалуйста подождите...
-		if (FilePath!="" && FileExist(FilePath)) {
+		If (FilePath!="" && FileExist(FilePath)) {
 			SplitPath, FilePath, , PoEFolderPath
 			FileRemoveDir, %PoEFolderPath%\logs, 1
 			;DirectX11
@@ -382,7 +411,7 @@ copyPreset(){
 	Gui, Settings:Destroy
 	FileCreateDir, %configFolder%\presets
 	FileSelectFile, FilePath,,, Укажите путь к файлу набора изображений, (*.preset)
-	if (FilePath!="" && FileExist(FilePath)) {
+	If (FilePath!="" && FileExist(FilePath)) {
 		FileCopy, %FilePath%, %configFolder%\presets, 1
 	} else {
 		msgbox, 0x1010, %prjName%, Файл не найден или операция прервана пользователем!, 3
@@ -403,7 +432,7 @@ editPreset(presetName){
 		If !RegExMatch(presetName, ".preset$")
 			presetName.=".preset"
 	}
-	if (presetName="" || ErrorLevel)
+	If (presetName="" || ErrorLevel)
 		return
 	textFileWindow("Редактирование " presetName, configFolder "\presets\" presetName, false, loadPreset("Default"))
 }
@@ -499,7 +528,10 @@ showStartUI(){
 }
 
 closeStartUI(){
-	sleep 500
+	sleep 200
+	If FileExist("resources\icons\icon.png")
+		Menu, Tray, Icon, resources\icons\icon.png
+	Menu, Tray, Tip, %prjName% %verScript% | AHK %A_AhkVersion%
 	Gui, StartUI:Destroy
 	;If Globals.Get("debugMode") && FileExist(A_WinDir "\Media\Windows Proximity Notification.wav")
 		;SoundPlay, %A_WinDir%\Media\Windows Proximity Notification.wav
@@ -647,7 +679,7 @@ showSettings(){
 	LoopVar:=cmdNum/2
 	Loop %LoopVar% {
 		IniRead, tempVar, %configFile%, fastReply, textCmd%A_Index%, %A_Space%
-		if (tempVar="") {
+		If (tempVar="") {
 			If A_Index=1
 				tempVar:="/hideout"
 			If A_Index=2
@@ -749,27 +781,27 @@ setHotkeys(){
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, %A_Space%
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, %A_Space%
 	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
-	if (hotkeyLastImg!="")
+	If (hotkeyLastImg!="")
 		Hotkey, % hotkeyLastImg, shLastImage, On
-	if (hotkeyMainMenu!="")
+	If (hotkeyMainMenu!="")
 		Hotkey, % hotkeyMainMenu, shMainMenu, On
-	if (hotkeyCustomCommandsMenu!="")
+	If (hotkeyCustomCommandsMenu!="")
 		Hotkey, % hotkeyCustomCommandsMenu, showCustomCommandsMenu, On
 
 	;Инициализация ItemDataConverterLib
 	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, %A_Space%
-	if (hotkeyItemMenu!="") {
+	If (hotkeyItemMenu!="") {
 		ItemMenu_IDCLInit()
-		SetTimer, ItemMenu_IDCLInit, 86400000
+		SetTimer, ItemMenu_IDCLInit, 10800000
 		Hotkey, % hotkeyItemMenu, ItemMenu_Show, On
 	}
 	
 	;Инициализация встроенных команд fastReply
 	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
 	IniRead, hotkeyToCharacterSelection, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
-	if (hotkeyForceSync!="")
+	If (hotkeyForceSync!="")
 		Hotkey, % hotkeyForceSync, fastCmdForceSync, On
-	if (hotkeyToCharacterSelection!="")
+	If (hotkeyToCharacterSelection!="")
 		Hotkey, % hotkeyToCharacterSelection, fastCmdExit, On
 	
 	;Инициализация настраиваемых команд fastReply
@@ -777,7 +809,7 @@ setHotkeys(){
 		IniRead, tempvar, %configFile%, fastReply, textCmd%A_Index%, %A_Space%
 		textCmd%A_Index%:=tempvar
 		IniRead, tempVar, %configFile%, fastReply, hotkeyCmd%A_Index%, %A_Space%
-		if (textCmd%A_Index%!="" && tempVar!="")
+		If (textCmd%A_Index%!="" && tempVar!="")
 			Hotkey, % tempVar, fastCmd%A_Index%, On
 	}
 }
@@ -821,10 +853,10 @@ createMainMenu(){
 	
 	createCustomCommandsMenu()
 	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
-	if (hotkeyCustomCommandsMenu="")
+	If (hotkeyCustomCommandsMenu="")
 		Menu, mainMenu, Add, Меню команд, :customCommandsMenu
 	
-	if !сompletionLabTrials()
+	If !сompletionLabTrials()
 		Menu, mainMenu, Add, Испытания лабиринта, showLabTrials
 		
 	Menu, mainMenu, Add, Область уведомлений, :Tray
@@ -844,7 +876,7 @@ ReStart(){
 showDonateUIOnStart() {
 	;Иногда после запуска будем предлагать поддержать проект
 	Random, randomNum, 1, 10
-	if (randomNum=1 && !Globals.Get("debugMode")) {
+	If (randomNum=1 && !Globals.Get("debugMode")) {
 		showDonateUI()
 		Sleep 10000
 		Gui, DonateUI:Minimize
@@ -873,9 +905,9 @@ showToolTip(msg, t=0, umd=true) {
 	ToolTip
 	sleep 5
 	ToolTip, %msg%
-	if t!=0
+	If t!=0
 		SetTimer, removeToolTip, %t%
-	if umd {
+	If umd {
 		MouseGetPos, CurrX, CurrY
 		Globals.Set("ttCurrStartPosX", CurrX)
 		Globals.Set("ttCurrStartPosY", CurrY)
@@ -931,41 +963,6 @@ LoadFile(URL, FilePath, MD5="") {
 		return false
 	}
 	return true	
-}
-
-checkRequirements() {
-	;RegExMatch(A_OSVersion, "(\d+)$", OSBuild)
-	OSBuild:=DllCall("GetVersion") >> 16 & 0xFFFF        
-	If (OSBuild<7601) {
-		MsgBox, 0x1010, %prjName%, Для работы %prjName% требуется операционная система Windows 7 Service Pack 1 или выше!
-		ExitApp
-	}
-	If (A_PtrSize!=8) {
-		msgtext:="Для работы " prjName " требуется 64-разрядный интерпретатор AutoHotkey!"
-		Loop, %A_AhkPath%
-			AhkDir:=A_LoopFileDir
-		If FileExist(AhkDir "\Installer.ahk")
-			msgtext.="`n`nПосле нажатия кнопки 'ОК' откроется 'AutoHotkey Setup', выберите в нем 'Modify', а затем 'Unicode 64-bit'."
-		MsgBox, 0x1010, %prjName%, %msgtext%
-		If FileExist(AhkDir "\Installer.ahk")
-			Run *RunAs "%AhkDir%\Installer.ahk"
-		ExitApp
-	}
-	If !FileExist(A_WinDir "\System32\curl.exe") {
-		If !FileExist(configfolder "\curl.exe") {
-			FileCreateDir, %configFolder%
-			SplashTextOn, 400, 20, %prjName%, Загрузка утилиты 'curl.exe'...
-			If LoadFile("https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/210520.5/curl.zip", A_Temp "\lo_curl.zip", "F9A76C4CC50F15506A880AB2F94634BC") {
-				unZipArchive(A_Temp "\lo_curl.zip", configFolder "\")
-				FileDelete, %A_Temp%\lo_curl.zip
-			} else {
-				msgtext:="В вашей системе не найдена утилита 'curl.exe', без нее работа " prjName " невозможна!`n`nДля устранения этой проблемы скачайте утилиту 'curl.exe' вручную и поместите ее в папку: " configFolder
-				MsgBox, 0x1010, %prjName%, %msgtext%
-				ExitApp
-			}
-			SplashTextOff
-		}
-	}
 }
 
 ;#################################################
