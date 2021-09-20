@@ -592,7 +592,7 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x10 y+3 w620 h1 0x12
 	
-	Gui, Settings:Add, Text, x12 yp+6 w325, Позиция области изображений:
+	Gui, Settings:Add, Text, x12 yp+6 w325, Позиция области изображений(пиксели):
 	Gui, Settings:Add, Text, x+7 w12 +Right, X
 	Gui, Settings:Add, Text, x+60 w12 +Right, Y
 	Gui, Settings:Add, Text, x+60 w12 +Right, W
@@ -631,7 +631,7 @@ showSettings(){
 	Gui, Settings:Add, Checkbox, vexpandMyImages x12 yp+24 w525 Checked%expandMyImages%, Развернуть 'Мои изображения'
 	Gui, Settings:Add, Button, x+1 yp-4 w92 h23 gopenMyImagesFolder, Открыть папку
 	
-	Gui, Settings:Add, Checkbox, vloadLab x12 yp+26 w525 Checked%loadLab%, Скачивать лабиринт(Мои изображения>Labyrinth.jpg)
+	Gui, Settings:Add, Checkbox, vloadLab x12 yp+26 w525 Checked%loadLab%, Скачивать лабиринт('Мои изображения'>Labyrinth.jpg)
 	Gui, Settings:Add, Link, x+2 yp+0 w90 +Right, <a href="https://www.poelab.com/">POELab.com</a>
 	
 	Gui, Settings:Add, Text, x10 y+3 w620 h1 0x12
