@@ -888,9 +888,9 @@ showDonateUI() {
 	Gui, DonateUI:Destroy
 	Gui, DonateUI:Add, Edit, x0 y0 w0 h0
 	Gui, DonateUI:Add, Text, x10 y7 w300 +Center, Перевод на карту Visa: 
-	Gui, DonateUI:Add, Edit, x10 y+3 w300 h18 +ReadOnly, 4276 0400 2866 1739
+	Gui, DonateUI:Add, Edit, x10 y+3 w300 h18 +ReadOnly, 4274 3200 7505 4976
 	Gui, DonateUI:Add, Text, x10 y+7 w300 +Center, Перевод по номеру телефона для клиентов Сбербанка: 
-	Gui, DonateUI:Add, Edit, x10 y+3 w300 h18 +ReadOnly, +7 965 731 83 13
+	Gui, DonateUI:Add, Edit, x10 y+3 w300 h18 +ReadOnly, +7 900 917 25 92
 	
 	Gui, DonateUI:Add, Text, x0 y+10 w400 h2 0x10
 	Gui, DonateUI:Add, Text, x30 y+7 w260 +Center, Спасибо за вашу поддержку) 
