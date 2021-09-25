@@ -59,3 +59,15 @@ devLog(msg){
 		FileAppend, %Time% - %msg%`n, %configFolder%\dev.log, UTF-8
 	}
 }
+
+devAddInList(Line){
+	If !Globals.Get("debugMode")
+		return
+	FilePath:=configFolder "\devList.txt"
+	FileRead, DataList, %FilePath%
+	DataListSplit:=strSplit(StrReplace(DataList, "`r", ""), "`n")
+	For k, val in DataListSplit
+		If DataListSplit[k]=Line
+			return
+	FileAppend, %Line%`n, %FilePath%, UTF-8
+}

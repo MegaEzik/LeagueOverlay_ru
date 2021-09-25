@@ -24,9 +24,10 @@ ItemMenu_Show(){
 		ItemName:=ItemDataSplit[4]
 	
 	If (RegExMatch(ItemDataSplit[1], "Класс предмета: (.*)", ItemClass) && RegExMatch(ItemDataSplit[2], "Редкость: (.*)", Rarity)) {
+		devAddInList(ItemClass1) ;Временная функция разработчика для сбора классов предметов
 		;Пункт для открытия на PoEDB
 		If (Rarity1!="Волшебный") {
-			Menu, itemMenu, Add, PoEDB>%ItemName%, ItemMenu_OpenOnPoEDB
+			ItemMenu_AddPoEDB(ItemName)
 			Menu, itemMenu, Add
 		}
 		;Пункт для копирования имени предмета
@@ -98,47 +99,30 @@ ItemMenu_Show(){
 			If (ItemName="Хроники Ацоатля" && RegExMatch(ItemDataSplit[k], "(.*) \(Уровень 3\)", findtext))
 				ItemMenu_AddHightlight(findtext1)
 		}
-	} Else If (RegExMatch(ItemDataSplit[1], "Item Class: (.*)", ItemClass) && RegExMatch(ItemDataSplit[2], "Rarity: (.*)", Rarity)) {
-		ItemMenu_AddCopyInBuffer(ItemName)
-		Menu, itemMenu, Add
-		ItemMenu_AddHightlight(ItemName)
-		ItemMenu_AddHightlight(ItemClass1)
-		ItemMenu_AddHightlight(Rarity1)
-		
-		If RegExMatch(ItemClass1, "Currency") {
-			tempItemName:=ItemName
-			tempItemName:=strReplace(tempItemName, ":", "")
-			tempItemName:=strReplace(tempItemName, ",", "")
-			tempItemName:=strReplace(tempItemName, ".", "")
-			splitItemName:=StrSplit(tempItemName, " ")
-			For k, val in splitItemName
-				If StrLen(splitItemName[k])>=3
-					ItemMenu_AddHightlight(splitItemName[k])
-		}
-		
+		FileRead, hightlightData, %configFolder%\highlight.txt
+		hightlightDataSplit:=strSplit(StrReplace(hightlightData, "`r", ""), "`n")
+		For k, val in hightlightDataSplit
+			If RegExMatch(ItemData, hightlightDataSplit[k])
+				ItemMenu_AddHightlight(hightlightDataSplit[k])
 	} Else {
 		;showToolTip("ОШИБКА: Буфер обмена пуст, окно не в фокусе`n`tили не удалось определить тип предмета!", 5000)
 		FileRead, hightlightData, %configFolder%\highlight.txt
 		hightlightDataSplit:=strSplit(StrReplace(hightlightData, "`r", ""), "`n")
 		For k, val in hightlightDataSplit
-			ItemMenu_AddHightlight(hightlightDataSplit[k])
-		Menu, itemMenu, Add
-		Menu, itemMenu, Add, Добавить подсветку, ItemMenu_customHightlight
-		
-		Menu, itemMenu, Show
-		return
-	}
-	
-	FileRead, hightlightData, %configFolder%\highlight.txt
-	hightlightDataSplit:=strSplit(StrReplace(hightlightData, "`r", ""), "`n")
-	For k, val in hightlightDataSplit
-		If RegExMatch(ItemData, hightlightDataSplit[k])
-			ItemMenu_AddHightlight(hightlightDataSplit[k])
+			If (InStr(hightlightDataSplit[k], ";")!=1)
+				ItemMenu_AddHightlight(hightlightDataSplit[k])
+	}		
 	Menu, itemMenu, Add
 	Menu, itemMenu, Add, Добавить подсветку, ItemMenu_customHightlight
-	
 	Menu, itemMenu, Show
 }
+
+ItemMenu_AddPoEDB(Line) {
+	Menu, itemMenu, Add, PoEDB>%Line%, ItemMenu_OpenOnPoEDB
+	If FileExist("resources\icons\web.png")
+		Menu, itemMenu, Icon, PoEDB>%Line%, resources\icons\web.png
+}
+
 
 ItemMenu_AddCopyInBuffer(Line){
 	Menu, itemMenu, Add, %Line%, ItemMenu_CopyInBuffer
