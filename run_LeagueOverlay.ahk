@@ -481,18 +481,12 @@ showStartUI(){
 	
 	If (CurrentDate==1231 || CurrentDate==0101)
 		initMsgs:=["Тебя весь год ждет PoE)"]
-	If (CurrentDate==0107)
-		initMsgs:=["Санта-Клаус vs Иисус"]
 	If (CurrentDate==0214)
 		initMsgs:=["Похоже кто-то будет соло", "<3 <3 <3 <3 <3 <3 <3"]
 	If (CurrentDate==0223)
 		initMsgs:=["Все мужики любят носки", "Есть один подарок лучше, чем носки. Это пена для бритья"]
 	If (CurrentDate==0308)
 		initMsgs:=["Не забывайте - это праздник всех женщин. Всех на свете!", "@>->--"]
-	If (CurrentDate==0501)
-		initMsgs:=["Мир, Труд, Май"]
-	If (CurrentDate==0509)
-		initMsgs:=["Все должны это помнить, чтобы не совершить тех же ошибок"]
 	
 	Random, randomNum, 1, initMsgs.MaxIndex()
 	initMsg:=initMsgs[randomNum] "..."
@@ -541,6 +535,12 @@ closeStartUI(){
 		IniWrite, 0, %configFile%, info, showHistory
 	}
 	showDonateUIOnStart()
+	If FileExist("readme.txt") {
+		FileRead, MsgText, readme.txt
+		If (MsgText!="")
+			Msgbox, 0x1030, %prjName% - Важное уведомление!, %MsgText%
+		FileDelete, readme.txt
+	}
 }
 
 showSettings(){
@@ -562,6 +562,7 @@ showSettings(){
 	IniRead, preset1, %configFile%, settings, preset1, default
 	IniRead, preset2, %configFile%, settings, preset2, %A_Space%
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
+	IniRead, useLoadTimers, %configFile%, settings, useLoadTimers, 1
 	IniRead, mouseDistance, %configFile%, settings, mouseDistance, 500
 	IniRead, windowLine, %configFile%, settings, windowLine, %A_Space%
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
@@ -631,7 +632,12 @@ showSettings(){
 	Gui, Settings:Add, Checkbox, vexpandMyImages x12 yp+24 w525 Checked%expandMyImages%, Развернуть 'Мои изображения'
 	Gui, Settings:Add, Button, x+1 yp-4 w92 h23 gopenMyImagesFolder, Открыть папку
 	
-	Gui, Settings:Add, Checkbox, vloadLab x12 yp+26 w525 Checked%loadLab%, Скачивать лабиринт('Мои изображения'>Labyrinth.jpg)
+	Gui, Settings:Add, Text, x10 y+3 w620 h1 0x12
+
+	
+	Gui, Settings:Add, Checkbox, vuseLoadTimers x12 yp+6 w525 Checked%useLoadTimers%, Использовать таймеры загрузок для обновления данных
+	
+	Gui, Settings:Add, Checkbox, vloadLab x12 yp+21 w525 Checked%loadLab%, Скачивать лабиринт('Мои изображения'>Labyrinth.jpg)
 	Gui, Settings:Add, Link, x+2 yp+0 w90 +Right, <a href="https://www.poelab.com/">POELab.com</a>
 	
 	Gui, Settings:Add, Text, x10 y+3 w620 h1 0x12
@@ -747,6 +753,7 @@ saveSettings(){
 	IniWrite, %preset1%, %configFile%, settings, preset1
 	IniWrite, %preset2%, %configFile%, settings, preset2
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
+	IniWrite, %useLoadTimers%, %configFile%, settings, useLoadTimers
 	IniWrite, %mouseDistance%, %configFile%, settings, mouseDistance
 	IniWrite, %windowLine%, %configFile%, settings, windowLine
 	IniWrite, %hotkeyLastImg%, %configFile%, hotkeys, hotkeyLastImg
@@ -792,7 +799,9 @@ setHotkeys(){
 	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, %A_Space%
 	If (hotkeyItemMenu!="") {
 		ItemMenu_IDCLInit()
-		SetTimer, ItemMenu_IDCLInit, 10800000
+		IniRead, useLoadTimers, %configFile%, settings, useLoadTimers, 0
+		If useLoadTimers
+			SetTimer, ItemMenu_IDCLInit, 10800000
 		Hotkey, % hotkeyItemMenu, ItemMenu_Show, On
 	}
 	

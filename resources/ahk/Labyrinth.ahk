@@ -92,7 +92,9 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false) {
 
 checkLab(){
 	downloadLabLayout(,true)
-	SetTimer, downloadLabLayout, 3600000
+	IniRead, useLoadTimers, %configFile%, settings, useLoadTimers, 0
+	If useLoadTimers
+		SetTimer, downloadLabLayout, 3600000
 }
 
 ;Создание интерфейса с испытаниями
