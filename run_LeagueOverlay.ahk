@@ -143,7 +143,7 @@ checkRequirements() {
 			If LoadFile("https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/210520.5/curl.zip", A_Temp "\lo_curl.zip", "F9A76C4CC50F15506A880AB2F94634BC") {
 				unZipArchive(A_Temp "\lo_curl.zip", configFolder "\")
 				FileDelete, %A_Temp%\lo_curl.zip
-			} else {
+			} Else {
 				msgtext:="В вашей системе не найдена утилита 'curl.exe', без нее работа " prjName " невозможна!`n`nДля устранения этой проблемы скачайте утилиту 'curl.exe' вручную и поместите ее в папку: " configFolder
 				MsgBox, 0x1010, %prjName%, %msgtext%
 				ExitApp
@@ -183,7 +183,7 @@ firstAprilJoke(){
 	If FileExist(ImgSplit[1]) {
 		shOverlay(ImgSplit[1], ImgSplit[2], ImgSplit[3])
 		return
-	} else {
+	} Else {
 		return
 	}
 }
@@ -244,9 +244,9 @@ presetInMenu(){
 			
 			If InStr(imageInfo[1], "=") ||  imageInfo[1]="" || (RegExMatch(imageInfo[2], ".(png|jpg|jpeg|bmp)$") && !FileExist(StrReplace(imageInfo[2],"<configFolder>", configFolder))){
 				Continue
-			} else If (imageInfo[1]="---") {
+			} Else If (imageInfo[1]="---") {
 				Menu, mainMenu, Add
-			} else {
+			} Else {
 				Menu, mainMenu, Add, %ImgName%, presetCmdInMenu
 				/*
 				If InStr(imageInfo[2], ">")=1
@@ -298,7 +298,7 @@ myImagesMenuCreate(selfMenu=true){
 			Menu, myImagesMenu, Add
 			Menu, myImagesMenu, Add, Открыть папку, openMyImagesFolder
 			Menu, mainMenu, Add, Мои изображения, :myImagesMenu
-	} else {
+	} Else {
 		Loop, %configFolder%\images\*.*, 1
 			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp)$") {
 				Menu, mainMenu, Add, %A_LoopFileName%, shMyImage
@@ -315,7 +315,7 @@ textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 	FileRead, tfwContentFile, %tfwFilePath%
 	If ReadOnlyStatus {
 		Gui, tfwGui:Add, Edit, w615 h380 +ReadOnly, %tfwContentFile%
-	} else {
+	} Else {
 		If (tfwContentFile="" && contentDefault!="")
 			tfwContentFile:=contentDefault
 		Menu, tfwMenuBar, Add, Сохранить `tCtrl+S, tfwSave
@@ -329,7 +329,7 @@ textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 	BlockInput On
 	If ReadOnlyStatus {
 		SendInput, ^{Home}
-	} else {
+	} Else {
 		SendInput, ^{End}
 	}
 	BlockInput Off
@@ -413,7 +413,7 @@ copyPreset(){
 	FileSelectFile, FilePath,,, Укажите путь к файлу набора изображений, (*.preset)
 	If (FilePath!="" && FileExist(FilePath)) {
 		FileCopy, %FilePath%, %configFolder%\presets, 1
-	} else {
+	} Else {
 		msgbox, 0x1010, %prjName%, Файл не найден или операция прервана пользователем!, 3
 	}
 	Sleep 25
@@ -761,11 +761,12 @@ saveSettings(){
 	IniWrite, %hotkeyItemMenu%, %configFile%, hotkeys, hotkeyItemMenu
 	IniWrite, %hotkeyCustomCommandsMenu%, %configFile%, hotkeys, hotkeyCustomCommandsMenu
 	
+	;Настройки второй вкладки
 	IniWrite, %UserAgent%, %configFile%, curl, user-agent
 	IniWrite, %lr%, %configFile%, curl, limit-rate
 	IniWrite, %ct%, %configFile%, curl, connect-timeout
 	
-	;Настройки второй вкладки
+	;Настройки третьей вкладки
 	IniWrite, %hotkeyForceSync%, %configFile%, hotkeys, hotkeyForceSync
 	IniWrite, %hotkeyToCharacterSelection%, %configFile%, hotkeys, hotkeyToCharacterSelection
 	
@@ -872,7 +873,6 @@ createMainMenu(){
 }
 
 openConfigFolder(){
-	Gui, Settings:Destroy
 	Run, explorer "%configFolder%"
 }
 
@@ -884,7 +884,7 @@ ReStart(){
 
 showDonateUIOnStart() {
 	;Иногда после запуска будем предлагать поддержать проект
-	Random, randomNum, 1, 10
+	Random, randomNum, 1, 15
 	If (randomNum=1 && !Globals.Get("debugMode")) {
 		showDonateUI()
 		Sleep 10000
@@ -948,6 +948,7 @@ LoadFile(URL, FilePath, MD5="") {
 	}
 	
 	If (CurlLine!="") {
+		IniRead, ShowProgress, %configFile%, curl, show-progress, 0
 		IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 		If (UserAgent="")
 			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36"
@@ -959,8 +960,11 @@ LoadFile(URL, FilePath, MD5="") {
 			CurlLine.=" --connect-timeout " ct
 		If lr>0
 			CurlLine.=" --limit-rate " lr "K"
-		RunWait, %CurlLine%, , hide
-	} else {
+		If ShowProgress
+			RunWait, %CurlLine%
+		Else
+			RunWait, %CurlLine%, , hide
+	} Else {
 		UrlDownloadToFile, %URL%, %FilePath%
 	}
 	
@@ -990,5 +994,5 @@ class Globals {
 	}
 	Get(name, value_default="") {
 		return Globals[name]
-}
 	}
+}
