@@ -7,7 +7,7 @@
 		*Gdip_All.ahk - Библиотека для работы с изображениями, авторство https://www.autohotkey.com/boards/viewtopic.php?t=6517
 		*JSON.ahk - Разбор данных от api, авторство https://github.com/cocobelgica/AutoHotkey-JSON
 		*Overlay.ahk - Набор функций для расчета и отображения изображений оверлея
-		*Labyrinth.ahk - Загрузка убер-лабиринта с poelab.com, и создание окна управления испытаниями убер-лабиринта
+		*Labyrinth.ahk - Загрузка убер-лабиринта с poelab.com
 		*Updater.ahk - Проверка и установка обновлений
 		*debugLib.ahk - Библиотека для функций отладки и тестирования новых функций
 		*fastReply.ahk - Библиотека с функциями для команд
@@ -64,23 +64,14 @@ If autoUpdate {
 	SetTimer, CheckUpdate, 10800000
 }
 
-;Проверим файл конфигурации
-IniRead, verConfig, %configFile%, info, verConfig, 0
-If (verConfig!=verScript) {
-	showSettings()
-	FileDelete, %configFile%
-	sleep 25
-	FileCreateDir, %configFolder%\images
-	IniWrite, %verScript%, %configFile%, info, verConfig
-	debugMode:=Globals.Get("debugMode")
-	IniWrite, %debugMode%, %configFile%, settings, debugMode
-	saveSettings()
-}
+;Проверка версии и перенос настроек
+migrateConfig()
 
 ;Скачаем раскладку лабиринта
 checkLab()
 
 ;Подгрузим некоторые значения
+IniRead, LastImg, %configFile%, info, lastImg, %A_Space%
 IniRead, globalOverlayPosition, %configFile%, settings, overlayPosition, %A_Space%
 IniRead, windowLine, %configFile%, settings, windowLine, %A_Space%
 If (windowLine!="")
@@ -88,18 +79,12 @@ If (windowLine!="")
 IniRead, mouseDistance, %configFile%, settings, mouseDistance, 500
 Globals.Set("mouseDistance", mouseDistance)
 
-
 ;Загрузим информацию набора и подготовим его
 loadPresetData()
 
-;Выполним все файлы с окончанием _loader.ahk, передав ему папку расположения скрипта
+;Выполним все файлы с окончанием _loader.ahk, передав им папку расположения скрипта
 Loop, %configFolder%\*_loader.ahk, 1
 	RunWait *RunAs "%A_AhkPath%" "%configFolder%\%A_LoopFileName%" "%A_ScriptDir%"
-	
-;Назначим последнее изображение
-IniRead, lastImgC, %configFile%, info, lastImg, %A_Space%
-If lastImgC!=""
-	LastImg:=lastImgC
 
 ;Назначим управление и создадим меню
 menuCreate()
@@ -160,6 +145,39 @@ checkRequirements() {
 	OnExit, Exit
 }
 
+migrateConfig() {
+	IniRead, verConfig, %configFile%, info, verConfig, 0
+	If (verConfig!=verScript) {
+		If (verConfig<210823.1) {
+			FileRemoveDir, %A_MyDocuments%\LeagueOverlay_ru, 1
+			FileRemoveDir, %configFolder%\cache, 1
+			FileDelete, %configFolder%\Lab.jpg
+			FileDelete, %configFolder%\notes.txt
+			FileDelete, %configFolder%\trials.ini
+		}
+		
+		showSettings()
+		
+		IniRead, debugMode, %configFile%, dev, debugMode, 0
+		IniRead, lastImg, %configFile%, info, lastImg, %A_Space%
+		IniRead, labLoadDate, %configFile%, info, labLoadDate, 0
+		IniRead, curlProgress, %configFile%, dev, curlProgress, 0
+		
+		FileDelete, %configFile%
+		sleep 25
+		FileCreateDir, %configFolder%\images
+		
+		IniWrite, %verScript%, %configFile%, info, verConfig
+		IniWrite, %debugMode%, %configFile%, dev, debugMode
+		IniWrite, %lastImg%, %configFile%, info, lastImg
+		If (labLoadDate!="")
+			IniWrite, %labLoadDate%, %configFile%, info, labLoadDate
+		IniWrite, %curlProgress%, %configFile%, dev, curlProgress
+		
+		saveSettings()
+	}
+}
+
 shLastImage(){
 	SplitLastImg:=StrSplit(LastImg, "|")
 	shOverlay(SplitLastImg[1], SplitLastImg[2], SplitLastImg[3])
@@ -215,20 +233,20 @@ loadPresetData(){
 	
 	;Склейка и установка набора
 	presetsData:=presetData1
-	If (presetData2!="")
-		presetsData.="`n---`n" presetData2
+	If (preset1!="" && preset2!="")
+		presetsData.="`n---`n"
+	presetsData.=presetData2
+	
 	Globals.Set("presetsData", presetsData)
 	
 	;Применим настройки наборов
 	presetsDataSplit:=strSplit(Globals.Get("presetsData"), "`n")
 	For k, val in presetsDataSplit {
-		If RegExMatch(presetsDataSplit[k], ";")=1 || !RegExMatch(presetsDataSplit[k], "=")
+		If (RegExMatch(presetsDataSplit[k], ";")=1)
 			Continue
-		If RegExMatch(presetsDataSplit[k], "OverlayPosition=(.*)", line) {
-			globalOverlayPosition:=line1
-		}
-		If RegExMatch(presetsDataSplit[k], "ahk_(class|exe)") && RegExMatch(presetsDataSplit[k], "WindowLine=(.*)", line) {
-			GroupAdd, WindowGrp, %line1%
+		If (RegExMatch(presetsDataSplit[k], "ahk_(exe|class)")=1) {
+			WindowLine:=presetsDataSplit[k]
+			GroupAdd, WindowGrp, %WindowLine%
 		}
 	}
 }
@@ -242,24 +260,10 @@ presetInMenu(){
 			imageInfo:=StrSplit(presetsDataSplit[k], "|")
 			ImgName:=imageInfo[1]
 			
-			If InStr(imageInfo[1], "=") ||  imageInfo[1]="" || (RegExMatch(imageInfo[2], ".(png|jpg|jpeg|bmp)$") && !FileExist(StrReplace(imageInfo[2],"<configFolder>", configFolder))){
-				Continue
-			} Else If (imageInfo[1]="---") {
+			If (imageInfo[1]="---")
 				Menu, mainMenu, Add
-			} Else {
-				Menu, mainMenu, Add, %ImgName%, presetCmdInMenu
-				/*
-				If InStr(imageInfo[2], ">")=1
-					If FileExist("resources\icons\run.png")
-						Menu, mainMenu, Icon, %ImgName%, resources\icons\run.png
-				If InStr(imageInfo[2], "/")=1 || InStr(imageInfo[2], "_")=1 || InStr(imageInfo[2], "%")=1 || InStr(imageInfo[2], "@<last>")=1
-					If FileExist("resources\icons\cmd.png")
-						Menu, mainMenu, Icon, %ImgName%, resources\icons\cmd.png
-				If RegExMatch(imageInfo[2], ".(png|jpg|jpeg|bmp)$") && FileExist(StrReplace(imageInfo[2],"<configFolder>", configFolder))
-					If FileExist("resources\icons\img.png")
-						Menu, mainMenu, Icon, %ImgName%, resources\icons\img.png
-				*/
-			}
+			If (RegExMatch(imageInfo[2], ".(png|jpg|jpeg|bmp)$") && FileExist(StrReplace(imageInfo[2],"<configFolder>", configFolder)) || (RegExMatch(imageInfo[2], ">")=1))
+					Menu, mainMenu, Add, %ImgName%, presetCmdInMenu
 		}
 	}
 }
@@ -467,13 +471,9 @@ showStartUI(){
 	
 	initMsgs := ["Подготовка макроса к работе"
 				,"Поддержи " prjName
-				,"Переносим 3.13, чтобы Крис поиграл в Cyberpunk 2077"
 				,"Опускаемся на 65535 глубину в 'Бесконечном спуске'"
-				
-				,"Становимся другом семьи Перандус"
-				,"Я вижу огонь, насилие, смерть и славу"
-				,"Подкупаем архитекторов храма Ацоатль"
-				,"И неправедное становится пеплом"
+				,"Получаем приглашение Януса на поминки Кадиро"
+				,"Заходим в 820ый для поиска лаб ... а ну да"
 				,"Поиск ближайшей Священной рощи"
 				,"Поиск NPC 'Борис Бритва'"]
 				
@@ -547,8 +547,6 @@ showSettings(){
 	global
 	Gui, Settings:Destroy
 	
-	IniRead, lastImg, %configFile%, info, lastImg, %A_Space%
-	
 	;Настройки первой вкладки
 	IniRead, OverlayPosition, %configFile%, settings, overlayPosition, %A_Space%
 	splitOverlayPosition:=strSplit(OverlayPosition, "/")
@@ -568,25 +566,28 @@ showSettings(){
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
 	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, %A_Space%
-	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
 	
+	;Настройки второй вкладки
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	IniRead, lr, %configFile%, curl, limit-rate, 1000
 	IniRead, ct, %configFile%, curl, connect-timeout, 10
 	
-	;Настройки второй вкладки
+	;Настройки третьей вкладки
+	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
 	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
 	IniRead, hotkeyToCharacterSelection, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
 	
+	Gui, Settings:Font, s12
 	Gui, Settings:Add, Button, x0 y385 w640 h30 gsaveSettings, Применить и перезапустить ;💾 465
+	
+	Gui, Settings:Font, s8 normal
+	
 	Gui, Settings:Add, Link, x230 y4 w405 +Right, <a href="https://www.autohotkey.com/download/">AutoHotKey</a> | <a href="https://ru.pathofexile.com/forum/view-thread/2694683">Тема на Форуме</a> | <a href="https://github.com/MegaEzik/LeagueOverlay_ru/releases">Страница на GitHub</a>
 	
 	Gui, Settings:Add, Tab, x0 y0 w640 h385, Основные|cURL|Команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
 	Gui, Settings:Add, Checkbox, vautoUpdate x12 y30 w525 Checked%autoUpdate%, Автоматически проверять наличие обновлений
-	
-	;openConfigFolder
 	
 	Gui, Settings:Add, Text, x12 yp+21 w150, Другое окно для проверки:
 	Gui, Settings:Add, Edit, vwindowLine x+2 yp-2 w465 h17, %windowLine%
@@ -732,18 +733,9 @@ saveSettings(){
 	Gui, Settings:Submit
 	
 	If (preset1="")
-		preset1:=preset2
+		preset1:="Default"
 	If (preset1=preset2)
 		preset2:=""
-	If (preset1="")
-		preset1:="Default"
-	
-	If (mouseDistance<5)
-		mouseDistance:=5
-	If (mouseDistance>99999)
-		mouseDistance:=99999
-	
-	IniWrite, %lastImg%, %configFile%, info, lastImg
 	
 	;Настройки первой вкладки
 	IniWrite, %posX%/%posY%/%posW%/%posH%, %configFile%, settings, overlayPosition
@@ -759,7 +751,6 @@ saveSettings(){
 	IniWrite, %hotkeyLastImg%, %configFile%, hotkeys, hotkeyLastImg
 	IniWrite, %hotkeyMainMenu%, %configFile%, hotkeys, hotkeyMainMenu
 	IniWrite, %hotkeyItemMenu%, %configFile%, hotkeys, hotkeyItemMenu
-	IniWrite, %hotkeyCustomCommandsMenu%, %configFile%, hotkeys, hotkeyCustomCommandsMenu
 	
 	;Настройки второй вкладки
 	IniWrite, %UserAgent%, %configFile%, curl, user-agent
@@ -767,6 +758,7 @@ saveSettings(){
 	IniWrite, %ct%, %configFile%, curl, connect-timeout
 	
 	;Настройки третьей вкладки
+	IniWrite, %hotkeyCustomCommandsMenu%, %configFile%, hotkeys, hotkeyCustomCommandsMenu
 	IniWrite, %hotkeyForceSync%, %configFile%, hotkeys, hotkeyForceSync
 	IniWrite, %hotkeyToCharacterSelection%, %configFile%, hotkeys, hotkeyToCharacterSelection
 	
@@ -777,7 +769,7 @@ saveSettings(){
 		
 		tempVar:=textCmd%A_Index%
 		IniWrite, %tempVar%, %configFile%, fastReply, textCmd%A_Index%
-	}
+	}	
 	
 	ReStart()
 }
@@ -834,9 +826,8 @@ menuCreate(){
 	Menu, Tray, Add, Настройки, showSettings
 	Menu, Tray, Default, Настройки
 	Menu, Tray, Add
-	Menu, Tray, Add, Испытания лабиринта, showLabTrials
 	Menu, Tray, Add, Очистить кэш PoE, clearPoECache
-	Menu, Tray, Add, Меню разработчика, :devMenu
+	Menu, Tray, Add, Меню отладки, :devMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить, ReStart
 	Menu, Tray, Add, Завершить работу макроса, Exit
@@ -861,19 +852,22 @@ createMainMenu(){
 	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 0
 	myImagesMenuCreate(!expandMyImages)
 	
-	createCustomCommandsMenu()
 	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
-	If (hotkeyCustomCommandsMenu="")
-		Menu, mainMenu, Add, Меню команд, :customCommandsMenu
+	IfWinActive Path of Exile ahk_class POEWindowClass
+		If (hotkeyCustomCommandsMenu="") {
+			createCustomCommandsMenu()
+			Menu, mainMenu, Add, Меню команд, :customCommandsMenu
+		}
 	
-	If !сompletionLabTrials()
-		Menu, mainMenu, Add, Испытания лабиринта, showLabTrials
-		
 	Menu, mainMenu, Add, Область уведомлений, :Tray
 }
 
 openConfigFolder(){
 	Run, explorer "%configFolder%"
+}
+
+openScriptFolder(){
+	Run, explorer "%A_ScriptDir%"
 }
 
 ReStart(){
@@ -948,10 +942,10 @@ LoadFile(URL, FilePath, MD5="") {
 	}
 	
 	If (CurlLine!="") {
-		IniRead, ShowProgress, %configFile%, curl, show-progress, 0
+		IniRead, curlProgress, %configFile%, dev, curlProgress, 0
 		IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 		If (UserAgent="")
-			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36"
+			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36"
 		IniRead, lr, %configFile%, curl, limit-rate, 1000
 		IniRead, ct, %configFile%, curl, connect-timeout, 10
 		
@@ -960,7 +954,7 @@ LoadFile(URL, FilePath, MD5="") {
 			CurlLine.=" --connect-timeout " ct
 		If lr>0
 			CurlLine.=" --limit-rate " lr "K"
-		If ShowProgress
+		If curlProgress
 			RunWait, %CurlLine%
 		Else
 			RunWait, %CurlLine%, , hide

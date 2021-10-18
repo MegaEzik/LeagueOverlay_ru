@@ -1,7 +1,7 @@
 ﻿
 ;Инициализация
 devInit() {
-	IniRead, debugMode, %configFile%, settings, debugMode, 0
+	IniRead, debugMode, %configFile%, dev, debugMode, 0
 	Globals.Set("debugMode", debugMode)
 	devMenu()
 }
@@ -10,20 +10,22 @@ devInit() {
 devMenu() {
 	Menu, devMenu1, Standard
 	
-	Menu, devMenu2, Add, https://poelab.com/gtgax, devReloadLab
-	Menu, devMenu2, Add, https://poelab.com/r8aws, devReloadLab
-	Menu, devMenu2, Add, https://poelab.com/riikv, devReloadLab
-	Menu, devMenu2, Add, https://poelab.com/wfbra, devReloadLab
+	Menu, devMenu2, Add, https://poelab.com/gtgax, reloadLab
+	Menu, devMenu2, Add, https://poelab.com/r8aws, reloadLab
+	Menu, devMenu2, Add, https://poelab.com/riikv, reloadLab
+	Menu, devMenu2, Add, https://poelab.com/wfbra, reloadLab
 	
 	Menu, devMenu, Add, Режим отладки, switchDebugMode
 	If Globals.Get("debugMode")
 		Menu, devMenu, Check, Режим отладки
-	Menu, devMenu, Add, Открыть папку настроек, openConfigFolder
 	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
+	Menu, devMenu, Add, Открыть папку скрипта, openScriptFolder
+	Menu, devMenu, Add, Открыть папку настроек, openConfigFolder
 	Menu, devMenu, Add, Перезагрузить лабиринт, :devMenu2
 	Menu, devMenu, Add, AutoHotkey, :devMenu1
 }
 
+;Переключение режима разработчика
 switchDebugMode() {
 	if Globals.Get("debugMode") {
 		IniWrite, 0, %configFile%, settings, debugMode
@@ -44,15 +46,7 @@ devRestoreRelease() {
 	CheckUpdateFromMenu()
 }
 
-;Перезагрузить лабиринт
-devReloadLab(LabURL){
-	SplashTextOn, 400, 20, %prjName%, Загрузка лабиринта, пожалуйста подождите...
-	FileDelete, %configFolder%\images\Labyrinth.jpg
-	sleep 25
-	downloadLabLayout(LabURL, true)
-	SplashTextOff
-}
-
+;Запись отладочной информации
 devLog(msg){
 	If Globals.Get("debugMode") {
 		FormatTime, Time, dddd MMMM, dd.MM HH:mm:ss
@@ -60,6 +54,7 @@ devLog(msg){
 	}
 }
 
+;Добавление в отслеживаемый список
 devAddInList(Line){
 	If !Globals.Get("debugMode")
 		return
