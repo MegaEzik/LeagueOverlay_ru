@@ -155,6 +155,14 @@ migrateConfig() {
 			FileDelete, %configFolder%\notes.txt
 			FileDelete, %configFolder%\trials.ini
 		}
+		If (verConfig<211022.1) {
+			IniRead, lr, %configFile%, curl, limit-rate, 1000
+			If (lr=0)
+				IniWrite, 1000, %configFile%, curl, limit-rate
+			IniRead, ct, %configFile%, curl, connect-timeout, 10
+			If (ct=5)
+				IniWrite, 10, %configFile%, curl, connect-timeout
+		}
 		
 		showSettings()
 		
