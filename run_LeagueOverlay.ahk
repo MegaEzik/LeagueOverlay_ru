@@ -148,20 +148,22 @@ checkRequirements() {
 migrateConfig() {
 	IniRead, verConfig, %configFile%, info, verConfig, 0
 	If (verConfig!=verScript) {
-		If (verConfig<210823.1) {
-			FileRemoveDir, %A_MyDocuments%\LeagueOverlay_ru, 1
-			FileRemoveDir, %configFolder%\cache, 1
-			FileDelete, %configFolder%\Lab.jpg
-			FileDelete, %configFolder%\notes.txt
-			FileDelete, %configFolder%\trials.ini
-		}
-		If (verConfig<211022.1) {
-			IniRead, lr, %configFile%, curl, limit-rate, 1000
-			If (lr=0)
-				IniWrite, 1000, %configFile%, curl, limit-rate
-			IniRead, ct, %configFile%, curl, connect-timeout, 10
-			If (ct=5)
-				IniWrite, 10, %configFile%, curl, connect-timeout
+		If (verConfig>0) {
+			If (verConfig<210823.1) {
+				FileRemoveDir, %A_MyDocuments%\LeagueOverlay_ru, 1
+				FileRemoveDir, %configFolder%\cache, 1
+				FileDelete, %configFolder%\Lab.jpg
+				FileDelete, %configFolder%\notes.txt
+				FileDelete, %configFolder%\trials.ini
+			}
+			If (verConfig<211022.1) {
+				IniRead, lr, %configFile%, curl, limit-rate, 1000
+				If (lr=0)
+					IniWrite, 1000, %configFile%, curl, limit-rate
+				IniRead, ct, %configFile%, curl, connect-timeout, 10
+				If (ct=5)
+					IniWrite, 10, %configFile%, curl, connect-timeout
+			}
 		}
 		
 		showSettings()
@@ -644,7 +646,7 @@ showSettings(){
 	Gui, Settings:Add, Text, x10 y+3 w620 h1 0x12
 
 	
-	Gui, Settings:Add, Checkbox, vuseLoadTimers x12 yp+6 w525 Checked%useLoadTimers%, Использовать таймеры загрузок для обновления данных
+	Gui, Settings:Add, Checkbox, vuseLoadTimers x12 yp+6 w525 Checked%useLoadTimers%, Использовать фоновую загрузку данных
 	
 	Gui, Settings:Add, Checkbox, vloadLab x12 yp+21 w525 Checked%loadLab%, Скачивать лабиринт('Мои изображения'>Labyrinth.jpg)
 	Gui, Settings:Add, Link, x+2 yp+0 w90 +Right, <a href="https://www.poelab.com/">POELab.com</a>
@@ -838,7 +840,7 @@ menuCreate(){
 	Menu, Tray, Add, Меню отладки, :devMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить, ReStart
-	Menu, Tray, Add, Завершить работу макроса, Exit
+	Menu, Tray, Add, Выход, Exit
 	Menu, Tray, NoStandard
 }
 
@@ -953,7 +955,7 @@ LoadFile(URL, FilePath, MD5="") {
 		IniRead, curlProgress, %configFile%, dev, curlProgress, 0
 		IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 		If (UserAgent="")
-			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36"
+			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36"
 		IniRead, lr, %configFile%, curl, limit-rate, 1000
 		IniRead, ct, %configFile%, curl, connect-timeout, 10
 		
