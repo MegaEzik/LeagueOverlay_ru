@@ -256,7 +256,7 @@ IDCL_ConvertAllStats(idft) {
 	lidft:=StrSplit(idft, "`n")	
 	For k, val in lidft {
 		;Извлекаем часть строки не требующую перевода и препятствующую ему, при сборе вернем ее на место
-		RegExMatch(lidft[k], " \(augmented\)| \(unmet\)| \(fractured\)| \(crafted\)| \(Max\)| \(implicit\)| \(enchant\)", slidft)
+		RegExMatch(lidft[k], " \(augmented\)| \(unmet\)| \(fractured\)| \(crafted\)| \(Max\)| \(implicit\)| \(enchant\)| \(scourge\)", slidft)
 		lidft[k]:=StrReplace(lidft[k], slidft, "")
 		;Попытка конвертировать стат
 		lidft[k]:= IDCL_ConvertStat(lidft[k])
