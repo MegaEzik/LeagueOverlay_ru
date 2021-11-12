@@ -66,3 +66,27 @@ devAddInList(Line){
 			return
 	FileAppend, %Line%`n, %FilePath%, UTF-8
 }
+
+;Обновлялка фильтра NeverSink
+updateFilter(){
+	IniRead, updateFilter, %configFile%, settings, updateFilter, 0
+	If !updateFilter
+		return
+	FilterURL:="https://raw.githubusercontent.com/NeverSinkDev/NeverSink-Filter/master/NeverSink's filter - 2-SEMI-STRICT.filter"
+	FilterPath:=A_MyDocuments "\My Games\Path of Exile\NeverSink-2semistr.filter"
+	TmpPath:=A_Temp "\New.filter"
+	FileDelete, %TmpPath%
+	UrlDownloadToFile, %FilterURL%, %TmpPath%
+	;LoadFile(FilterURL, TmpPath)
+	FileReadLine, verFilterNewLine, %TmpPath%, 4
+	If RegExMatch(verFilterNewLine, "VERSION: (.*)", verFilterNew) {
+		verFilterNew:=Trim(verFilterNew1)
+		FileReadLine, verFilterCurrentLine, %FilterPath%, 4
+		RegExMatch(verFilterCurrentLine, "VERSION: (.*)", verFilterCurrent)
+		verFilterCurrent:=Trim(verFilterCurrent1)
+		If (verFilterNew!=verFilterCurrent) {
+			FileCopy, %TmpPath%, %FilterPath%, 1
+			TrayTip, %prjName% - Обновлен фильтр, %verFilterCurrent%>%verFilterNew%
+		}
+	}
+}

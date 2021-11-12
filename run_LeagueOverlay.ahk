@@ -67,9 +67,6 @@ If autoUpdate {
 ;Проверка версии и перенос настроек
 migrateConfig()
 
-;Скачаем раскладку лабиринта
-checkLab()
-
 ;Подгрузим некоторые значения
 IniRead, LastImg, %configFile%, info, lastImg, %A_Space%
 IniRead, globalOverlayPosition, %configFile%, settings, overlayPosition, %A_Space%
@@ -89,6 +86,10 @@ Loop, %configFolder%\*_loader.ahk, 1
 ;Назначим управление и создадим меню
 menuCreate()
 setHotkeys()
+
+;Скачаем раскладку лабиринта и обновим фильтр предметов
+checkLab()
+updateFilter()
 
 ;Завершение загрузки
 closeStartUI()
@@ -569,8 +570,6 @@ showSettings(){
 	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 0
 	IniRead, preset1, %configFile%, settings, preset1, default
 	IniRead, preset2, %configFile%, settings, preset2, %A_Space%
-	IniRead, loadLab, %configFile%, settings, loadLab, 0
-	IniRead, useLoadTimers, %configFile%, settings, useLoadTimers, 1
 	IniRead, mouseDistance, %configFile%, settings, mouseDistance, 500
 	IniRead, windowLine, %configFile%, settings, windowLine, %A_Space%
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
@@ -581,6 +580,9 @@ showSettings(){
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	IniRead, lr, %configFile%, curl, limit-rate, 1000
 	IniRead, ct, %configFile%, curl, connect-timeout, 10
+	IniRead, useLoadTimers, %configFile%, settings, useLoadTimers, 1
+	IniRead, loadLab, %configFile%, settings, loadLab, 0
+	IniRead, updateFilter, %configFile%, settings, updateFilter, 0
 	
 	;Настройки третьей вкладки
 	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
@@ -594,7 +596,7 @@ showSettings(){
 	
 	Gui, Settings:Add, Link, x230 y4 w405 +Right, <a href="https://www.autohotkey.com/download/">AutoHotKey</a> | <a href="https://ru.pathofexile.com/forum/view-thread/2694683">Тема на Форуме</a> | <a href="https://github.com/MegaEzik/LeagueOverlay_ru/releases">Страница на GitHub</a>
 	
-	Gui, Settings:Add, Tab, x0 y0 w640 h385, Основные|cURL|Команды ;Вкладки
+	Gui, Settings:Add, Tab, x0 y0 w640 h385, Основные|Загрузки|Команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
 	Gui, Settings:Add, Checkbox, vautoUpdate x12 y30 w525 Checked%autoUpdate%, Автоматически проверять наличие обновлений
@@ -644,14 +646,6 @@ showSettings(){
 	Gui, Settings:Add, Button, x+1 yp-4 w92 h23 gopenMyImagesFolder, Открыть папку
 	
 	Gui, Settings:Add, Text, x10 y+3 w620 h1 0x12
-
-	
-	Gui, Settings:Add, Checkbox, vuseLoadTimers x12 yp+6 w525 Checked%useLoadTimers%, Использовать фоновую загрузку данных
-	
-	Gui, Settings:Add, Checkbox, vloadLab x12 yp+21 w525 Checked%loadLab%, Скачивать лабиринт('Мои изображения'>Labyrinth.jpg)
-	Gui, Settings:Add, Link, x+2 yp+0 w90 +Right, <a href="https://www.poelab.com/">POELab.com</a>
-	
-	Gui, Settings:Add, Text, x10 y+3 w620 h1 0x12
 	
 	Gui, Settings:Add, Text, x12 yp+6 w525, Последнее изображение:
 	Gui, Settings:Add, Hotkey, vhotkeyLastImg x+2 yp-2 w90 h17, %hotkeyLastImg%
@@ -664,16 +658,25 @@ showSettings(){
 	
 	Gui, Settings:Tab, 2 ;Вторая вкладка
 	
-	Gui, Settings:Add, Text, x12 y30 w150, User-Agent:
+	Gui, Settings:Add, Text, x12 y30 w150, cURL | User-Agent:
 	Gui, Settings:Add, Edit, vUserAgent x+2 yp-2 w465 h17, %UserAgent%
 	
-	Gui, Settings:Add, Text, x12 yp+21 w525, Ограничение загрузки(Кб/с, 0 - без лимита):
+	Gui, Settings:Add, Text, x12 yp+21 w525, cURL | Ограничение загрузки(Кб/с, 0 - без лимита):
 	Gui, Settings:Add, Edit, vlr x+2 yp-2 w90 h18 Number, %lr%
 	Gui, Settings:Add, UpDown, Range0-99999 0x80, %lr%
 	
-	Gui, Settings:Add, Text, x12 yp+22 w525, Время соединения(сек.):
+	Gui, Settings:Add, Text, x12 yp+22 w525, cURL | Время соединения(сек.):
 	Gui, Settings:Add, Edit, vct x+2 yp-2 w90 h18 Number, %ct%
 	Gui, Settings:Add, UpDown, Range3-99999 0x80, %ct%
+	
+	Gui, Settings:Add, Text, x10 y+3 w620 h1 0x12
+	
+	Gui, Settings:Add, Checkbox, vuseLoadTimers x12 yp+6 w525 Checked%useLoadTimers%, Использовать фоновую загрузку данных
+	
+	Gui, Settings:Add, Checkbox, vloadLab x12 yp+21 w525 Checked%loadLab%, Скачивать лабиринт('Мои изображения'>Labyrinth.jpg)
+	Gui, Settings:Add, Link, x+2 yp+0 w90 +Right, <a href="https://www.poelab.com/">POELab.com</a>
+	
+	Gui, Settings:Add, Checkbox, vupdateFilter x12 yp+21 w525 Checked%updateFilter%, Обновлять фильтр предметов(NeverSink-2semistr.filter)
 	
 	Gui, Settings:Tab, 3 ; Третья вкладка
 	
@@ -754,8 +757,6 @@ saveSettings(){
 	IniWrite, %expandMyImages%, %configFile%, settings, expandMyImages
 	IniWrite, %preset1%, %configFile%, settings, preset1
 	IniWrite, %preset2%, %configFile%, settings, preset2
-	IniWrite, %loadLab%, %configFile%, settings, loadLab
-	IniWrite, %useLoadTimers%, %configFile%, settings, useLoadTimers
 	IniWrite, %mouseDistance%, %configFile%, settings, mouseDistance
 	IniWrite, %windowLine%, %configFile%, settings, windowLine
 	IniWrite, %hotkeyLastImg%, %configFile%, hotkeys, hotkeyLastImg
@@ -766,6 +767,9 @@ saveSettings(){
 	IniWrite, %UserAgent%, %configFile%, curl, user-agent
 	IniWrite, %lr%, %configFile%, curl, limit-rate
 	IniWrite, %ct%, %configFile%, curl, connect-timeout
+	IniWrite, %useLoadTimers%, %configFile%, settings, useLoadTimers
+	IniWrite, %loadLab%, %configFile%, settings, loadLab
+	IniWrite, %updateFilter%, %configFile%, settings, updateFilter
 	
 	;Настройки третьей вкладки
 	IniWrite, %hotkeyCustomCommandsMenu%, %configFile%, hotkeys, hotkeyCustomCommandsMenu
