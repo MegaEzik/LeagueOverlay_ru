@@ -92,8 +92,10 @@ updateFilter(){
 		FileReadLine, verFilterCurrentLine, %FilterPath%, 4
 		RegExMatch(verFilterCurrentLine, "VERSION: (.*)", verFilterCurrent)
 		verFilterCurrent:=Trim(verFilterCurrent1)
-		FileCopy, %TmpPath%, %FilterPath%, 1
-		If (verFilterNew!=verFilterCurrent)
+		If (verFilterNew!=verFilterCurrent) {
+			FileCopy, %TmpPath%, %FilterPath%, 1
 			TrayTip, %prjName% - Обновлен фильтр, %verFilterCurrent%>%verFilterNew%
+		}
+		FileSetTime, , %FilterPath%
 	}
 }
