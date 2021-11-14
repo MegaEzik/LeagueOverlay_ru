@@ -50,7 +50,7 @@ devRestoreRelease() {
 devLog(msg){
 	If Globals.Get("debugMode") {
 		FormatTime, Time, dddd MMMM, dd.MM HH:mm:ss
-		FileAppend, %Time% - %msg%`n, %configFolder%\dev.log, UTF-8
+		FileAppend, %Time% v%verScript% - %msg%`n, %configFolder%\dev.log, UTF-8
 	}
 }
 
