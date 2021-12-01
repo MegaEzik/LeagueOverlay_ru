@@ -2,7 +2,6 @@
 ;Инициализация
 devInit() {
 	IniRead, debugMode, %configFile%, dev, debugMode, 0
-	Globals.Set("debugMode", debugMode)
 	devMenu()
 }
 
@@ -16,25 +15,25 @@ devMenu() {
 	Menu, devMenu2, Add, https://poelab.com/wfbra, reloadLab
 	
 	Menu, devMenu, Add, Режим отладки, switchDebugMode
-	If Globals.Get("debugMode")
+	If debugMode
 		Menu, devMenu, Check, Режим отладки
 	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
-	Menu, devMenu, Add, Открыть папку скрипта, openScriptFolder
 	Menu, devMenu, Add, Открыть папку настроек, openConfigFolder
+	Menu, devMenu, Add, Открыть папку макроса, openScriptFolder
 	Menu, devMenu, Add, Перезагрузить лабиринт, :devMenu2
 	Menu, devMenu, Add, AutoHotkey, :devMenu1
+	
+	;Обновлять фильтр предметов(NeverSink-2semistr)
 }
 
 ;Переключение режима разработчика
 switchDebugMode() {
-	if Globals.Get("debugMode") {
-		IniWrite, 0, %configFile%, settings, debugMode
-	} else {
+	If !debugMode
 		MsgBox, 0x1024, %prjName%, Включение режима отладки может сделать работу %prjName% нестабильной!`n`nВы уверены, что хотите продолжить?
 		IfMsgBox No
 			return
-		IniWrite, 1, %configFile%, settings, debugMode
-	}
+	newDebugMode:=!debugMode
+	IniWrite, %newDebugMode%, %configFile%, dev, debugMode
 	Sleep 500
 	Reload
 }
@@ -48,7 +47,7 @@ devRestoreRelease() {
 
 ;Запись отладочной информации
 devLog(msg){
-	If Globals.Get("debugMode") {
+	If debugMode {
 		FormatTime, Time, dddd MMMM, dd.MM HH:mm:ss
 		FileAppend, %Time% v%verScript% - %msg%`n, %configFolder%\dev.log, UTF-8
 	}
@@ -56,7 +55,7 @@ devLog(msg){
 
 ;Добавление в отслеживаемый список
 devAddInList(Line){
-	If !Globals.Get("debugMode")
+	If !debugMode
 		return
 	FilePath:=configFolder "\devList.txt"
 	FileRead, DataList, %FilePath%
@@ -69,6 +68,7 @@ devAddInList(Line){
 
 ;Обновлялка фильтра
 updateFilter(FilterName="NeverSink-2semistr", FilterURL="https://raw.githubusercontent.com/NeverSinkDev/NeverSink-Filter/master/NeverSink's%20filter%20-%202-SEMI-STRICT.filter"){
+	FileCreateDir, %A_MyDocuments%\My Games\Path of Exile
 	FilterPath:=A_MyDocuments "\My Games\Path of Exile\" FilterName ".filter"
 	TmpPath:=A_Temp "\New.filter"
 	

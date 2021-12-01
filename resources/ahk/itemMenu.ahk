@@ -158,10 +158,16 @@ ItemMenu_Hightlight(Line){
 }
 
 ItemMenu_customHightlight() {
-	textFileWindow("Редактирование подсветки", configFolder "\highlight.txt", false, "к максимуму здоровья`nк сопротивлению`nповышение скорости передвижения")
+	textFileWindow("Редактирование подсветки", configFolder "\highlight.txt", false, "к максимуму здоровья`nк сопротивлению`nповышение скорости передвижения`nВосприятие|Контрмагия|Маскировка")
 }
 
-ItemMenu_IDCLInit(){
+ItemMenu_IDCLInit(setHotkey=false){
+	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, %A_Space%
+	If (hotkeyItemMenu="")
+		return
+	If setHotkey
+		Hotkey, % hotkeyItemMenu, ItemMenu_Show, On
+	
 	FormatTime, CurrentDate, %A_Now%, yyyyMMdd
 	FileGetTime, LoadDate, resources\data\names.json, M
 	FormatTime, LoadDate, %LoadDate%, yyyyMMdd
@@ -171,10 +177,13 @@ ItemMenu_IDCLInit(){
 	
 	If (LoadDate!=CurrentDate) {
 		FileCreateDir, resources\data
-		LoadFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/names.json", "resources\data\names.json")
-		LoadFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/stats.json", "resources\data\stats.json")
+		ItemMenu_LoadDataFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/names.json", "resources\data\names.json")
+		ItemMenu_LoadDataFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/stats.json", "resources\data\stats.json")
+		;LoadFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/names.json", "resources\data\names.json")
+		;LoadFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/stats.json", "resources\data\stats.json")
 		IfNotExist, resources\data\presufflask.json
-			LoadFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/presufflask.json", "resources\data\presufflask.json")
+			ItemMenu_LoadDataFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/presufflask.json", "resources\data\presufflask.json")
+			;LoadFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/presufflask.json", "resources\data\presufflask.json")
 		;LoadFile("https://raw.githubusercontent.com/MegaEzik/PoE-TradeMacro_ru/master/resources/data/samename.json", "resources\data\samename.json")
 		sleep 500
 	}
@@ -187,4 +196,18 @@ ItemMenu_IDCLInit(){
 	Globals.Set("item_presufflask", JSON.Load(presufflask_list))
 	;FileRead, samename_list, resources\data\samename.json
 	;Globals.Set("item_samename", JSON.Load(samename_list))
+}
+
+ItemMenu_LoadDataFile(URL, Path){
+	tmpPath:=A_Temp "\file.tmp"
+	LoadFile(URL, tmpPath)
+	FileRead, FileData, %tmpPath%
+	If (!RegExMatch(FileData, "{") || !RegExMatch(FileData, "}") || (RegExMatch(FileData, "<") && RegExMatch(FileData, ">"))) {
+		TrayTip, %prjName%, Ошибка загрузки файла соответствий!`n%Path%
+		devLog("IDCL Load Error - " Path)
+		return
+	}
+	FileDelete, %Path%
+	Sleep 100
+	FileAppend, %FileData%, %Path%, UTF-8
 }

@@ -171,16 +171,27 @@ commandFastReply(Line:="/dance"){
 		return
 	}
 	
+	;Всплывающая подсказка
+	If (InStr(Line, "!")=1) {
+		Line:=SubStr(Line, 2)
+		showToolTip(Line, 90000)
+		return
+	}
+	
 	;Другое
 	If (InStr(Line, ">")=1) {
 		Line:=SubStr(Line, 2)
 		run, %Line%
 		return
 	}
-	If RegExMatch(Line, ".(png|jpg|jpeg|bmp)") {
+	If RegExMatch(Line, ".(png|jpg|jpeg|bmp|txt)") {
 		SplitImg:=StrSplit(Line, "|")
 		if RegExMatch(SplitImg[1], ".(png|jpg|jpeg|bmp)$") {
 			shOverlay(SplitImg[1], SplitImg[2], SplitImg[3])
+			return
+		}
+		If RegExMatch(SplitImg[1], ".txt$") {
+			textFileWindow(SplitImg[1], SplitImg[1], false)
 			return
 		}
 	}

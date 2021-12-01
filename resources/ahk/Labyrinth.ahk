@@ -8,7 +8,7 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false) {
 	;Сравним текущую дату UTC с датой загрузки лабиринта 
 	IniRead, labLoadDate, %configFile%, info, labLoadDate, %A_Space%
 	FormatTime, CurrentDate, %A_NowUTC%, yyyyMMdd
-	If (CurrentDate==labLoadDate && FileExist(configFolder "\images\Labyrinth.jpg"))
+	If (CurrentDate==labLoadDate && FileExist(configFolder "\MyFiles\Labyrinth.jpg"))
 		return
 	
 	;В это время раскладка лабиринта может быть недоступной
@@ -23,7 +23,7 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false) {
 	;Очистка файлов
 	FileDelete, %A_Temp%\labmain.html
 	FileDelete, %A_Temp%\labpage.html
-	FileDelete, %configFolder%\images\Labyrinth.jpg
+	FileDelete, %configFolder%\MyFiles\Labyrinth.jpg
 	
 	/*
 	;Загружаем основную страницу и извлекаем ссылку на страницу с убер-лабой
@@ -68,13 +68,13 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false) {
 	}
 	
 	;Загружаем изображение убер-лабы
-	LoadFile(URL1, configFolder "\images\Labyrinth.jpg")
+	LoadFile(URL1, configFolder "\MyFiles\Labyrinth.jpg")
 	
 	
 	;Проверим изображение, чтобы оно не было пустым файлом или веб-страницей
-	FileReadLine, Line, %configFolder%\images\Labyrinth.jpg, 1
+	FileReadLine, Line, %configFolder%\MyFiles\Labyrinth.jpg, 1
 	If (Line="" || (InStr(Line, "<") && InStr(Line, ">")) || InStr(Line, "ban") || InStr(Line, "error")) {
-		FileDelete, %configFolder%\images\Labyrinth.jpg
+		FileDelete, %configFolder%\MyFiles\Labyrinth.jpg
 		TrayTip, %prjName% - Загрузка лабиринта, Получен некорректный файл лабиринта!
 		devLog("Получен некорректный файл лабиринта!")
 		;MsgBox, 0x1010, %prjName% - Загрузка лабиринта, Получен некорректный файл лабиринта!, 5
@@ -86,17 +86,77 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false) {
 	sleep 100
 }
 
-checkLab(){
-	downloadLabLayout(,true)
-	IniRead, useLoadTimers, %configFile%, settings, useLoadTimers, 0
-	If useLoadTimers
-		SetTimer, downloadLabLayout, 3600000
-}
-
 reloadLab(LabURL){
 	SplashTextOn, 400, 20, %prjName%, Загрузка лабиринта, пожалуйста подождите...
-	FileDelete, %configFolder%\images\Labyrinth.jpg
+	FileDelete, %configFolder%\MyFiles\Labyrinth.jpg
 	sleep 25
 	downloadLabLayout(LabURL, true)
 	SplashTextOff
+}
+
+;Создание интерфейса с испытаниями
+showLabTrials() {
+	global
+	Gui, LabTrials:Destroy
+	cfgLab:=configFolder "\trials.ini"
+	
+	IniRead, trialA, %cfgLab%, LabTrials, trialA, 0
+	IniRead, trialB, %cfgLab%, LabTrials, trialB, 0
+	IniRead, trialC, %cfgLab%, LabTrials, trialC, 0
+	IniRead, trialD, %cfgLab%, LabTrials, trialD, 0
+	IniRead, trialE, %cfgLab%, LabTrials, trialE, 0
+	IniRead, trialF, %cfgLab%, LabTrials, trialF, 0
+	
+	trialsStatus:=сompletionLabTrials()
+	
+	Gui, LabTrials:Add, Checkbox, vtrialA x5 y0 w140 h28 Checked%trialA% +Center, Пронзающей истинной`nPiercing Truth
+	Gui, LabTrials:Add, Checkbox, vtrialB xp+0 y+28 w140 h28 Checked%trialB% +Center, Крутящимся страхом`nSwirling Fear
+	Gui, LabTrials:Add, Checkbox, vtrialC xp+0 y+28 w140 h28 Checked%trialC% +Center, Калечащей печалью`nCrippling Grief
+	
+	Gui, LabTrials:Add, Checkbox, vtrialD xp+140 y0 w140 h28 Checked%trialD% +Center, Пылающей яростью`nBurning Rage
+	Gui, LabTrials:Add, Checkbox, vtrialE xp+0 y+28 w140 h28 Checked%trialE% +Center, Томительной болью`nLingering Pain
+	Gui, LabTrials:Add, Checkbox, vtrialF xp+0 y+28 w140 h28 Checked%trialF% +Center, Жалящим сомнением`nStinging Doubt
+	
+	Gui, LabTrials:+AlwaysOnTop -Caption +Border
+	Gui, LabTrials:Show, w285 h225, Испытания лабиринта
+	
+	Gui, LabTrials:Color, 6BCA94
+	WinSet, Transparent, 210, Испытания лабиринта
+	WinMove,Испытания лабиринта,,,,,145
+	sleep 50
+	SetTimer, autoSaveLabTrials, 50
+}
+
+;Сохранение информации и удаление интерфейса
+autoSaveLabTrials() {
+	global
+	IfWinNotActive Испытания лабиринта
+	{
+		SetTimer, autoSaveLabTrials, Delete
+		Gui, LabTrials:Submit
+		IniWrite, %trialA%, %cfgLab%, LabTrials, trialA
+		IniWrite, %trialB%, %cfgLab%, LabTrials, trialB
+		IniWrite, %trialC%, %cfgLab%, LabTrials, trialC
+		IniWrite, %trialD%, %cfgLab%, LabTrials, trialD
+		IniWrite, %trialE%, %cfgLab%, LabTrials, trialE
+		IniWrite, %trialF%, %cfgLab%, LabTrials, trialF
+		If (trialsStatus<сompletionLabTrials()){
+			msgtext:="Поздравляю, вы завершили все испытания лабиринта)`n" prjName " уберет этот пункт из 'Быстрого доступа'!`n`nЕсли понадобится вернуть, то уберите отметки, через аналогичный пункт в 'Области уведомлений'!"
+			msgbox, 0x1040, %prjName% - Испытания завершены, %msgtext%, 15
+		}
+		Gui, LabTrials:Destroy
+	}
+}
+
+сompletionLabTrials() {
+	cfgLab:=configFolder "\trials.ini"
+	IniRead, trialA, %cfgLab%, LabTrials, trialA, 0
+	IniRead, trialB, %cfgLab%, LabTrials, trialB, 0
+	IniRead, trialC, %cfgLab%, LabTrials, trialC, 0
+	IniRead, trialD, %cfgLab%, LabTrials, trialD, 0
+	IniRead, trialE, %cfgLab%, LabTrials, trialE, 0
+	IniRead, trialF, %cfgLab%, LabTrials, trialF, 0
+	if (trialA && trialB && trialC && trialD && trialE && trialF)
+		return true
+	return false
 }

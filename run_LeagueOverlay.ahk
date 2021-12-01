@@ -13,6 +13,7 @@
 		*fastReply.ahk - Библиотека с функциями для команд
 		*ItemDataConverterLib.ahk - Библиотека для конвертирования описания предмета
 		*itemMenu.ahk - Библиотека для формирования меню предмета
+		*MD5.ahk - Подсчет контрольной суммы файла
 	
 	Управление:
 		[Alt+F1] - Последнее изображение
@@ -47,7 +48,7 @@ If InStr(FileExist(A_ScriptDir "\..\Profile"), "D")
 	configFolder:=A_ScriptDir "\..\Profile"
 global configFile:=configFolder "\settings.ini"
 global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, textCmd11, textCmd12, textCmd13, textCmd14, textCmd15, textCmd16, textCmd17, textCmd18, textCmd19, textCmd20, cmdNum=20
-global verScript, LastImg, globalOverlayPosition, OverlayStatus=0
+global verScript, LastImg, debugMode=0, globalOverlayPosition, OverlayStatus=0
 FileReadLine, verScript, resources\Updates.txt, 1
 
 ;Проверка требований
@@ -87,9 +88,8 @@ Loop, %configFolder%\*_loader.ahk, 1
 menuCreate()
 setHotkeys()
 
-;Скачаем раскладку лабиринта и обновим фильтр предметов
-checkLab()
-updateFilter()
+;Загрузка данных и установка таймера
+downloadDataAndSetTimer()
 
 ;Завершение загрузки
 closeStartUI()
@@ -165,6 +165,9 @@ migrateConfig() {
 				If (ct=5)
 					IniWrite, 10, %configFile%, curl, connect-timeout
 			}
+			If (verConfig<211112.5) {
+				FileMoveDir, %configFolder%\images, %configFolder%\MyFiles, 2
+			}
 		}
 		
 		showSettings()
@@ -172,21 +175,36 @@ migrateConfig() {
 		IniRead, debugMode, %configFile%, dev, debugMode, 0
 		IniRead, lastImg, %configFile%, info, lastImg, %A_Space%
 		IniRead, labLoadDate, %configFile%, info, labLoadDate, 0
-		IniRead, curlProgress, %configFile%, dev, curlProgress, 0
 		
 		FileDelete, %configFile%
 		sleep 25
-		FileCreateDir, %configFolder%\images
+		FileCreateDir, %configFolder%\MyFiles
 		
 		IniWrite, %verScript%, %configFile%, info, verConfig
 		IniWrite, %debugMode%, %configFile%, dev, debugMode
 		IniWrite, %lastImg%, %configFile%, info, lastImg
 		If (labLoadDate!="")
 			IniWrite, %labLoadDate%, %configFile%, info, labLoadDate
-		IniWrite, %curlProgress%, %configFile%, dev, curlProgress
+		IniWrite, 0, %configFile%, dev, curlProgress
 		
 		saveSettings()
 	}
+}
+
+downloadDataAndSetTimer(){
+	ItemMenu_IDCLInit(true)
+	downloadLabLayout(,true)
+	updateFilter()
+	
+	IniRead, useLoadTimers, %configFile%, settings, useLoadTimers, 0
+	If useLoadTimers
+		SetTimer, loadTimer, 7200000
+}
+
+loadTimer(){
+	ItemMenu_IDCLInit()
+	downloadLabLayout()
+	updateFilter()
 }
 
 shLastImage(){
@@ -273,7 +291,7 @@ presetInMenu(){
 			
 			If (imageInfo[1]="---")
 				Menu, mainMenu, Add
-			If (RegExMatch(imageInfo[2], ".(png|jpg|jpeg|bmp)$") && FileExist(StrReplace(imageInfo[2],"<configFolder>", configFolder)) || (RegExMatch(imageInfo[2], ">")=1))
+			If (RegExMatch(imageInfo[2], ".(png|jpg|jpeg|bmp)$") && FileExist(StrReplace(imageInfo[2],"<configFolder>", configFolder)) || (RegExMatch(imageInfo[2], ">")=1) || (RegExMatch(imageInfo[2], "!")=1))
 					Menu, mainMenu, Add, %ImgName%, presetCmdInMenu
 		}
 	}
@@ -291,15 +309,15 @@ presetCmdInMenu(CmdName){
 }
 
 shMyImage(imagename){
-	shOverlay(configFolder "\images\" imagename)
+	commandFastReply(configFolder "\MyFiles\" imagename)
 }
 
 openMyImagesFolder(){
 	Gui, Settings:Destroy
-	If !FileExist(configFolder "\images")
-		FileCreateDir, %configFolder%\images
+	If !FileExist(configFolder "\MyFiles")
+		FileCreateDir, %configFolder%\MyFiles
 	sleep 15
-	Run, explorer "%configFolder%\images"
+	Run, explorer "%configFolder%\MyFiles"
 }
 
 myImagesMenuCreate(selfMenu=true){
@@ -307,17 +325,16 @@ myImagesMenuCreate(selfMenu=true){
 		Menu, myImagesMenu, Add
 		Menu, myImagesMenu, DeleteAll
 		
-		Loop, %configFolder%\images\*.*, 1
-			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp)$")
+		Loop, %configFolder%\MyFiles\*.*, 1
+			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt)$")
 				Menu, myImagesMenu, Add, %A_LoopFileName%, shMyImage
 			Menu, myImagesMenu, Add
 			Menu, myImagesMenu, Add, Открыть папку, openMyImagesFolder
-			Menu, mainMenu, Add, Мои изображения, :myImagesMenu
+			Menu, mainMenu, Add, Мои файлы, :myImagesMenu
 	} Else {
-		Loop, %configFolder%\images\*.*, 1
-			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp)$") {
+		Loop, %configFolder%\MyFiles\*.*, 1
+			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt)$")
 				Menu, mainMenu, Add, %A_LoopFileName%, shMyImage
-			}
 		Menu, mainMenu, Add
 	}
 }
@@ -331,9 +348,14 @@ textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 	If ReadOnlyStatus {
 		Gui, tfwGui:Add, Edit, w615 h380 +ReadOnly, %tfwContentFile%
 	} Else {
+		Menu, tfwMenuBar, Add
+		Menu, tfwMenuBar, DeleteAll
 		If (tfwContentFile="" && contentDefault!="")
 			tfwContentFile:=contentDefault
 		Menu, tfwMenuBar, Add, Сохранить `tCtrl+S, tfwSave
+		If FileExist(tfwFilePath)
+			Menu, tfwMenuBar, Add, Удалить `tCtrl+Del, tfwDelFile
+		Menu, tfwMenuBar, Add, Закрыть `tEsc, tfwClose
 		Gui, tfwGui:Menu, tfwMenuBar
 		Gui, tfwGui:Add, Edit, w615 h380 vtfwContentFile, %tfwContentFile%
 	}
@@ -348,6 +370,20 @@ textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 		SendInput, ^{End}
 	}
 	BlockInput Off
+}
+
+tfwClose(){
+	Gui, tfwGui:Destroy
+}
+
+tfwDelFile(){
+	global
+	Gui, tfwGui:Submit
+	msgbox, 0x1024, %prjName%, Удалить файл '%tfwFilePath%'?
+	IfMsgBox No
+		return
+	FileDelete, %tfwFilePath%
+	Gui, tfwGui:Destroy
 }
 
 tfwSave(){
@@ -437,8 +473,8 @@ copyPreset(){
 
 editPreset(presetName){
 	Gui, Settings:Destroy
-	If InStr(presetName, "Редактировать ")=1
-		presetName:=SubStr(presetName, 15)
+	If InStr(presetName, "Изменить ")=1
+		presetName:=SubStr(presetName, 10)
 	FileCreateDir, %configFolder%\presets
 	If !FileExist(configFolder "\presets\" presetName) {
 		InputBox, presetName, Укажите имя набора,,, 300, 100,,,,, My.preset
@@ -449,32 +485,18 @@ editPreset(presetName){
 	}
 	If (presetName="" || ErrorLevel)
 		return
-	textFileWindow("Редактирование " presetName, configFolder "\presets\" presetName, false, loadPreset("Default"))
+	textFileWindow("Изменение " presetName, configFolder "\presets\" presetName, false, loadPreset("Default"))
 }
 
 cfgPresetMenuShow(){
 	Menu, delPresetMenu, Add
 	Menu, delPresetMenu, DeleteAll
-	Menu, delPresetMenu, Add, Создать/Редактировать, editPreset
+	Menu, delPresetMenu, Add, Добавить/Изменить, editPreset
 	Menu, delPresetMenu, Add, Добавить из файла, copyPreset
 	Menu, delPresetMenu, Add
 	Loop, %configFolder%\presets\*.preset, 1
-		Menu, delPresetMenu, Add, Редактировать %A_LoopFileName%, editPreset
-	Menu, delPresetMenu, Add
-	Loop, %configFolder%\presets\*.preset, 1
-		Menu, delPresetMenu, Add, Удалить %A_LoopFileName%, delPreset
+		Menu, delPresetMenu, Add, Изменить %A_LoopFileName%, editPreset
 	Menu, delPresetMenu, Show
-}
-
-delPreset(presetName){
-	presetName:=SubStr(presetName, 9)
-	msgbox, 0x1024, %prjName%, Удалить набор '%presetName%'?
-	IfMsgBox No
-		return
-	FileDelete, %configFolder%\presets\%presetName%
-	Gui, Settings:Destroy
-	Sleep 25
-	showSettings()
 }
 
 showStartUI(){
@@ -538,7 +560,7 @@ closeStartUI(){
 		Menu, Tray, Icon, resources\icons\icon.png
 	Menu, Tray, Tip, %prjName% %verScript% | AHK %A_AhkVersion%
 	Gui, StartUI:Destroy
-	;If Globals.Get("debugMode") && FileExist(A_WinDir "\Media\Windows Proximity Notification.wav")
+	;If debugMode && FileExist(A_WinDir "\Media\Windows Proximity Notification.wav")
 		;SoundPlay, %A_WinDir%\Media\Windows Proximity Notification.wav
 	IniRead, showHistory, %configFile%, info, showHistory, 1
 	If showHistory {
@@ -567,7 +589,7 @@ showSettings(){
 	posH:=splitOverlayPosition[4]
 	
 	IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
-	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 0
+	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
 	IniRead, preset1, %configFile%, settings, preset1, default
 	IniRead, preset2, %configFile%, settings, preset2, %A_Space%
 	IniRead, mouseDistance, %configFile%, settings, mouseDistance, 500
@@ -642,7 +664,7 @@ showSettings(){
 	Gui, Settings:Add, Edit, vmouseDistance x+2 yp-2 w90 h18 Number, %mouseDistance%
 	Gui, Settings:Add, UpDown, Range5-99999 0x80, %mouseDistance%
 	
-	Gui, Settings:Add, Checkbox, vexpandMyImages x12 yp+24 w525 Checked%expandMyImages%, Развернуть 'Мои изображения'
+	Gui, Settings:Add, Checkbox, vexpandMyImages x12 yp+24 w525 Checked%expandMyImages%, Развернуть 'Мои файлы'
 	Gui, Settings:Add, Button, x+1 yp-4 w92 h23 gopenMyImagesFolder, Открыть папку
 	
 	Gui, Settings:Add, Text, x10 y+3 w620 h1 0x12
@@ -671,12 +693,13 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x10 y+3 w620 h1 0x12
 	
-	Gui, Settings:Add, Checkbox, vuseLoadTimers x12 yp+6 w525 Checked%useLoadTimers%, Использовать фоновую загрузку данных
+	Gui, Settings:Add, Checkbox, vuseLoadTimers x12 yp+6 w525 Checked%useLoadTimers%, Разрешить фоновую загрузку данных
 	
-	Gui, Settings:Add, Checkbox, vloadLab x12 yp+21 w525 Checked%loadLab%, Скачивать лабиринт('Мои изображения'>Labyrinth.jpg)
+	Gui, Settings:Add, Checkbox, vloadLab x12 yp+21 w525 Checked%loadLab%, Скачивать лабиринт('Мои файлы'\Labyrinth.jpg)
 	Gui, Settings:Add, Link, x+2 yp+0 w90 +Right, <a href="https://www.poelab.com/">POELab.com</a>
 	
-	Gui, Settings:Add, Checkbox, vupdateFilter x12 yp+21 w525 Checked%updateFilter%, Обновлять фильтр предметов(NeverSink-2semistr.filter)
+	Gui, Settings:Add, Checkbox, vupdateFilter x12 yp+21 w525 Checked%updateFilter%, Обновлять фильтр предметов(NeverSink-2semistr)
+	Gui, Settings:Add, Link, x+2 yp+0 w90 +Right, <a href="https://github.com/NeverSinkDev/NeverSink-Filter/releases">GitHub</a>
 	
 	Gui, Settings:Tab, 3 ; Третья вкладка
 	
@@ -730,7 +753,7 @@ showSettings(){
 		;Msgbox, %TwoColumn%
 	}
 	
-	helptext:="/dance - простая команда чата`n/whois <last> - команда в отношении последнего игрока`n@<last> ty, gl) - сообщение последнему игроку`n_ty, gl) - сообщение в чат области`n%ty, gl) - сообщение в групповой чат`n>calc.exe - открытие программы или веб страницы`n<configFolder>\images\Labyrinth.jpg - изображение"
+	helptext:="/dance - простая команда чата`n/whois <last> - команда в отношении последнего игрока`n@<last> ty, gl) - сообщение последнему игроку`n_ty, gl) - сообщение в чат области`n%ty, gl) - сообщение в групповой чат`n>calc.exe - открытие программы или веб страницы`n<configFolder>\my.jpg - изображение или текстовый файл`n!текст - всплывающая подсказка"
 	helptext2:="--- - разделитель(только в 'Меню команд')`n;/dance - комментарий(команда будет проигнорирована)`n<configFolder> - указывает папку настроек(переменная)`n<time> - время UTC(переменная)`n<inputbox> - позволяет ввести текст(переменная)"
 	Gui, Settings:Add, Text, x12 y+2 w307 cGray, %helptext%
 	Gui, Settings:Add, Text, x+2 w307 cGray, %helptext2%
@@ -801,16 +824,6 @@ setHotkeys(){
 		Hotkey, % hotkeyMainMenu, shMainMenu, On
 	If (hotkeyCustomCommandsMenu!="")
 		Hotkey, % hotkeyCustomCommandsMenu, showCustomCommandsMenu, On
-
-	;Инициализация ItemDataConverterLib
-	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, %A_Space%
-	If (hotkeyItemMenu!="") {
-		ItemMenu_IDCLInit()
-		IniRead, useLoadTimers, %configFile%, settings, useLoadTimers, 0
-		If useLoadTimers
-			SetTimer, ItemMenu_IDCLInit, 10800000
-		Hotkey, % hotkeyItemMenu, ItemMenu_Show, On
-	}
 	
 	;Инициализация встроенных команд fastReply
 	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
@@ -863,7 +876,7 @@ createMainMenu(){
 	
 	Menu, mainMenu, Add
 	
-	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 0
+	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
 	myImagesMenuCreate(!expandMyImages)
 	
 	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
@@ -893,7 +906,7 @@ ReStart(){
 showDonateUIOnStart() {
 	;Иногда после запуска будем предлагать поддержать проект
 	Random, randomNum, 1, 15
-	If (randomNum=1 && !Globals.Get("debugMode")) {
+	If (randomNum=1 && !debugMode) {
 		showDonateUI()
 		Sleep 10000
 		Gui, DonateUI:Minimize
@@ -919,6 +932,8 @@ showDonateUI() {
 }
 
 showToolTip(msg, t=0, umd=true) {
+	msg:=StrReplace(msg, "/n", "`n")
+	msg:=StrReplace(msg, "/t", "`t")
 	ToolTip
 	sleep 5
 	ToolTip, %msg%
@@ -959,7 +974,7 @@ LoadFile(URL, FilePath, MD5="") {
 		IniRead, curlProgress, %configFile%, dev, curlProgress, 0
 		IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 		If (UserAgent="")
-			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36"
+			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"
 		IniRead, lr, %configFile%, curl, limit-rate, 1000
 		IniRead, ct, %configFile%, curl, connect-timeout, 10
 		
