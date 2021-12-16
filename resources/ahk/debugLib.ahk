@@ -20,6 +20,7 @@ devMenu() {
 	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
 	Menu, devMenu, Add, Открыть папку настроек, openConfigFolder
 	Menu, devMenu, Add, Открыть папку макроса, openScriptFolder
+	Menu, devMenu, Add, Перезагрузить фильтр, forceReloadFilter
 	Menu, devMenu, Add, Перезагрузить лабиринт, :devMenu2
 	Menu, devMenu, Add, AutoHotkey, :devMenu1
 	
@@ -66,34 +67,34 @@ devAddInList(Line){
 	FileAppend, %Line%`n, %FilePath%, UTF-8
 }
 
-;Обновлялка фильтра
-updateFilter(FilterName="NeverSink-2semistr", FilterURL="https://raw.githubusercontent.com/NeverSinkDev/NeverSink-Filter/master/NeverSink's%20filter%20-%202-SEMI-STRICT.filter"){
-	FileCreateDir, %A_MyDocuments%\My Games\Path of Exile
-	FilterPath:=A_MyDocuments "\My Games\Path of Exile\" FilterName ".filter"
-	TmpPath:=A_Temp "\New.filter"
+loadEvent(){
+	Path:="resources\presets\Event.txt"
 	
-	IniRead, updateFilter, %configFile%, settings, updateFilter, 0
-	If !updateFilter
-		return
-		
 	FormatTime, CurrentDate, %A_Now%, yyyyMMdd
-	FileGetTime, LoadDate, %FilterPath%, M
+	FileGetTime, LoadDate, %Path%, M
 	FormatTime, LoadDate, %LoadDate%, yyyyMMdd
-	If FileExist(FilterPath) && (LoadDate=CurrentDate)
+	IfNotExist, %Path%
+		LoadDate:=0
+	
+	If (LoadDate!=CurrentDate)
+		LoadFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/presets/Event.txt", Path)
+	
+	eventData:=loadPreset("Event")
+	eventDataSplit:=StrSplit(eventData, "`n")
+	For k, val in eventDataSplit {
+		If RegExMatch(eventDataSplit[k], ";EventName=(.*)$", EventName)
+			rEventName:=EventName1
+		If RegExMatch(eventDataSplit[k], ";EventInfo=(.*)$", EventInfo)
+			rEventInfo:=EventInfo1
+		If RegExMatch(eventDataSplit[k], ";StartDate=(.*)$", StartDate)
+			rStartDate:=StartDate1
+		If RegExMatch(eventDataSplit[k], ";EndDate=(.*)$", EndDate)
+			rEndDate:=EndDate1
+	}
+
+	If (rEventName="" || rStartDate="" || rEndDate="" || CurrentDate<StartDate || CurrentDate>rEndDate)
 		return
 	
-	;UrlDownloadToFile, %FilterURL%, %TmpPath%
-	LoadFile(FilterURL, TmpPath)
-	FileReadLine, verFilterNewLine, %TmpPath%, 4
-	If RegExMatch(verFilterNewLine, "VERSION: (.*)", verFilterNew) {
-		verFilterNew:=Trim(verFilterNew1)
-		FileReadLine, verFilterCurrentLine, %FilterPath%, 4
-		RegExMatch(verFilterCurrentLine, "VERSION: (.*)", verFilterCurrent)
-		verFilterCurrent:=Trim(verFilterCurrent1)
-		If (verFilterNew!=verFilterCurrent) {
-			FileCopy, %TmpPath%, %FilterPath%, 1
-			TrayTip, %prjName% - Обновлен фильтр, %FilterName%`n%verFilterCurrent% >> %verFilterNew%
-		}
-		FileSetTime, , %FilterPath%
-	}
+	trayMsg(rEventName "`n" rStartDate " - " rEndDate, "Активен набор события")
+	return eventData
 }

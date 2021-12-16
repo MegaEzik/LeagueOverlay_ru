@@ -14,6 +14,7 @@
 		*ItemDataConverterLib.ahk - Библиотека для конвертирования описания предмета
 		*itemMenu.ahk - Библиотека для формирования меню предмета
 		*MD5.ahk - Подсчет контрольной суммы файла
+		*Filter.ahk - Обновление фильтра предметов
 	
 	Управление:
 		[Alt+F1] - Последнее изображение
@@ -36,6 +37,7 @@ SetWorkingDir %A_ScriptDir%
 #Include, %A_ScriptDir%\resources\ahk\ItemDataConverterLib.ahk
 #Include, %A_ScriptDir%\resources\ahk\itemMenu.ahk
 #Include, %A_ScriptDir%\resources\ahk\MD5.ahk
+#Include, %A_ScriptDir%\resources\ahk\Filter.ahk
 
 ;Список окон Path of Exile
 GroupAdd, WindowGrp, Path of Exile ahk_class POEWindowClass
@@ -168,6 +170,11 @@ migrateConfig() {
 			If (verConfig<211112.5) {
 				FileMoveDir, %configFolder%\images, %configFolder%\MyFiles, 2
 			}
+			If (verConvig<211217) {
+				IniRead, updateFilter, %configFile%, settings, updateFilter, 0
+				If updateFilter
+					IniWrite, NeverSink-2semistr, %configFile%, settings, itemFilter
+			}
 		}
 		
 		showSettings()
@@ -194,7 +201,7 @@ migrateConfig() {
 downloadDataAndSetTimer(){
 	ItemMenu_IDCLInit(true)
 	downloadLabLayout(,true)
-	updateFilter()
+	checkFilter()
 	
 	IniRead, useLoadTimers, %configFile%, settings, useLoadTimers, 0
 	If useLoadTimers
@@ -204,7 +211,7 @@ downloadDataAndSetTimer(){
 loadTimer(){
 	ItemMenu_IDCLInit()
 	downloadLabLayout()
-	updateFilter()
+	checkFilter()
 }
 
 shLastImage(){
@@ -244,6 +251,8 @@ shMainMenu(){
 
 loadPreset(presetName){
 	presetPath:=A_ScriptDir "\resources\presets\" presetName ".preset"
+	If (presetName="Event")
+		presetPath:=A_ScriptDir "\resources\presets\Event.txt"
 	If RegExMatch(presetName, ".preset$")
 		presetPath:=configFolder "\presets\" presetName
 	If FileExist(presetPath)
@@ -252,6 +261,11 @@ loadPreset(presetName){
 }
 
 loadPresetData(){
+	presetsData:=""
+	
+	;Подгружаем набор события
+	presetDataEvent:=loadEvent()
+	
 	;Подгружаем первичный набор
 	IniRead, preset1, %configFile%, settings, preset1, %A_Space%
 	presetData1:=loadPreset(preset1)
@@ -261,10 +275,12 @@ loadPresetData(){
 	presetData2:=loadPreset(preset2)
 	
 	;Склейка и установка набора
-	presetsData:=presetData1
-	If (preset1!="" && preset2!="")
-		presetsData.="`n---`n"
-	presetsData.=presetData2
+	If (presetDataEvent!="")
+		presetsData.=presetDataEvent "`n---`n"
+	If (presetData1!="")
+		presetsData.=presetData1 "`n---`n"
+	If (presetData2!="")
+		presetsData.=presetData2 "`n---`n"
 	
 	Globals.Set("presetsData", presetsData)
 	
@@ -304,6 +320,7 @@ presetCmdInMenu(CmdName){
 		If (CmdName=imageInfo[1]) {
 			presetCmd:=SubStr(presetsDataSplit[k], StrLen(imageInfo[1])+2)
 			commandFastReply(presetCmd)
+			return
 		}
 	}
 }
@@ -420,7 +437,7 @@ clearPoECache(){
 	FileRemoveDir, %PoECacheFolder%, 1
 	
 	SplashTextOff
-	TrayTip, %prjName%, Очистка кэша завершена)
+	trayMsg("Очистка кэша завершена)")
 	
 	/*				;Резервный способ
 	tmpCmdFile:=A_Temp "\ClearPoE.cmd"
@@ -491,7 +508,7 @@ editPreset(presetName){
 cfgPresetMenuShow(){
 	Menu, delPresetMenu, Add
 	Menu, delPresetMenu, DeleteAll
-	Menu, delPresetMenu, Add, Добавить/Изменить, editPreset
+	Menu, delPresetMenu, Add, Создать, editPreset
 	Menu, delPresetMenu, Add, Добавить из файла, copyPreset
 	Menu, delPresetMenu, Add
 	Loop, %configFolder%\presets\*.preset, 1
@@ -516,7 +533,7 @@ showStartUI(){
 	FormatTime, CurrentDate, %A_NowUTC%, MMdd
 	
 	If (CurrentDate==1231 || CurrentDate==0101)
-		initMsgs:=["Тебя весь год ждет PoE)"]
+		initMsgs:=["Мммм, Ледники"]
 	If (CurrentDate==0214)
 		initMsgs:=["Похоже кто-то будет соло", "<3 <3 <3 <3 <3 <3 <3"]
 	If (CurrentDate==0223)
@@ -607,7 +624,7 @@ showSettings(){
 	IniRead, ct, %configFile%, curl, connect-timeout, 10
 	IniRead, useLoadTimers, %configFile%, settings, useLoadTimers, 1
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
-	IniRead, updateFilter, %configFile%, settings, updateFilter, 0
+	IniRead, itemFilter, %configFile%, settings, itemFilter, %A_Space%
 	
 	;Настройки третьей вкладки
 	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
@@ -646,76 +663,77 @@ showSettings(){
 	Gui, Settings:Add, Edit, vposH x+17 w55 h18 Number, %posH%
 	Gui, Settings:Add, UpDown, Range0-99999 0x80, %posH%
 	
-	presetList2:=""
+	presetList:=""
 	Loop, resources\presets\*.preset, 1
-		presetList2.="|" RegExReplace(A_LoopFileName, ".preset$", "")
+		presetList.="|" RegExReplace(A_LoopFileName, ".preset$", "")
 	Loop, %configFolder%\presets\*.preset, 1
-		presetList2.="|" A_LoopFileName
-	presetList1:=SubStr(presetList2, 2)
+		presetList.="|" A_LoopFileName
 	
-	Gui, Settings:Add, Text, x12 yp+24 w410, Наборы:
+	Gui, Settings:Add, Text, x12 yp+24 w390, Наборы:
 	;Gui, Settings:Add, Button, x+1 yp-4 w23 h23 gcopyPreset, 📄
 	;Gui, Settings:Add, Button, x+0 w23 h23 geditPreset, ✏
 	Gui, Settings:Add, Button, x+1 yp-4 w23 h23 gcfgPresetMenuShow, ☰
-	Gui, Settings:Add, DropDownList, vpreset1 x+1 yp+1 w90, %presetList1%
+	Gui, Settings:Add, DropDownList, vpreset1 x+1 yp+1 w100, %presetList%
 	GuiControl,Settings:ChooseString, preset1, %preset1%
 	
-	Gui, Settings:Add, DropDownList, vpreset2 x+2 w90, %presetList2%
+	Gui, Settings:Add, DropDownList, vpreset2 x+2 w100, %presetList%
 	GuiControl,Settings:ChooseString, preset2, %preset2%
 	
-	Gui, Settings:Add, Text, x12 yp+26 w525, Смещение указателя(пиксели):
-	Gui, Settings:Add, Edit, vmouseDistance x+2 yp-2 w90 h18 Number, %mouseDistance%
+	Gui, Settings:Add, Text, x12 yp+26 w515, Смещение указателя(пиксели):
+	Gui, Settings:Add, Edit, vmouseDistance x+2 yp-2 w100 h18 Number, %mouseDistance%
 	Gui, Settings:Add, UpDown, Range5-99999 0x80, %mouseDistance%
 	
-	Gui, Settings:Add, Checkbox, vexpandMyImages x12 yp+24 w525 Checked%expandMyImages%, Развернуть 'Мои файлы'
-	Gui, Settings:Add, Button, x+1 yp-4 w92 h23 gopenMyImagesFolder, Открыть папку
+	Gui, Settings:Add, Checkbox, vexpandMyImages x12 yp+24 w515 Checked%expandMyImages%, Развернуть 'Мои файлы'
+	Gui, Settings:Add, Button, x+1 yp-4 w102 h23 gopenMyImagesFolder, Открыть папку
 	
 	Gui, Settings:Add, Text, x10 y+3 w620 h1 0x12
 	
-	Gui, Settings:Add, Text, x12 yp+6 w525, Последнее изображение:
-	Gui, Settings:Add, Hotkey, vhotkeyLastImg x+2 yp-2 w90 h17, %hotkeyLastImg%
+	Gui, Settings:Add, Text, x12 yp+6 w515, Последнее изображение:
+	Gui, Settings:Add, Hotkey, vhotkeyLastImg x+2 yp-2 w100 h17, %hotkeyLastImg%
 	
-	Gui, Settings:Add, Text, x12 yp+21 w525, Меню быстрого доступа:
-	Gui, Settings:Add, Hotkey, vhotkeyMainMenu x+2 yp-2 w90 h17, %hotkeyMainMenu%
+	Gui, Settings:Add, Text, x12 yp+21 w515, Меню быстрого доступа:
+	Gui, Settings:Add, Hotkey, vhotkeyMainMenu x+2 yp-2 w100 h17, %hotkeyMainMenu%
 	
-	Gui, Settings:Add, Text, x12 yp+21 w525, Меню предмета:
-	Gui, Settings:Add, Hotkey, vhotkeyItemMenu x+2 yp-2 w90 h17, %hotkeyItemMenu%
+	Gui, Settings:Add, Text, x12 yp+21 w515, Меню предмета:
+	Gui, Settings:Add, Hotkey, vhotkeyItemMenu x+2 yp-2 w100 h17, %hotkeyItemMenu%
 	
 	Gui, Settings:Tab, 2 ;Вторая вкладка
 	
 	Gui, Settings:Add, Text, x12 y30 w150, cURL | User-Agent:
 	Gui, Settings:Add, Edit, vUserAgent x+2 yp-2 w465 h17, %UserAgent%
 	
-	Gui, Settings:Add, Text, x12 yp+21 w525, cURL | Ограничение загрузки(Кб/с, 0 - без лимита):
-	Gui, Settings:Add, Edit, vlr x+2 yp-2 w90 h18 Number, %lr%
+	Gui, Settings:Add, Text, x12 yp+21 w515, cURL | Ограничение загрузки(Кб/с, 0 - без лимита):
+	Gui, Settings:Add, Edit, vlr x+2 yp-2 w100 h18 Number, %lr%
 	Gui, Settings:Add, UpDown, Range0-99999 0x80, %lr%
 	
-	Gui, Settings:Add, Text, x12 yp+22 w525, cURL | Время соединения(сек.):
-	Gui, Settings:Add, Edit, vct x+2 yp-2 w90 h18 Number, %ct%
+	Gui, Settings:Add, Text, x12 yp+22 w515, cURL | Время соединения(сек.):
+	Gui, Settings:Add, Edit, vct x+2 yp-2 w100 h18 Number, %ct%
 	Gui, Settings:Add, UpDown, Range3-99999 0x80, %ct%
 	
 	Gui, Settings:Add, Text, x10 y+3 w620 h1 0x12
 	
 	Gui, Settings:Add, Checkbox, vuseLoadTimers x12 yp+6 w525 Checked%useLoadTimers%, Разрешить фоновую загрузку данных
 	
-	Gui, Settings:Add, Checkbox, vloadLab x12 yp+21 w525 Checked%loadLab%, Скачивать лабиринт('Мои файлы'\Labyrinth.jpg)
-	Gui, Settings:Add, Link, x+2 yp+0 w90 +Right, <a href="https://www.poelab.com/">POELab.com</a>
+	Gui, Settings:Add, Checkbox, vloadLab x12 yp+21 w515 Checked%loadLab%, Скачивать лабиринт('Мои файлы'>Labyrinth.jpg)
+	Gui, Settings:Add, Link, x+2 yp+0 w100 +Right, <a href="https://www.poelab.com/">POELab.com</a>
 	
-	Gui, Settings:Add, Checkbox, vupdateFilter x12 yp+21 w525 Checked%updateFilter%, Обновлять фильтр предметов(NeverSink-2semistr)
-	Gui, Settings:Add, Link, x+2 yp+0 w90 +Right, <a href="https://github.com/NeverSinkDev/NeverSink-Filter/releases">GitHub</a>
+	LFilter:=listFilters()
+	Gui, Settings:Add, Text, x12 yp+21 w515, Обновлять фильтр предметов:
+	Gui, Settings:Add, DropDownList, vitemFilter x+2 yp-2 w100, %LFilter%
+	GuiControl,Settings:ChooseString, itemFilter, %itemFilter%
 	
 	Gui, Settings:Tab, 3 ; Третья вкладка
 	
-	Gui, Settings:Add, Text, x12 y30 w526, Меню команд:
-	Gui, Settings:Add, Hotkey, vhotkeyCustomCommandsMenu x+2 yp-2 w90 h17, %hotkeyCustomCommandsMenu%
+	Gui, Settings:Add, Text, x12 y30 w516, Меню команд:
+	Gui, Settings:Add, Hotkey, vhotkeyCustomCommandsMenu x+2 yp-2 w100 h17, %hotkeyCustomCommandsMenu%
 	
 	Gui, Settings:Add, Text, x10 y+3 w620 h1 0x12
 	
-	Gui, Settings:Add, Text, x12 yp+6 w215, /exit(к персонажам):
-	Gui, Settings:Add, Hotkey, vhotkeyToCharacterSelection x+2 yp-2 w90 h17, %hotkeyToCharacterSelection%
+	Gui, Settings:Add, Text, x12 yp+6 w205, /exit(к персонажам):
+	Gui, Settings:Add, Hotkey, vhotkeyToCharacterSelection x+2 yp-2 w100 h17, %hotkeyToCharacterSelection%
 	
-	Gui, Settings:Add, Text, x+4 yp+2 w215, /oos(синхронизация):
-	Gui, Settings:Add, Hotkey, vhotkeyForceSync x+2 yp-2 w90 h17, %hotkeyForceSync%
+	Gui, Settings:Add, Text, x+4 yp+2 w205, /oos(синхронизация):
+	Gui, Settings:Add, Hotkey, vhotkeyForceSync x+2 yp-2 w100 h17, %hotkeyForceSync%
 	
 	;Gui, Settings:Add, Text, x12 y+3 w620 h1 0x12
 	
@@ -743,16 +761,16 @@ showSettings(){
 			If A_Index=8
 				tempVar:="_ty & gl, exile)"
 		}
-		Gui, Settings:Add, Edit, vtextCmd%A_Index% x12 yp+19 w215 h17, %tempVar%
+		Gui, Settings:Add, Edit, vtextCmd%A_Index% x12 yp+19 w205 h17, %tempVar%
 		
 		IniRead, tempVar, %configFile%, fastReply, hotkeyCmd%A_Index%, %A_Space%
-		Gui, Settings:Add, Hotkey, vhotkeyCmd%A_Index% x+2 w90 h17, %tempVar%
+		Gui, Settings:Add, Hotkey, vhotkeyCmd%A_Index% x+2 w100 h17, %tempVar%
 		
 		TwoColumn:=Round(LoopVar+A_Index)
 		IniRead, tempVar, %configFile%, fastReply, textCmd%TwoColumn%, %A_Space%
-		Gui, Settings:Add, Edit, vtextCmd%TwoColumn% x+4 w215 h17, %tempVar%
+		Gui, Settings:Add, Edit, vtextCmd%TwoColumn% x+4 w205 h17, %tempVar%
 		IniRead, tempVar, %configFile%, fastReply, hotkeyCmd%TwoColumn%, %A_Space%
-		Gui, Settings:Add, Hotkey, vhotkeyCmd%TwoColumn% x+2 w90 h17, %tempVar%
+		Gui, Settings:Add, Hotkey, vhotkeyCmd%TwoColumn% x+2 w100 h17, %tempVar%
 		;Msgbox, %TwoColumn%
 	}
 	
@@ -771,8 +789,6 @@ saveSettings(){
 	sleep 100
 	Gui, Settings:Submit
 	
-	If (preset1="")
-		preset1:="Default"
 	If (preset1=preset2)
 		preset2:=""
 	
@@ -795,7 +811,7 @@ saveSettings(){
 	IniWrite, %ct%, %configFile%, curl, connect-timeout
 	IniWrite, %useLoadTimers%, %configFile%, settings, useLoadTimers
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
-	IniWrite, %updateFilter%, %configFile%, settings, updateFilter
+	IniWrite, %itemFilter%, %configFile%, settings, itemFilter
 	
 	;Настройки третьей вкладки
 	IniWrite, %hotkeyCustomCommandsMenu%, %configFile%, hotkeys, hotkeyCustomCommandsMenu
@@ -877,8 +893,6 @@ createMainMenu(){
 	
 	presetInMenu()
 	
-	Menu, mainMenu, Add
-	
 	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
 	myImagesMenuCreate(!expandMyImages)
 	
@@ -950,6 +964,13 @@ showToolTip(msg, t=0, umd=true) {
 	}
 }
 
+trayMsg(MsgText, Title:=""){
+	FullTitle:=prjName
+	If (Title!="")
+		FullTitle.=" - " Title
+	TrayTip, %FullTitle%, %MsgText%
+}
+
 removeToolTip() {
 	ToolTip
 	SetTimer, removeToolTip, Delete
@@ -977,7 +998,7 @@ LoadFile(URL, FilePath, MD5="") {
 		IniRead, curlProgress, %configFile%, dev, curlProgress, 0
 		IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 		If (UserAgent="")
-			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"
+			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36"
 		IniRead, lr, %configFile%, curl, limit-rate, 1000
 		IniRead, ct, %configFile%, curl, connect-timeout, 10
 		

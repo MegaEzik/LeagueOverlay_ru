@@ -61,7 +61,7 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false) {
 	}
 	FileDelete, %A_Temp%\labpage.html
 	If (StrLen(URL1)<23 || StrLen(URL1)>100) {
-		TrayTip, %prjName% - Загрузка лабиринта, Не удалось скачать страницу с раскладкой!
+		trayMsg("Не удалось скачать страницу с раскладкой!", "Загрузка лабиринта")
 		devLog("Не удалось скачать страницу с раскладкой!")
 		;msgbox, 0x1010, %prjName% - Загрузка лабиринта, Не удалось скачать страницу с раскладкой!, 3
 		return
@@ -75,7 +75,7 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false) {
 	FileReadLine, Line, %configFolder%\MyFiles\Labyrinth.jpg, 1
 	If (Line="" || (InStr(Line, "<") && InStr(Line, ">")) || InStr(Line, "ban") || InStr(Line, "error")) {
 		FileDelete, %configFolder%\MyFiles\Labyrinth.jpg
-		TrayTip, %prjName% - Загрузка лабиринта, Получен некорректный файл лабиринта!
+		trayMsg("Получен некорректный файл лабиринта!", "Загрузка лабиринта")
 		devLog("Получен некорректный файл лабиринта!")
 		;MsgBox, 0x1010, %prjName% - Загрузка лабиринта, Получен некорректный файл лабиринта!, 5
 		return

@@ -168,25 +168,12 @@ ItemMenu_IDCLInit(setHotkey=false){
 	If setHotkey
 		Hotkey, % hotkeyItemMenu, ItemMenu_Show, On
 	
-	FormatTime, CurrentDate, %A_Now%, yyyyMMdd
-	FileGetTime, LoadDate, resources\data\names.json, M
-	FormatTime, LoadDate, %LoadDate%, yyyyMMdd
-	
-	IfNotExist, resources\data\names.json
-		LoadDate:=0
-	
-	If (LoadDate!=CurrentDate) {
-		FileCreateDir, resources\data
-		ItemMenu_LoadDataFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/names.json", "resources\data\names.json")
-		ItemMenu_LoadDataFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/stats.json", "resources\data\stats.json")
-		;LoadFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/names.json", "resources\data\names.json")
-		;LoadFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/stats.json", "resources\data\stats.json")
-		IfNotExist, resources\data\presufflask.json
-			ItemMenu_LoadDataFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/presufflask.json", "resources\data\presufflask.json")
-			;LoadFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/presufflask.json", "resources\data\presufflask.json")
-		;LoadFile("https://raw.githubusercontent.com/MegaEzik/PoE-TradeMacro_ru/master/resources/data/samename.json", "resources\data\samename.json")
-		sleep 500
-	}
+	FileCreateDir, resources\data
+	ResultNames:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/names.json", "resources\data\names.json")
+	ResultStats:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/stats.json", "resources\data\stats.json")
+	IfNotExist, resources\data\presufflask.json
+		ItemMenu_LoadDataFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/presufflask.json", "resources\data\presufflask.json")
+	sleep 500
 	
 	FileRead, stats_list, resources\data\stats.json
 	Globals.Set("item_stats", JSON.Load(stats_list))
@@ -196,18 +183,37 @@ ItemMenu_IDCLInit(setHotkey=false){
 	Globals.Set("item_presufflask", JSON.Load(presufflask_list))
 	;FileRead, samename_list, resources\data\samename.json
 	;Globals.Set("item_samename", JSON.Load(samename_list))
+	
+	If (ResultNames || ResultStats)
+		trayMsg("Списки соответствий обновлены)")
 }
 
 ItemMenu_LoadDataFile(URL, Path){
+	FormatTime, CurrentDate, %A_Now%, yyyyMMdd
+	FileGetTime, LoadDate, %Path%, M
+	FormatTime, LoadDate, %LoadDate%, yyyyMMdd
+	
+	IfNotExist, %Path%
+		LoadDate:=0
+	
+	If (LoadDate=CurrentDate)
+		return false
+	
 	tmpPath:=A_Temp "\file.tmp"
 	LoadFile(URL, tmpPath)
-	FileRead, FileData, %tmpPath%
-	If (!RegExMatch(FileData, "{") || !RegExMatch(FileData, "}") || (RegExMatch(FileData, "<") && RegExMatch(FileData, ">"))) {
-		TrayTip, %prjName%, Ошибка загрузки файла соответствий!`n%Path%
+	FileRead, CurrentFileData, %Path%
+	FileRead, NewFileData, %tmpPath%
+	If (RegExMatch(NewFileData, "{") && RegExMatch(NewFileData, "}") && !RegExMatch(NewFileData, "<") && !RegExMatch(NewFileData, ">")) {
+		If (NewFileData!=CurrentFileData) {
+			FileDelete, %Path%
+			Sleep 100
+			FileAppend, %NewFileData%, %Path%, UTF-8
+			return true
+		}
+		FileSetTime, , %Path%
+	} else {
+		trayMsg("Ошибка загрузки файла соответствий!`n" Path)
 		devLog("IDCL Load Error - " Path)
-		return
 	}
-	FileDelete, %Path%
-	Sleep 100
-	FileAppend, %FileData%, %Path%, UTF-8
+	return false
 }
