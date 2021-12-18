@@ -207,7 +207,8 @@ ItemMenu_LoadDataFile(URL, Path){
 		If (NewFileData!=CurrentFileData) {
 			FileDelete, %Path%
 			Sleep 100
-			FileAppend, %NewFileData%, %Path%, UTF-8
+			;FileAppend, %NewFileData%, %Path%, UTF-8
+			FileCopy, %tmpPath%, %Path%, 1
 			return true
 		}
 		FileSetTime, , %Path%
