@@ -174,7 +174,7 @@ commandFastReply(Line:="/dance"){
 	;Всплывающая подсказка
 	If (InStr(Line, "!")=1) {
 		Line:=SubStr(Line, 2)
-		showToolTip(Line, 90000)
+		showToolTip(Line, 120000)
 		return
 	}
 	

@@ -53,6 +53,11 @@ global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, tex
 global verScript, LastImg, debugMode=0, globalOverlayPosition, OverlayStatus=0
 FileReadLine, verScript, resources\Updates.txt, 1
 
+;Установка иконки и описания в области уведомлений
+If FileExist("resources\icons\icon.png")
+	Menu, Tray, Icon, resources\icons\icon.png
+Menu, Tray, Tip, %prjName% %verScript% | AHK %A_AhkVersion%
+
 ;Проверка требований
 checkRequirements()
 
@@ -79,19 +84,15 @@ If (windowLine!="")
 IniRead, mouseDistance, %configFile%, settings, mouseDistance, 500
 Globals.Set("mouseDistance", mouseDistance)
 
-;Загрузим информацию набора и подготовим его
-loadPresetData()
-
-;Выполним все файлы с окончанием _loader.ahk, передав им папку расположения скрипта
-Loop, %configFolder%\*_loader.ahk, 1
-	RunWait *RunAs "%A_AhkPath%" "%configFolder%\%A_LoopFileName%" "%A_ScriptDir%"
+;Выполним все файлы с окончанием .ahk, передав им папку расположения скрипта
+pkgsMgr_startCustomScripts()
 
 ;Назначим управление и создадим меню
 menuCreate()
 setHotkeys()
 
-;Загрузка данных и установка таймера
-downloadDataAndSetTimer()
+;Загрузка и установка данных
+downloadAndSetData()
 
 ;Завершение загрузки
 closeStartUI()
@@ -198,19 +199,10 @@ migrateConfig() {
 	}
 }
 
-downloadDataAndSetTimer(){
+downloadAndSetData(){
+	loadPresetData()
 	ItemMenu_IDCLInit(true)
-	downloadLabLayout(,true)
-	checkFilter()
-	
-	IniRead, useLoadTimers, %configFile%, settings, useLoadTimers, 0
-	If useLoadTimers
-		SetTimer, loadTimer, 7200000
-}
-
-loadTimer(){
-	ItemMenu_IDCLInit()
-	downloadLabLayout()
+	checkLab()
 	checkFilter()
 }
 
@@ -576,9 +568,6 @@ showStartUI(){
 
 closeStartUI(){
 	sleep 200
-	If FileExist("resources\icons\icon.png")
-		Menu, Tray, Icon, resources\icons\icon.png
-	Menu, Tray, Tip, %prjName% %verScript% | AHK %A_AhkVersion%
 	Gui, StartUI:Destroy
 	;If debugMode && FileExist(A_WinDir "\Media\Windows Proximity Notification.wav")
 		;SoundPlay, %A_WinDir%\Media\Windows Proximity Notification.wav
@@ -622,7 +611,7 @@ showSettings(){
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	IniRead, lr, %configFile%, curl, limit-rate, 1000
 	IniRead, ct, %configFile%, curl, connect-timeout, 10
-	IniRead, useLoadTimers, %configFile%, settings, useLoadTimers, 1
+	IniRead, useEvent, %configFile%, settings, useEvent, 0
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	IniRead, itemFilter, %configFile%, settings, itemFilter, %A_Space%
 	
@@ -712,7 +701,7 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x10 y+3 w620 h1 0x12
 	
-	Gui, Settings:Add, Checkbox, vuseLoadTimers x12 yp+6 w525 Checked%useLoadTimers%, Разрешить фоновую загрузку данных
+	Gui, Settings:Add, Checkbox, vuseEvent x12 yp+6 w525 Checked%useEvent% disabled, Загружать и устанавливать набор события
 	
 	Gui, Settings:Add, Checkbox, vloadLab x12 yp+21 w515 Checked%loadLab%, Скачивать лабиринт('Мои файлы'>Labyrinth.jpg)
 	Gui, Settings:Add, Link, x+2 yp+0 w100 +Right, <a href="https://www.poelab.com/">POELab.com</a>
@@ -776,8 +765,8 @@ showSettings(){
 	
 	helptext:="/dance - простая команда чата`n/whois <last> - команда в отношении последнего игрока`n@<last> ty, gl) - сообщение последнему игроку`n_ty, gl) - сообщение в чат области`n%ty, gl) - сообщение в групповой чат`n>calc.exe - открытие программы или веб страницы`n<configFolder>\my.jpg - изображение или текстовый файл`n!текст - всплывающая подсказка"
 	helptext2:="--- - разделитель(только в 'Меню команд')`n;/dance - комментарий(команда будет проигнорирована)`n<configFolder> - указывает папку настроек(переменная)`n<time> - время UTC(переменная)`n<inputbox> - позволяет ввести текст(переменная)"
-	Gui, Settings:Add, Text, x12 y+2 w307 cGray, %helptext%
-	Gui, Settings:Add, Text, x+2 w307 cGray, %helptext2%
+	Gui, Settings:Add, Text, x12 y+2 w307 cTeal, %helptext%
+	Gui, Settings:Add, Text, x+2 w307 cTeal, %helptext2%
 	
 	Gui, Settings:+AlwaysOnTop -MinimizeBox -MaximizeBox
 	Gui, Settings:Show, w640 h415, %prjName% %VerScript% | AHK %A_AhkVersion% - Настройки ;Отобразить окно настроек
@@ -809,7 +798,7 @@ saveSettings(){
 	IniWrite, %UserAgent%, %configFile%, curl, user-agent
 	IniWrite, %lr%, %configFile%, curl, limit-rate
 	IniWrite, %ct%, %configFile%, curl, connect-timeout
-	IniWrite, %useLoadTimers%, %configFile%, settings, useLoadTimers
+	IniWrite, %useEvent%, %configFile%, settings, useEvent
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
 	IniWrite, %itemFilter%, %configFile%, settings, itemFilter
 	

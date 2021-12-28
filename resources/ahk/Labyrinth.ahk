@@ -1,10 +1,6 @@
 ﻿
 ;Загрузка изображения с раскладкой лабиринта соответствующего уровня
 downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false) {
-	IniRead, loadLab, %configFile%, settings, loadLab, 0
-	If !loadLab
-		return
-
 	;Сравним текущую дату UTC с датой загрузки лабиринта 
 	IniRead, labLoadDate, %configFile%, info, labLoadDate, %A_Space%
 	FormatTime, CurrentDate, %A_NowUTC%, yyyyMMdd
@@ -84,6 +80,14 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false) {
 	;Запишем дату загрузки лабиринта
 	IniWrite, %CurrentDate%, %configFile%, info, labLoadDate
 	sleep 100
+}
+
+checkLab(){
+	IniRead, loadLab, %configFile%, settings, loadLab, 0
+	If !loadLab
+		return
+	downloadLabLayout(,true)
+	SetTimer, downloadLabLayout, 3600000
 }
 
 reloadLab(LabURL){
