@@ -1,4 +1,4 @@
-﻿Bow+3|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217/Bow+3.zip|79A27A4AF61734166B3CAB9202A644BC
-Catalysts|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217/Catalysts.zip|6504460FC5A1FBA4EF6AF4209ED2FD27
-Prophecy|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217/Prophecy.zip|2C91DF28118D4BE62AC0317B89A7ADF2
-ruPrediction|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217/ruPrediction.zip|22787AD6F9CD835DAD16EFCE9F1FA932
+﻿Bow+3|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.1/Bow+3.zip|79A27A4AF61734166B3CAB9202A644BC
+Catalysts|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.1/Catalysts.zip|6504460FC5A1FBA4EF6AF4209ED2FD27
+Prophecy|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.1/Prophecy.zip|2C91DF28118D4BE62AC0317B89A7ADF2
+ruPrediction|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.1/ruPrediction.zip|22787AD6F9CD835DAD16EFCE9F1FA932
