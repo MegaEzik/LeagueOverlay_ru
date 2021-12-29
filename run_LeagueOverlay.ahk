@@ -562,8 +562,9 @@ showStartUI(){
 	Gui, StartUI:Font, s8 norm italic
 	Gui, StartUI:Add, Text, x5 y+3 w490 BackgroundTrans +Right, %dName%
 	
+	;Gui, StartUI:+AlwaysOnTop -SysMenu
 	Gui, StartUI:+ToolWindow -Caption +Border +AlwaysOnTop
-	Gui, StartUI:Show, w500 h70, %prjName% %VerScript% 
+	Gui, StartUI:Show, w500 h70, %prjName% %VerScript% | AHK %A_AhkVersion%
 }
 
 closeStartUI(){
@@ -862,6 +863,8 @@ menuCreate(){
 	Menu, Tray, Default, Настройки
 	Menu, Tray, Add
 	Menu, Tray, Add, Очистить кэш PoE, clearPoECache
+	pkgsMgr_packagesMenu()
+	Menu, Tray, Add, Управление пакетами, :packagesMenu
 	Menu, Tray, Add, Меню отладки, :devMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить, ReStart

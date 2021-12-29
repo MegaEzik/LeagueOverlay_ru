@@ -14,8 +14,6 @@ devMenu() {
 	Menu, devMenu2, Add, https://poelab.com/riikv, reloadLab
 	Menu, devMenu2, Add, https://poelab.com/wfbra, reloadLab
 	
-	pkgsMgr_packagesMenu()
-	
 	Menu, devMenu, Add, Режим отладки, switchDebugMode
 	If debugMode
 		Menu, devMenu, Check, Режим отладки
@@ -24,7 +22,6 @@ devMenu() {
 	Menu, devMenu, Add, Открыть папку макроса, openScriptFolder
 	Menu, devMenu, Add, Перезагрузить фильтр, forceReloadFilter
 	Menu, devMenu, Add, Перезагрузить лабиринт, :devMenu2
-	Menu, devMenu, Add, Управление пакетами, :packagesMenu
 	Menu, devMenu, Add, AutoHotkey, :devMenu1
 }
 
@@ -97,7 +94,7 @@ loadEvent(){
 			rMinVersion:=MinVersion1
 	}
 
-	If (rMinVersion>verScript || rEventName="" || rStartDate="" || rEndDate="" || CurrentDate<StartDate || CurrentDate>rEndDate)
+	If (rMinVersion>verScript || rEventName="" || rStartDate="" || rEndDate="" || CurrentDate<rStartDate || CurrentDate>rEndDate)
 		return
 	
 	trayMsg(rEventName "`n" rStartDate " - " rEndDate, "Активен набор события")
