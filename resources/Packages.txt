@@ -1,5 +1,6 @@
-﻿Bow+3|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.2/Bow+3.pkg|79A27A4AF61734166B3CAB9202A644BC
-Catalysts|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.2/Catalysts.pkg|6504460FC5A1FBA4EF6AF4209ED2FD27
+﻿Bow+3|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.2/Bow+3.jpg
+Catalysts|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.2/Catalysts.jpg
 Isaac|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.2/Isaac.pkg|1CD6B671911B1D33906949253374A16E
-Prophecy|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.2/Prophecy.pkg|2C91DF28118D4BE62AC0317B89A7ADF2
+Prophecy|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.2/Prophecy.png
 ruPrediction|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.2/ruPrediction.pkg|22787AD6F9CD835DAD16EFCE9F1FA932
+LutTools.ahk|http://lutbot.com/ahk/macro.ahk

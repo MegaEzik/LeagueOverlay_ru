@@ -202,7 +202,8 @@ migrateConfig() {
 downloadAndSetData(){
 	loadPresetData()
 	ItemMenu_IDCLInit(true)
-	checkLab()
+	;checkLab()
+	downloadLabLayout(,true)
 	checkFilter()
 }
 

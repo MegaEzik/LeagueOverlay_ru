@@ -21,6 +21,7 @@ devMenu() {
 	Menu, devMenu, Add, Открыть папку настроек, openConfigFolder
 	Menu, devMenu, Add, Открыть папку макроса, openScriptFolder
 	Menu, devMenu, Add, Перезагрузить фильтр, forceReloadFilter
+	Menu, devMenu, Add, devClSD
 	Menu, devMenu, Add, Перезагрузить лабиринт, :devMenu2
 	Menu, devMenu, Add, AutoHotkey, :devMenu1
 }
@@ -42,6 +43,14 @@ devRestoreRelease() {
 	IniWrite, 0, %configFile%, info, verConfig
 	verScript:=0
 	CheckUpdateFromMenu()
+}
+
+devClSD(){
+	FileDelete, resources\Packages.txt
+	FileDelete, %configFolder%\MyFiles\Labyrinth.jpg
+	FileDelete, resources\data\*
+	Sleep 3000
+	ReStart()
 }
 
 ;Запись отладочной информации
@@ -70,7 +79,7 @@ loadEvent(){
 	If !useEvent
 		return
 	
-	Path:="resources\presets\Event.txt"
+	Path:="resources\data\Event.txt"
 	
 	FormatTime, CurrentDate, %A_Now%, yyyyMMdd
 	FileGetTime, LoadDate, %Path%, M
@@ -79,7 +88,7 @@ loadEvent(){
 		LoadDate:=0
 	
 	If (LoadDate!=CurrentDate)
-		LoadFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/presets/Event.txt", Path)
+		LoadFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/data/Event.txt", Path)
 	
 	eventData:=loadPreset("Event")
 	eventDataSplit:=StrSplit(eventData, "`n")
@@ -103,6 +112,10 @@ loadEvent(){
 
 pkgsMgr_packagesMenu(){
 	FilePath:="resources\Packages.txt"
+	
+	If !FileExist(FilePath)
+		LoadFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/Packages.txt", FilePath)
+	
 	FileRead, Data, %FilePath%
 	DataSplit:=strSplit(StrReplace(Data, "`r", ""), "`n")
 	For k, val in DataSplit {
@@ -128,8 +141,19 @@ pkgsMgr_loadPackage(Name){
 	For k, val in DataSplit {
 		If inStr(DataSplit[k], "|") {
 			PackInfo:=StrSplit(DataSplit[k], "|")
-			If (PackInfo[1]!="" && PackInfo[2]!="" && PackInfo[3]!="") {
-				If (PackInfo[1]=Name) {
+			If (PackInfo[1]=Name && PackInfo[2]!="") {
+				If RegExMatch(PackInfo[2], ".(jpg|jpeg|bmp|png|txt)$", ftype){
+					LoadFile(PackInfo[2], configFolder "\MyFiles\" Name ftype)
+					TrayTip, %prjName%, Файл '%Name%%ftype%' загружен!
+					return
+				}
+				If RegExMatch(Name, ".ahk$") && RegExMatch(PackInfo[2], ".ahk$"){
+					LoadFile(PackInfo[2], configFolder "\" Name)
+					If FileExist(configFolder "\" Name)
+						ReStart()
+					return
+				}
+				If (PackInfo[3]!="") {
 					If LoadFile(PackInfo[2], A_Temp "\Package.zip", PackInfo[3]) {
 						unZipArchive(A_Temp "\Package.zip", configFolder)
 						If FileExist(configFolder "\" Name ".ahk")
@@ -143,6 +167,7 @@ pkgsMgr_loadPackage(Name){
 					}
 				}
 			}
+			
 		}
 	}
 	return

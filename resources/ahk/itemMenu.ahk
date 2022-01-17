@@ -169,10 +169,10 @@ ItemMenu_IDCLInit(setHotkey=false){
 		Hotkey, % hotkeyItemMenu, ItemMenu_Show, On
 	
 	FileCreateDir, resources\data
-	ResultNames:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/names.json", "resources\data\names.json")
-	ResultStats:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/stats.json", "resources\data\stats.json")
+	ResultNames:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/data/names.json", "resources\data\names.json")
+	ResultStats:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/data/stats.json", "resources\data\stats.json")
 	IfNotExist, resources\data\presufflask.json
-		ItemMenu_LoadDataFile("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/presufflask.json", "resources\data\presufflask.json")
+		ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/data/presufflask.json", "resources\data\presufflask.json")
 	sleep 500
 	
 	FileRead, stats_list, resources\data\stats.json
