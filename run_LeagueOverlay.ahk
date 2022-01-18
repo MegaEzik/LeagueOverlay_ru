@@ -69,7 +69,7 @@ devInit()
 IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
 If autoUpdate {
 	CheckUpdateFromMenu("onStart")
-	SetTimer, CheckUpdate, 10800000
+	SetTimer, CheckUpdate, 7200000
 }
 
 ;Проверка версии и перенос настроек
@@ -92,7 +92,7 @@ menuCreate()
 setHotkeys()
 
 ;Загрузка и установка данных
-downloadAndSetData()
+downloadDataAndSetTimer()
 
 ;Завершение загрузки
 closeStartUI()
@@ -171,10 +171,11 @@ migrateConfig() {
 			If (verConfig<211112.5) {
 				FileMoveDir, %configFolder%\images, %configFolder%\MyFiles, 2
 			}
-			If (verConvig<211217) {
+			If (verConvig<211217.5) {
 				IniRead, updateFilter, %configFile%, settings, updateFilter, 0
 				If updateFilter
 					IniWrite, NeverSink-2semistr, %configFile%, settings, itemFilter
+				IniWrite, 1, %configFile%, settings, useEvent
 			}
 		}
 		
@@ -193,17 +194,25 @@ migrateConfig() {
 		IniWrite, %lastImg%, %configFile%, info, lastImg
 		If (labLoadDate!="")
 			IniWrite, %labLoadDate%, %configFile%, info, labLoadDate
-		IniWrite, 0, %configFile%, dev, curlProgress
 		
 		saveSettings()
 	}
 }
 
-downloadAndSetData(){
+downloadDataAndSetTimer(){
 	loadPresetData()
 	ItemMenu_IDCLInit(true)
-	;checkLab()
 	downloadLabLayout(,true)
+	checkFilter()
+	
+	IniRead, useLoadTimers, %configFile%, settings, useLoadTimers, 0
+	If useLoadTimers
+		SetTimer, loadTimer, 7200000
+}
+
+loadTimer(){
+	ItemMenu_IDCLInit()
+	downloadLabLayout()
 	checkFilter()
 }
 
@@ -245,7 +254,7 @@ shMainMenu(){
 loadPreset(presetName){
 	presetPath:=A_ScriptDir "\resources\presets\" presetName ".preset"
 	If (presetName="Event")
-		presetPath:=A_ScriptDir "\resources\presets\Event.txt"
+		presetPath:=A_ScriptDir "\resources\data\Event.txt"
 	If RegExMatch(presetName, ".preset$")
 		presetPath:=configFolder "\presets\" presetName
 	If FileExist(presetPath)
@@ -613,7 +622,9 @@ showSettings(){
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	IniRead, lr, %configFile%, curl, limit-rate, 1000
 	IniRead, ct, %configFile%, curl, connect-timeout, 10
-	IniRead, useEvent, %configFile%, settings, useEvent, 0
+	IniRead, curlProgress, %configFile%, curl, curlProgress, 0
+	IniRead, useLoadTimers, %configFile%, settings, useLoadTimers, 1
+	IniRead, useEvent, %configFile%, settings, useEvent, 1
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	IniRead, itemFilter, %configFile%, settings, itemFilter, %A_Space%
 	
@@ -701,9 +712,13 @@ showSettings(){
 	Gui, Settings:Add, Edit, vct x+2 yp-2 w100 h18 Number, %ct%
 	Gui, Settings:Add, UpDown, Range3-99999 0x80, %ct%
 	
-	Gui, Settings:Add, Text, x10 y+3 w620 h1 0x12
+	Gui, Settings:Add, Checkbox, vcurlProgress x12 yp+21 w525 Checked%curlProgress%, cURL | Отображать окно в режиме отладки
 	
-	Gui, Settings:Add, Checkbox, vuseEvent x12 yp+6 w525 Checked%useEvent% disabled, Загружать и устанавливать набор события
+	Gui, Settings:Add, Text, x10 y+5 w620 h1 0x12
+	
+	Gui, Settings:Add, Checkbox, vuseLoadTimers x12 yp+6 w525 Checked%useLoadTimers%, Разрешить фоновую загрузку данных
+	
+	Gui, Settings:Add, Checkbox, vuseEvent x12 yp+21 w525 Checked%useEvent%, Загружать и устанавливать набор события
 	
 	Gui, Settings:Add, Checkbox, vloadLab x12 yp+21 w515 Checked%loadLab%, Скачивать лабиринт('Мои файлы'>Labyrinth.jpg)
 	Gui, Settings:Add, Link, x+2 yp+0 w100 +Right, <a href="https://www.poelab.com/">POELab.com</a>
@@ -800,6 +815,8 @@ saveSettings(){
 	IniWrite, %UserAgent%, %configFile%, curl, user-agent
 	IniWrite, %lr%, %configFile%, curl, limit-rate
 	IniWrite, %ct%, %configFile%, curl, connect-timeout
+	IniWrite, %curlProgress%, %configFile%, curl, curlProgress
+	IniWrite, %useLoadTimers%, %configFile%, settings, useLoadTimers
 	IniWrite, %useEvent%, %configFile%, settings, useEvent
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
 	IniWrite, %itemFilter%, %configFile%, settings, itemFilter
@@ -988,7 +1005,7 @@ LoadFile(URL, FilePath, MD5="") {
 	}
 	
 	If (CurlLine!="") {
-		IniRead, curlProgress, %configFile%, dev, curlProgress, 0
+		IniRead, curlProgress, %configFile%, curl, curlProgress, 0
 		IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 		If (UserAgent="")
 			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36"
@@ -1000,7 +1017,7 @@ LoadFile(URL, FilePath, MD5="") {
 			CurlLine.=" --connect-timeout " ct
 		If lr>0
 			CurlLine.=" --limit-rate " lr "K"
-		If curlProgress
+		If curlProgress && debugMode
 			RunWait, %CurlLine%
 		Else
 			RunWait, %CurlLine%, , hide

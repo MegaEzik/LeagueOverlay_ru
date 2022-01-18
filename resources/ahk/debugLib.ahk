@@ -20,8 +20,7 @@ devMenu() {
 	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
 	Menu, devMenu, Add, Открыть папку настроек, openConfigFolder
 	Menu, devMenu, Add, Открыть папку макроса, openScriptFolder
-	Menu, devMenu, Add, Перезагрузить фильтр, forceReloadFilter
-	Menu, devMenu, Add, devClSD
+	Menu, devMenu, Add, Перезагрузить данные, devClSD
 	Menu, devMenu, Add, Перезагрузить лабиринт, :devMenu2
 	Menu, devMenu, Add, AutoHotkey, :devMenu1
 }
@@ -46,10 +45,13 @@ devRestoreRelease() {
 }
 
 devClSD(){
+	IniRead, filter, %configFile%, settings, itemFilter, %A_Space%
+	FileDelete, %A_MyDocuments%\My Games\Path of Exile\%filter%.filter
+	
 	FileDelete, resources\Packages.txt
 	FileDelete, %configFolder%\MyFiles\Labyrinth.jpg
 	FileDelete, resources\data\*
-	Sleep 3000
+	Sleep 100
 	ReStart()
 }
 
@@ -75,7 +77,7 @@ devAddInList(Line){
 }
 
 loadEvent(){
-	IniRead, useEvent, %configFile%, settings, useEvent, 0
+	IniRead, useEvent, %configFile%, settings, useEvent, 1
 	If !useEvent
 		return
 	
@@ -142,6 +144,7 @@ pkgsMgr_loadPackage(Name){
 		If inStr(DataSplit[k], "|") {
 			PackInfo:=StrSplit(DataSplit[k], "|")
 			If (PackInfo[1]=Name && PackInfo[2]!="") {
+				Name:=RegExReplace(Name, ".img$", "")
 				If RegExMatch(PackInfo[2], ".(jpg|jpeg|bmp|png|txt)$", ftype){
 					LoadFile(PackInfo[2], configFolder "\MyFiles\" Name ftype)
 					TrayTip, %prjName%, Файл '%Name%%ftype%' загружен!
@@ -167,7 +170,6 @@ pkgsMgr_loadPackage(Name){
 					}
 				}
 			}
-			
 		}
 	}
 	return
@@ -175,6 +177,7 @@ pkgsMgr_loadPackage(Name){
 
 pkgsMgr_delPackage(Name){
 	Name:=SubStr(Name, 3)
+	IniWrite, %A_Space%, %configFile%, pkgsMgr, %Name%.ahk
 	FileDelete, %configFolder%\%Name%.ahk
 	FileDelete, %configFolder%\presets\%Name%.preset
 	FileRemoveDir, %configFolder%\%Name%, 1
@@ -186,13 +189,13 @@ pkgsMgr_delPackage(Name){
 pkgsMgr_startCustomScripts(){
 	Loop, %configFolder%\*.ahk, 1
 	{
-		IniRead, MD5, %configFolder%\pkgsMgr.ini, pkgsMgr, %A_LoopFileName%, %A_Space%
+		IniRead, MD5, %configFile%, pkgsMgr, %A_LoopFileName%, %A_Space%
 		MD5File:=MD5_File(configFolder "\" A_LoopFileName)
 		If (MD5!=MD5File)
 			msgbox, 0x1024, %prjName%, Разрешить выполнять '%A_LoopFileName%'?
 			IfMsgBox No
 				Continue
-		IniWrite, %MD5File%, %configFolder%\pkgsMgr.ini, pkgsMgr, %A_LoopFileName%
+		IniWrite, %MD5File%, %configFile%, pkgsMgr, %A_LoopFileName%
 		RunWait *RunAs "%A_AhkPath%" "%configFolder%\%A_LoopFileName%" "%A_ScriptDir%"
 	}
 }

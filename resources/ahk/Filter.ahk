@@ -45,10 +45,6 @@ checkFilter(ForceReload=false){
 	}
 }
 
-forceReloadFilter(){
-	checkFilter(true)
-}
-
 listFilters(){
 	FileRead, DataFilters, resources\Filters.txt
 	DataFilters:=StrReplace(DataFilters, "`r", "")
