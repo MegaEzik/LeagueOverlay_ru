@@ -171,7 +171,8 @@ migrateConfig() {
 			If (verConfig<211112.5) {
 				FileMoveDir, %configFolder%\images, %configFolder%\MyFiles, 2
 			}
-			If (verConvig<211217.5) {
+			If (verConvig<211217.6) {
+				FileDelete, %configFolder%\pkgsMgr.ini
 				IniRead, updateFilter, %configFile%, settings, updateFilter, 0
 				If updateFilter
 					IniWrite, NeverSink-2semistr, %configFile%, settings, itemFilter
@@ -181,7 +182,6 @@ migrateConfig() {
 		
 		showSettings()
 		
-		IniRead, debugMode, %configFile%, dev, debugMode, 0
 		IniRead, lastImg, %configFile%, info, lastImg, %A_Space%
 		IniRead, labLoadDate, %configFile%, info, labLoadDate, 0
 		
@@ -190,7 +190,6 @@ migrateConfig() {
 		FileCreateDir, %configFolder%\MyFiles
 		
 		IniWrite, %verScript%, %configFile%, info, verConfig
-		IniWrite, %debugMode%, %configFile%, dev, debugMode
 		IniWrite, %lastImg%, %configFile%, info, lastImg
 		If (labLoadDate!="")
 			IniWrite, %labLoadDate%, %configFile%, info, labLoadDate
@@ -609,6 +608,7 @@ showSettings(){
 	posH:=splitOverlayPosition[4]
 	
 	IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
+	IniRead, debugMode, %configFile%, settings, debugMode, 0
 	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
 	IniRead, preset1, %configFile%, settings, preset1, default
 	IniRead, preset2, %configFile%, settings, preset2, %A_Space%
@@ -644,6 +644,8 @@ showSettings(){
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
 	Gui, Settings:Add, Checkbox, vautoUpdate x12 y30 w525 Checked%autoUpdate%, Автоматически проверять наличие обновлений
+	
+	Gui, Settings:Add, Checkbox, vdebugMode x12 yp+21 w525 Checked%debugMode% disabled, Режим отладки
 	
 	Gui, Settings:Add, Text, x12 yp+21 w150, Другое окно для проверки:
 	Gui, Settings:Add, Edit, vwindowLine x+2 yp-2 w465 h17, %windowLine%
@@ -802,6 +804,7 @@ saveSettings(){
 	IniWrite, %posX%/%posY%/%posW%/%posH%, %configFile%, settings, overlayPosition
 	
 	IniWrite, %autoUpdate%, %configFile%, settings, autoUpdate
+	IniWrite, %debugMode%, %configFile%, settings, debugMode
 	IniWrite, %expandMyImages%, %configFile%, settings, expandMyImages
 	IniWrite, %preset1%, %configFile%, settings, preset1
 	IniWrite, %preset2%, %configFile%, settings, preset2
@@ -1008,7 +1011,7 @@ LoadFile(URL, FilePath, MD5="") {
 		IniRead, curlProgress, %configFile%, curl, curlProgress, 0
 		IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 		If (UserAgent="")
-			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36"
+			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36"
 		IniRead, lr, %configFile%, curl, limit-rate, 1000
 		IniRead, ct, %configFile%, curl, connect-timeout, 10
 		

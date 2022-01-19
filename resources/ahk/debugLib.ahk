@@ -1,7 +1,7 @@
 ﻿
 ;Инициализация
 devInit() {
-	IniRead, debugMode, %configFile%, dev, debugMode, 0
+	IniRead, debugMode, %configFile%, settings, debugMode, 0
 	devMenu()
 }
 
@@ -14,9 +14,11 @@ devMenu() {
 	Menu, devMenu2, Add, https://poelab.com/riikv, reloadLab
 	Menu, devMenu2, Add, https://poelab.com/wfbra, reloadLab
 	
+	/*
 	Menu, devMenu, Add, Режим отладки, switchDebugMode
 	If debugMode
 		Menu, devMenu, Check, Режим отладки
+	*/
 	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
 	Menu, devMenu, Add, Открыть папку настроек, openConfigFolder
 	Menu, devMenu, Add, Открыть папку макроса, openScriptFolder
@@ -144,7 +146,7 @@ pkgsMgr_loadPackage(Name){
 		If inStr(DataSplit[k], "|") {
 			PackInfo:=StrSplit(DataSplit[k], "|")
 			If (PackInfo[1]=Name && PackInfo[2]!="") {
-				Name:=RegExReplace(Name, ".img$", "")
+				Name:=RegExReplace(Name, ".(pkg|zip|img|txt)$", "")
 				If RegExMatch(PackInfo[2], ".(jpg|jpeg|bmp|png|txt)$", ftype){
 					LoadFile(PackInfo[2], configFolder "\MyFiles\" Name ftype)
 					TrayTip, %prjName%, Файл '%Name%%ftype%' загружен!
@@ -152,8 +154,7 @@ pkgsMgr_loadPackage(Name){
 				}
 				If RegExMatch(Name, ".ahk$") && RegExMatch(PackInfo[2], ".ahk$"){
 					LoadFile(PackInfo[2], configFolder "\" Name)
-					If FileExist(configFolder "\" Name)
-						ReStart()
+					ReStart()
 					return
 				}
 				If (PackInfo[3]!="") {
