@@ -885,7 +885,7 @@ menuCreate(){
 	Menu, Tray, Add
 	Menu, Tray, Add, Очистить кэш PoE, clearPoECache
 	pkgsMgr_packagesMenu()
-	Menu, Tray, Add, Управление пакетами, :packagesMenu
+	Menu, Tray, Add, Дополнения, :packagesMenu
 	Menu, Tray, Add, Меню отладки, :devMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить, ReStart
