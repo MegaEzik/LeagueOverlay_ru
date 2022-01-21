@@ -2,5 +2,5 @@
 Catalysts.img|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Catalysts.jpg
 Prophecy.img|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Prophecy.png
 Isaac|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Isaac.pkg|1CD6B671911B1D33906949253374A16E
-ruPrediction|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/ruPrediction.pkg|25693023880A3AAFC37222417E1AFA56
+ruPrediction|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/ruPrediction.pkg|7A79FB9240C3A6FEF4FAC5C4B7134A67
 LutTools.ahk|http://lutbot.com/ahk/macro.ahk
