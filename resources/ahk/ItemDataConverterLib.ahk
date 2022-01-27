@@ -31,11 +31,12 @@ IDCL_Init() {
 	FileRead, names_list, resources\data\names.json
 	Globals.Set("item_names", JSON.Load(names_list))
 	
+	/*
 	IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/presufflask.json", "resources\data\presufflask.json")
 	FileRead, presufflask_list, resources\data\presufflask.json
 	Globals.Set("item_presufflask", JSON.Load(presufflask_list))
 	
-	/*
+	
 	IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/samename.json", "data\ru\sameNameItem.json")
 	FileRead, samename_list, data\ru\sameNameItem.json
 	Globals.Set("item_samename", JSON.Load(samename_list))
@@ -57,7 +58,6 @@ IDCL_lvlRarity(itemdata) {
 	rlvl:=0
 	rlvl:=inStr(itemdata, "Редкость: Обычный")?1:rlvl
 	rlvl:=inStr(itemdata, "Редкость: Волшебный")?2:rlvl
-	rlvl:=(inStr(itemdata, "Редкость: Волшебный")&&inStr(itemdata, " флакон"))?2.1:rlvl
 	rlvl:=inStr(itemdata, "Редкость: Редкий")?3:rlvl
 	rlvl:=inStr(itemdata, "Редкость: Уникальный")?4:rlvl
 	rlvl:=inStr(itemdata, "Уникальная Реликвия")?4.1:rlvl
@@ -65,8 +65,7 @@ IDCL_lvlRarity(itemdata) {
 	rlvl:=inStr(itemdata, "Редкость: Камень")?11:rlvl
 	rlvl:=(inStr(itemdata, "Редкость: Камень")&&inStr(itemdata, " ваал`n"))?11.1:rlvl
 	rlvl:=inStr(itemdata, "Редкость: Гадальная карта")?12:rlvl
-	rlvl:=(inStr(itemdata, "Редкость: Обычный")&&inStr(itemdata, "Нажмите ПКМ, чтобы добавить это пророчество вашему персонажу."))?13:rlvl
-	rlvl:=(inStr(itemdata, "Редкость: Уникальный")&&inStr(itemdata, "Объедините эту часть с четырьмя другими в Лаборатории Танэ."))?14:rlvl
+	rlvl:=(inStr(itemdata, "Редкость: Уникальный")&&inStr(itemdata, "Объедините эту часть с четырьмя другими в Лаборатории Танэ."))?13:rlvl
 	
 	return %rlvl%
 }
@@ -152,14 +151,10 @@ IDCL_ConvertName(name, rlvl){
 	Else If ((rlvl=4 || rlvl=4.1) && samename.Unique[new_name]) {
 		return samename.Unique[new_name]
 	}
-	Else If (rlvl=13 && samename.Prophecy[new_name]) {
-		return samename.Prophecy[new_name]
-	}
 	*/
-	;Обработаем имя волшебных флаконов
-	if (rlvl=2.1) {
-		return IDCL_ConvertNameMFlask(new_name)
-	}
+	;Если в строке имени есть скобки, то извлекем имя из них
+	if RegExMatch(new_name, "\((.*)\)", result)
+		return result1
 	;Конвертирование Копий уникальных предметов 3.12
 	if (rlvl=4 && inStr(new_name, "Копия ")) {
 		replicaName:=Trim(strReplace(new_name, "Копия ", ""))
@@ -174,7 +169,7 @@ IDCL_ConvertName(name, rlvl){
 			return typeGemsRuToEn[tGem] " " names[gemBaseRu]
 	}
 	;Обработаем органы метаморфов
-	if (rlvl=14 && RegExMatch(new_name, "(Лёгкое|Печень|Сердце|Мозг|Глаз)", organ)) {
+	if (rlvl=13 && RegExMatch(new_name, "(Лёгкое|Печень|Сердце|Мозг|Глаз)", organ)) {
 		metamorphRuToEn := {"Лёгкое":"Lung","Печень":"Liver","Сердце":"Heart","Мозг":"Brain","Глаз":"Eye"}
 		return metamorphRuToEn[organ]
 	}
@@ -201,28 +196,6 @@ IDCL_ConvertName(name, rlvl){
 	;Если имя не конвертировалось, то назначим неопределенное
 	new_name:=(new_name="")?"Undefined Name":new_name
 	return new_name
-}
-
-;Конвертирование имен волшебных флаконов
-IDCL_ConvertNameMFlask(ItemName){
-	presufflask:=Globals.Get("item_presufflask")
-	
-	RegExReplace(ItemName, "([А-ЯЁ])", "", matchCount)
-	If (matchCount>1){
-		RegExMatch(ItemName, "^[А-ЯЁ][а-яё]+", FPrefix)
-		ItemName:=Trim(RegExReplace(ItemName, FPrefix))
-	}
-	
-	SufFlaskList:=["Ордена", "адреналина", "алчности", "железной кожи", "заземления", "исцеления", "кровопускания", "оберега", "обжорства", "оживления", "осущения", "отпора", "охлаждения", "причинения", "проворства", "рефлексов", "рубцевания", "скорости", "согревания", "сопротивления", "твердолобости", "эффективности", "конвекции", "увлажнения", "закупорки", "замыкания", "сыворотки", "оберега", "ящерицы", "скунца", "угря", "оленя", "морского ежа"]
-	qSufFlask:=SufFlaskList.MaxIndex()
-	Loop, %qSufFlask% {
-		If RegExMatch(ItemName, SufFlaskList[A_Index] "$") {
-			FSuffix:=SufFlaskList[A_Index]
-			ItemName:=Trim(RegExReplace(ItemName, FSuffix))
-		}
-	}
-
-	return Trim(presufflask[FPrefix] " " IDCL_ConvertName(ItemName, 1) " " presufflask[FSuffix])
 }
 
 ;Конвертация стата
