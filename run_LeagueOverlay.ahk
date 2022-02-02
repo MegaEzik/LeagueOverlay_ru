@@ -199,7 +199,7 @@ migrateConfig() {
 }
 
 downloadDataAndSetTimer(){
-	loadPresetData()
+	loadPresetData(true)
 	ItemMenu_IDCLInit(true)
 	downloadLabLayout(,true)
 	checkFilter()
@@ -210,6 +210,7 @@ downloadDataAndSetTimer(){
 }
 
 loadTimer(){
+	loadPresetData()
 	ItemMenu_IDCLInit()
 	downloadLabLayout()
 	checkFilter()
@@ -261,11 +262,11 @@ loadPreset(presetName){
 	return StrReplace(presetData, "`r", "")
 }
 
-loadPresetData(){
+loadPresetData(onStart=false){
 	presetsData:=""
 	
 	;Подгружаем набор события
-	presetDataEvent:=loadEvent()
+	presetDataEvent:=loadEvent(onStart)
 	
 	;Подгружаем первичный набор
 	IniRead, preset1, %configFile%, settings, preset1, %A_Space%
@@ -286,13 +287,15 @@ loadPresetData(){
 	Globals.Set("presetsData", presetsData)
 	
 	;Применим настройки наборов
-	presetsDataSplit:=strSplit(Globals.Get("presetsData"), "`n")
-	For k, val in presetsDataSplit {
-		If (RegExMatch(presetsDataSplit[k], ";")=1)
-			Continue
-		If (RegExMatch(presetsDataSplit[k], "ahk_(exe|class)")=1) {
-			WindowLine:=presetsDataSplit[k]
-			GroupAdd, WindowGrp, %WindowLine%
+	If onStart { 
+		presetsDataSplit:=strSplit(Globals.Get("presetsData"), "`n")
+		For k, val in presetsDataSplit {
+			If (RegExMatch(presetsDataSplit[k], ";")=1)
+				Continue
+			If (RegExMatch(presetsDataSplit[k], "ahk_(exe|class)")=1) {
+				WindowLine:=presetsDataSplit[k]
+				GroupAdd, WindowGrp, %WindowLine%
+			}
 		}
 	}
 }
@@ -623,7 +626,7 @@ showSettings(){
 	IniRead, lr, %configFile%, curl, limit-rate, 1000
 	IniRead, ct, %configFile%, curl, connect-timeout, 10
 	IniRead, curlProgress, %configFile%, curl, curlProgress, 0
-	IniRead, useLoadTimers, %configFile%, settings, useLoadTimers, 1
+	IniRead, useLoadTimers, %configFile%, settings, useLoadTimers, 0
 	IniRead, useEvent, %configFile%, settings, useEvent, 1
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	IniRead, itemFilter, %configFile%, settings, itemFilter, %A_Space%
@@ -718,7 +721,7 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x10 y+5 w620 h1 0x12
 	
-	Gui, Settings:Add, Checkbox, vuseLoadTimers x12 yp+6 w525 Checked%useLoadTimers%, Разрешить фоновую загрузку данных
+	Gui, Settings:Add, Checkbox, vuseLoadTimers x12 yp+6 w525 Checked%useLoadTimers%, Использовать таймеры загрузок для обновления данных
 	
 	Gui, Settings:Add, Checkbox, vuseEvent x12 yp+21 w525 Checked%useEvent%, Загружать и устанавливать набор события
 	
@@ -868,7 +871,7 @@ setHotkeys(){
 		IniRead, tempvar, %configFile%, fastReply, textCmd%A_Index%, %A_Space%
 		textCmd%A_Index%:=tempvar
 		IniRead, tempVar, %configFile%, fastReply, hotkeyCmd%A_Index%, %A_Space%
-		If (textCmd%A_Index%!="" && tempVar!="")
+		If (textCmd%A_Index%!="")  && (RegExMatch(textCmd%A_Index%, ";")!=1) && (tempVar!="")
 			Hotkey, % tempVar, fastCmd%A_Index%, On
 	}
 }
@@ -1011,7 +1014,7 @@ LoadFile(URL, FilePath, MD5="") {
 		IniRead, curlProgress, %configFile%, curl, curlProgress, 0
 		IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 		If (UserAgent="")
-			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36"
+			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36"
 		IniRead, lr, %configFile%, curl, limit-rate, 1000
 		IniRead, ct, %configFile%, curl, connect-timeout, 10
 		

@@ -78,7 +78,7 @@ devAddInList(Line){
 	FileAppend, %Line%`n, %FilePath%, UTF-8
 }
 
-loadEvent(){
+loadEvent(onStart=false){
 	IniRead, useEvent, %configFile%, settings, useEvent, 1
 	If !useEvent
 		return
@@ -110,7 +110,9 @@ loadEvent(){
 	If (rMinVersion>verScript || rEventName="" || rStartDate="" || rEndDate="" || CurrentDate<rStartDate || CurrentDate>rEndDate)
 		return
 	
-	trayMsg(rEventName "`n" rStartDate " - " rEndDate, "Активен набор события")
+	If onStart
+		trayMsg(rEventName "`n" rStartDate " - " rEndDate, "Активен набор события")
+	
 	return eventData
 }
 
@@ -126,7 +128,8 @@ pkgsMgr_packagesMenu(){
 		If inStr(DataSplit[k], "|") {
 			PackInfo:=StrSplit(DataSplit[k], "|")
 			PackName:=PackInfo[1]
-			Menu, packagesMenu, Add, + %PackName%, pkgsMgr_loadPackage
+			If (RegExMatch(PackName, ";")!=1)
+				Menu, packagesMenu, Add, + %PackName%, pkgsMgr_loadPackage
 		}
 	}
 	Menu, packagesMenu, Add

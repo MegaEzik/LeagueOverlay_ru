@@ -51,7 +51,7 @@ listFilters(){
 	SplitDataFilters:=StrSplit(DataFilters, "`n")
 	For k, val in SplitDataFilters {
 		SplitFilter:=StrSplit(SplitDataFilters[k], "|")
-		If (SplitFilter[1]!="" && SplitFilter[2]!="")
+		If (SplitFilter[1]!="") && (RegExMatch(SplitFilter[1], ";")!=1) && (SplitFilter[2]!="")
 			LFilters.="|" SplitFilter[1]
 	}
 	return %LFilters%
