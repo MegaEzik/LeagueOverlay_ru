@@ -1,4 +1,4 @@
-﻿Archnemesis.img|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/220202.1/Archnemesis.jpg
+﻿;Archnemesis.img|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/220202.1/Archnemesis.jpg
 ArchnemesisEn.img|https://i.redd.it/r2kam23z52g81.png
 Bow+3.img|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Bow+3.png
 Catalysts.img|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Catalysts.jpg

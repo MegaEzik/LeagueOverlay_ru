@@ -97,6 +97,8 @@ loadEvent(onStart=false){
 	eventData:=loadPreset("Event")
 	eventDataSplit:=StrSplit(eventData, "`n")
 	For k, val in eventDataSplit {
+		If RegExMatch(eventDataSplit[k], ";;")=1
+			Continue
 		If RegExMatch(eventDataSplit[k], ";EventName=(.*)$", EventName)
 			rEventName:=EventName1
 		If RegExMatch(eventDataSplit[k], ";StartDate=(.*)$", StartDate)
@@ -105,6 +107,8 @@ loadEvent(onStart=false){
 			rEndDate:=EndDate1
 		If RegExMatch(eventDataSplit[k], ";MinVersion=(.*)$", MinVersion)
 			rMinVersion:=MinVersion1
+		If RegExMatch(eventDataSplit[k], ";ResourceFile=(.*)$", rURL)
+			loadEventResourceFile(rURL1)
 	}
 
 	If (rMinVersion>verScript || rEventName="" || rStartDate="" || rEndDate="" || CurrentDate<rStartDate || CurrentDate>rEndDate)
@@ -116,10 +120,27 @@ loadEvent(onStart=false){
 	return eventData
 }
 
+loadEventResourceFile(URL){
+	eventFileSplit:=strSplit(URL, "/")
+	filePath:="resources\data\" eventFileSplit[eventFileSplit.MaxIndex()]
+	
+	FormatTime, CurrentDate, %A_Now%, yyyyMMdd
+	FileGetTime, LoadDate, %filePath%, M
+	FormatTime, LoadDate, %LoadDate%, yyyyMMdd
+	IfNotExist, %filePath%
+		LoadDate:=0
+	If (LoadDate!=CurrentDate)
+		LoadFile(URL, filePath)
+}
+
 pkgsMgr_packagesMenu(){
 	FilePath:="resources\Packages.txt"
-	
-	If !FileExist(FilePath)
+	FormatTime, CurrentDate, %A_Now%, yyyyMMdd
+	FileGetTime, LoadDate, %FilePath%, M
+	FormatTime, LoadDate, %LoadDate%, yyyyMMdd
+	IfNotExist, %FilePath%
+		LoadDate:=0
+	If (LoadDate!=CurrentDate)
 		LoadFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/Packages.txt", FilePath)
 	
 	FileRead, Data, %FilePath%
