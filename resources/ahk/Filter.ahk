@@ -1,5 +1,42 @@
 ﻿
-loadFilter(FilterName="NeverSink-2semistr", FilterURL="https://raw.githubusercontent.com/NeverSinkDev/NeverSink-Filter/master/NeverSink's%20filter%20-%202-SEMI-STRICT.filter", ForceReload=false){
+loadFilter(){
+	IniRead, filter, %configFile%, settings, itemFilter, %A_Space%
+	If (filter="")
+		return
+		
+	FilterPath:=A_MyDocuments "\My Games\Path of Exile\LeagueOverlay.filter"
+	
+	FileRead, DataFilters, resources\Filters.txt
+	DataFilters:=StrReplace(DataFilters, "`r", "")
+	SplitDataFilters:=StrSplit(DataFilters, "`n")
+	For k, val in SplitDataFilters {
+		SplitFilter:=StrSplit(SplitDataFilters[k], "|")
+		If (SplitFilter[1]=filter && SplitFilter[2]!="") {
+			loadFile(SplitFilter[2], FilterPath, true)
+		}
+	}
+}
+
+delFilter(){
+	FilterPath:=A_MyDocuments "\My Games\Path of Exile\LeagueOverlay.filter"
+	FileDelete, %FilterPath%
+	Sleep 100
+}
+
+listFilters(){
+	FileRead, DataFilters, resources\Filters.txt
+	DataFilters:=StrReplace(DataFilters, "`r", "")
+	SplitDataFilters:=StrSplit(DataFilters, "`n")
+	For k, val in SplitDataFilters {
+		SplitFilter:=StrSplit(SplitDataFilters[k], "|")
+		If (SplitFilter[1]!="") && (RegExMatch(SplitFilter[1], ";")!=1) && (SplitFilter[2]!="")
+			LFilters.="|" SplitFilter[1]
+	}
+	return %LFilters%
+}
+
+/*
+loadFilterOld(FilterName="NeverSink-2semistr", FilterURL="https://raw.githubusercontent.com/NeverSinkDev/NeverSink-Filter/master/NeverSink's%20filter%20-%202-SEMI-STRICT.filter", ForceReload=false){
 	FileCreateDir, %A_MyDocuments%\My Games\Path of Exile
 	FilterPath:=A_MyDocuments "\My Games\Path of Exile\" FilterName ".filter"
 	TmpPath:=A_Temp "\New.filter"
@@ -39,22 +76,10 @@ checkFilter(ForceReload=false){
 	For k, val in SplitDataFilters {
 		SplitFilter:=StrSplit(SplitDataFilters[k], "|")
 		If (SplitFilter[1]=filter && SplitFilter[2]!="") {
-			loadFilter(SplitFilter[1], SplitFilter[2], ForceReload)
+			loadFilterOld(SplitFilter[1], SplitFilter[2], ForceReload)
 			return
 		}
 	}
-}
-
-listFilters(){
-	FileRead, DataFilters, resources\Filters.txt
-	DataFilters:=StrReplace(DataFilters, "`r", "")
-	SplitDataFilters:=StrSplit(DataFilters, "`n")
-	For k, val in SplitDataFilters {
-		SplitFilter:=StrSplit(SplitDataFilters[k], "|")
-		If (SplitFilter[1]!="") && (RegExMatch(SplitFilter[1], ";")!=1) && (SplitFilter[2]!="")
-			LFilters.="|" SplitFilter[1]
-	}
-	return %LFilters%
 }
 
 verFilter(FilterPath){
@@ -71,3 +96,4 @@ verFilter(FilterPath){
 	}
 	return
 }
+*/

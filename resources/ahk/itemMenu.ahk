@@ -171,16 +171,16 @@ ItemMenu_IDCLInit(setHotkey=false){
 	FileCreateDir, resources\data
 	ResultNames:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/data/names.json", "resources\data\names.json")
 	ResultStats:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/data/stats.json", "resources\data\stats.json")
-	IfNotExist, resources\data\presufflask.json
-		ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/data/presufflask.json", "resources\data\presufflask.json")
+	;IfNotExist, resources\data\presufflask.json
+		;ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/data/presufflask.json", "resources\data\presufflask.json")
 	sleep 500
 	
 	FileRead, stats_list, resources\data\stats.json
 	Globals.Set("item_stats", JSON.Load(stats_list))
 	FileRead, names_list, resources\data\names.json
 	Globals.Set("item_names", JSON.Load(names_list))
-	FileRead, presufflask_list, resources\data\presufflask.json
-	Globals.Set("item_presufflask", JSON.Load(presufflask_list))
+	;FileRead, presufflask_list, resources\data\presufflask.json
+	;Globals.Set("item_presufflask", JSON.Load(presufflask_list))
 	;FileRead, samename_list, resources\data\samename.json
 	;Globals.Set("item_samename", JSON.Load(samename_list))
 	
@@ -189,6 +189,10 @@ ItemMenu_IDCLInit(setHotkey=false){
 }
 
 ItemMenu_LoadDataFile(URL, Path){
+	IniRead, updateResources, %configFile%, settings, updateResources, 0
+	If !updateResources
+		return false
+	
 	FormatTime, CurrentDate, %A_Now%, yyyyMMdd
 	FileGetTime, LoadDate, %Path%, M
 	FormatTime, LoadDate, %LoadDate%, yyyyMMdd

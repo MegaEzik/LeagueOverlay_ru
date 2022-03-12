@@ -67,10 +67,9 @@ devInit()
 
 ;Проверка обновлений
 IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
-If autoUpdate {
+If autoUpdate
 	CheckUpdateFromMenu("onStart")
-	SetTimer, CheckUpdate, 7200000
-}
+	;SetTimer, CheckUpdate, 7200000
 
 ;Проверка версии и перенос настроек
 migrateConfig()
@@ -87,12 +86,12 @@ Globals.Set("mouseDistance", mouseDistance)
 ;Выполним все файлы с окончанием .ahk, передав им папку расположения скрипта
 pkgsMgr_startCustomScripts()
 
+;Загрузка и установка данных
+downloadDataAndSetTimer()
+
 ;Назначим управление и создадим меню
 menuCreate()
 setHotkeys()
-
-;Загрузка и установка данных
-downloadDataAndSetTimer()
 
 ;Завершение загрузки
 closeStartUI()
@@ -129,7 +128,7 @@ checkRequirements() {
 		If !FileExist(configfolder "\curl.exe") {
 			FileCreateDir, %configFolder%
 			SplashTextOn, 400, 20, %prjName%, Загрузка утилиты 'curl.exe'...
-			If LoadFile("https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/210520.5/curl.zip", A_Temp "\lo_curl.zip", "F9A76C4CC50F15506A880AB2F94634BC") {
+			If LoadFile("https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/210520.5/curl.zip", A_Temp "\lo_curl.zip", false, "F9A76C4CC50F15506A880AB2F94634BC") {
 				unZipArchive(A_Temp "\lo_curl.zip", configFolder "\")
 				FileDelete, %A_Temp%\lo_curl.zip
 			} Else {
@@ -164,19 +163,18 @@ migrateConfig() {
 				IniRead, lr, %configFile%, curl, limit-rate, 1000
 				If (lr=0)
 					IniWrite, 1000, %configFile%, curl, limit-rate
-				IniRead, ct, %configFile%, curl, connect-timeout, 10
-				If (ct=5)
-					IniWrite, 10, %configFile%, curl, connect-timeout
 			}
 			If (verConfig<211112.5) {
 				FileMoveDir, %configFolder%\images, %configFolder%\MyFiles, 2
 			}
 			If (verConvig<211217.6) {
 				FileDelete, %configFolder%\pkgsMgr.ini
-				IniRead, updateFilter, %configFile%, settings, updateFilter, 0
-				If updateFilter
-					IniWrite, NeverSink-2semistr, %configFile%, settings, itemFilter
-				IniWrite, 1, %configFile%, settings, useEvent
+			}
+			If (verConfig<220312) {
+				IniWrite, 3, %configFile%, curl, connect-timeout
+				IniWrite, 0, %configFile%, settings, useLoadTimers
+				IniWrite, 0, %configFile%, settings, loadLab
+				IniWrite, %A_Space%, %configFile%, settings, itemFilter
 			}
 		}
 		
@@ -202,7 +200,7 @@ downloadDataAndSetTimer(){
 	loadPresetData(true)
 	ItemMenu_IDCLInit(true)
 	downloadLabLayout(,true)
-	checkFilter()
+	loadFilter()
 	
 	IniRead, useLoadTimers, %configFile%, settings, useLoadTimers, 0
 	If useLoadTimers
@@ -213,7 +211,7 @@ loadTimer(){
 	loadPresetData()
 	ItemMenu_IDCLInit()
 	downloadLabLayout()
-	checkFilter()
+	loadFilter()
 }
 
 shLastImage(){
@@ -520,7 +518,7 @@ cfgPresetMenuShow(){
 	Menu, delPresetMenu, Show
 }
 
-showStartUI(){
+showStartUI(SpecialText=""){
 	Gui, StartUI:Destroy
 	
 	initMsgs := ["Подготовка макроса к работе"
@@ -547,6 +545,9 @@ showStartUI(){
 	
 	Random, randomNum, 1, initMsgs.MaxIndex()
 	initMsg:=initMsgs[randomNum] "..."
+	
+	If (SpecialText!="")
+		initMsg:=SpecialText
 	
 	If (CurrentDate==0401) {
 		Loop % Len := StrLen(initMsg)
@@ -610,12 +611,11 @@ showSettings(){
 	posW:=splitOverlayPosition[3]
 	posH:=splitOverlayPosition[4]
 	
-	IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
 	IniRead, debugMode, %configFile%, settings, debugMode, 0
 	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
 	IniRead, preset1, %configFile%, settings, preset1, default
 	IniRead, preset2, %configFile%, settings, preset2, %A_Space%
-	IniRead, mouseDistance, %configFile%, settings, mouseDistance, 500
+	IniRead, mouseDistance, %configFile%, settings, mouseDistance, 700
 	IniRead, windowLine, %configFile%, settings, windowLine, %A_Space%
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
@@ -624,12 +624,14 @@ showSettings(){
 	;Настройки второй вкладки
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	IniRead, lr, %configFile%, curl, limit-rate, 1000
-	IniRead, ct, %configFile%, curl, connect-timeout, 10
+	IniRead, ct, %configFile%, curl, connect-timeout, 3
 	IniRead, curlProgress, %configFile%, curl, curlProgress, 0
+	IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
 	IniRead, useLoadTimers, %configFile%, settings, useLoadTimers, 0
-	IniRead, useEvent, %configFile%, settings, useEvent, 1
+	IniRead, updateResources, %configFile%, settings, updateResources, 0
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	IniRead, itemFilter, %configFile%, settings, itemFilter, %A_Space%
+	itemFilerPrevious:=itemFilter
 	
 	;Настройки третьей вкладки
 	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
@@ -646,9 +648,8 @@ showSettings(){
 	Gui, Settings:Add, Tab, x0 y0 w640 h385, Основные|Загрузки|Команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
-	Gui, Settings:Add, Checkbox, vautoUpdate x12 y30 w525 Checked%autoUpdate%, Автоматически проверять наличие обновлений
 	
-	Gui, Settings:Add, Checkbox, vdebugMode x12 yp+21 w525 Checked%debugMode% disabled, Режим отладки
+	Gui, Settings:Add, Checkbox, vdebugMode x12 y30 w525 Checked%debugMode% disabled, Режим отладки
 	
 	Gui, Settings:Add, Text, x12 yp+21 w150, Другое окно для проверки:
 	Gui, Settings:Add, Edit, vwindowLine x+2 yp-2 w465 h17, %windowLine%
@@ -715,17 +716,19 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x12 yp+22 w515, cURL | Время соединения(сек.):
 	Gui, Settings:Add, Edit, vct x+2 yp-2 w100 h18 Number, %ct%
-	Gui, Settings:Add, UpDown, Range3-99999 0x80, %ct%
+	Gui, Settings:Add, UpDown, Range1-99999 0x80, %ct%
 	
 	Gui, Settings:Add, Checkbox, vcurlProgress x12 yp+21 w525 Checked%curlProgress%, cURL | Отображать окно в режиме отладки
 	
 	Gui, Settings:Add, Text, x10 y+5 w620 h1 0x12
 	
-	Gui, Settings:Add, Checkbox, vuseLoadTimers x12 yp+6 w525 Checked%useLoadTimers%, Использовать таймеры загрузок для обновления данных
+	Gui, Settings:Add, Checkbox, vautoUpdate x12 y+6 w525 Checked%autoUpdate%, Автоматическая проверка обновлений при запуске
 	
-	Gui, Settings:Add, Checkbox, vuseEvent x12 yp+21 w525 Checked%useEvent%, Загружать и устанавливать набор события
+	Gui, Settings:Add, Checkbox, vuseLoadTimers x12 yp+21 w525 Checked%useLoadTimers% disabled, Использовать таймер загрузок для обновления данных
 	
-	Gui, Settings:Add, Checkbox, vloadLab x12 yp+21 w515 Checked%loadLab%, Скачивать лабиринт('Мои файлы'>Labyrinth.jpg)
+	Gui, Settings:Add, Checkbox, vupdateResources x12 yp+21 w525 Checked%updateResources%, Разрешить обновление данных
+	
+	Gui, Settings:Add, Checkbox, vloadLab x12 yp+21 w515 Checked%loadLab%, Скачивать раскладку лабиринта('Мои файлы'>Labyrinth.jpg)
 	Gui, Settings:Add, Link, x+2 yp+0 w100 +Right, <a href="https://www.poelab.com/">POELab.com</a>
 	
 	LFilter:=listFilters()
@@ -802,11 +805,13 @@ saveSettings(){
 	
 	If (preset1=preset2)
 		preset2:=""
+		
+	If (itemFilter!=itemFilerPrevious)
+		delFilter()
 	
 	;Настройки первой вкладки
 	IniWrite, %posX%/%posY%/%posW%/%posH%, %configFile%, settings, overlayPosition
 	
-	IniWrite, %autoUpdate%, %configFile%, settings, autoUpdate
 	IniWrite, %debugMode%, %configFile%, settings, debugMode
 	IniWrite, %expandMyImages%, %configFile%, settings, expandMyImages
 	IniWrite, %preset1%, %configFile%, settings, preset1
@@ -822,8 +827,9 @@ saveSettings(){
 	IniWrite, %lr%, %configFile%, curl, limit-rate
 	IniWrite, %ct%, %configFile%, curl, connect-timeout
 	IniWrite, %curlProgress%, %configFile%, curl, curlProgress
+	IniWrite, %autoUpdate%, %configFile%, settings, autoUpdate
 	IniWrite, %useLoadTimers%, %configFile%, settings, useLoadTimers
-	IniWrite, %useEvent%, %configFile%, settings, useEvent
+	IniWrite, %updateResources%, %configFile%, settings, updateResources
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
 	IniWrite, %itemFilter%, %configFile%, settings, itemFilter
 	
@@ -950,7 +956,7 @@ showDonateUIOnStart() {
 showDonateUI() {
 	Gui, DonateUI:Destroy
 	Gui, DonateUI:Add, Edit, x0 y0 w0 h0
-	Gui, DonateUI:Add, Text, x10 y7 w300 +Center, Перевод на карту Visa: 
+	Gui, DonateUI:Add, Text, x10 y7 w300 +Center, Перевод на карту Visa(только внутри РФ): 
 	Gui, DonateUI:Add, Edit, x10 y+3 w300 h18 +ReadOnly, 4274 3200 7505 4976
 	Gui, DonateUI:Add, Text, x10 y+7 w300 +Center, Перевод по номеру телефона для клиентов Сбербанка: 
 	Gui, DonateUI:Add, Edit, x10 y+3 w300 h18 +ReadOnly, +7 900 917 25 92
@@ -999,10 +1005,7 @@ timerToolTip() {
 		removeToolTip()
 }
 
-LoadFile(URL, FilePath, MD5="") {
-	FileDelete, %FilePath%
-	Sleep 100
-	
+LoadFile(URL, FilePath, CheckDate=false, MD5="") {	
 	;Проверка наличия утилиты Curl
 	If FileExist(A_WinDir "\System32\curl.exe") {
 		CurlLine:="curl "
@@ -1010,11 +1013,25 @@ LoadFile(URL, FilePath, MD5="") {
 		CurlLine:="""" configFolder "\curl.exe"" "
 	}
 	
+	;Сверим дату
+	If CheckDate {
+		FormatTime, CurrentDate, %A_Now%, yyyyMMdd
+		FileGetTime, LoadDate, %FilePath%, M
+		FormatTime, LoadDate, %LoadDate%, yyyyMMdd
+		IfNotExist, %FilePath%
+			LoadDate:=0
+		If (LoadDate=CurrentDate)
+			return false
+	}
+	
+	FileDelete, %FilePath%
+	Sleep 100
+	
 	If (CurlLine!="") {
 		IniRead, curlProgress, %configFile%, curl, curlProgress, 0
 		IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 		If (UserAgent="")
-			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36"
+			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36"
 		IniRead, lr, %configFile%, curl, limit-rate, 1000
 		IniRead, ct, %configFile%, curl, connect-timeout, 10
 		

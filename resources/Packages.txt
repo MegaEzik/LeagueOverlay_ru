@@ -3,5 +3,6 @@ ArchnemesisEn.img|https://i.redd.it/r2kam23z52g81.png
 Bow+3.img|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Bow+3.png
 Catalysts.img|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Catalysts.jpg
 ;Isaac|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Isaac.pkg|1CD6B671911B1D33906949253374A16E
+Labyrinth|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Labyrinth.zip|565B296A4D1EB4C602CA93AC88E6A2B7
 ruPrediction|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/ruPrediction.zip|08F1BEFBE49D5A9B7CA5119E8AB4DCC6
 LutTools.ahk|http://lutbot.com/ahk/macro.ahk

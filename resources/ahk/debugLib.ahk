@@ -22,7 +22,9 @@ devMenu() {
 	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
 	Menu, devMenu, Add, Открыть папку настроек, openConfigFolder
 	Menu, devMenu, Add, Открыть папку макроса, openScriptFolder
-	Menu, devMenu, Add, Перезагрузить данные, devClSD
+	IniRead, updateResources, %configFile%, settings, updateResources, 0
+	If updateResources
+		Menu, devMenu, Add, Перезагрузить данные, devClSD
 	Menu, devMenu, Add, Перезагрузить лабиринт, :devMenu2
 	Menu, devMenu, Add, AutoHotkey, :devMenu1
 }
@@ -47,12 +49,10 @@ devRestoreRelease() {
 }
 
 devClSD(){
-	IniRead, filter, %configFile%, settings, itemFilter, %A_Space%
-	FileDelete, %A_MyDocuments%\My Games\Path of Exile\%filter%.filter
-	
 	FileDelete, resources\Packages.txt
 	FileDelete, %configFolder%\MyFiles\Labyrinth.jpg
 	FileDelete, resources\data\*
+	delFilter()
 	Sleep 100
 	ReStart()
 }
@@ -79,26 +79,20 @@ devAddInList(Line){
 }
 
 loadEvent(onStart=false){
-	IniRead, useEvent, %configFile%, settings, useEvent, 1
-	If !useEvent
+	IniRead, updateResources, %configFile%, settings, updateResources, 0
+	If !updateResources
 		return
-	
 	Path:="resources\data\Event.txt"
-	
+	LoadFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/data/Event.txt", Path, true)
 	FormatTime, CurrentDate, %A_Now%, yyyyMMdd
-	FileGetTime, LoadDate, %Path%, M
-	FormatTime, LoadDate, %LoadDate%, yyyyMMdd
-	IfNotExist, %Path%
-		LoadDate:=0
-	
-	If (LoadDate!=CurrentDate)
-		LoadFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/data/Event.txt", Path)
 	
 	eventData:=loadPreset("Event")
 	eventDataSplit:=StrSplit(eventData, "`n")
 	For k, val in eventDataSplit {
 		If RegExMatch(eventDataSplit[k], ";;")=1
 			Continue
+		If RegExMatch(eventDataSplit[k], ";StartUIMsg=(.*)$", StartUIMsg)
+			rStartUIMsg:=StartUIMsg1
 		If RegExMatch(eventDataSplit[k], ";EventName=(.*)$", EventName)
 			rEventName:=EventName1
 		If RegExMatch(eventDataSplit[k], ";StartDate=(.*)$", StartDate)
@@ -110,12 +104,15 @@ loadEvent(onStart=false){
 		If RegExMatch(eventDataSplit[k], ";ResourceFile=(.*)$", rURL)
 			loadEventResourceFile(rURL1)
 	}
-
-	If (rMinVersion>verScript || rEventName="" || rStartDate="" || rEndDate="" || CurrentDate<rStartDate || CurrentDate>rEndDate)
+	
+	If (rMinVersion>verScript || rStartDate="" || rEndDate="" || CurrentDate<rStartDate || CurrentDate>rEndDate)
 		return
 	
-	If onStart
-		trayMsg(rEventName "`n" rStartDate " - " rEndDate, "Активен набор события")
+	If (rStartUIMsg!="")
+		showStartUI(rStartUIMsg)
+	
+	If (onStart && rEventName!="")
+		trayMsg(rStartDate " - " rEndDate, rEventName)
 	
 	return eventData
 }
@@ -123,25 +120,14 @@ loadEvent(onStart=false){
 loadEventResourceFile(URL){
 	eventFileSplit:=strSplit(URL, "/")
 	filePath:="resources\data\" eventFileSplit[eventFileSplit.MaxIndex()]
-	
-	FormatTime, CurrentDate, %A_Now%, yyyyMMdd
-	FileGetTime, LoadDate, %filePath%, M
-	FormatTime, LoadDate, %LoadDate%, yyyyMMdd
-	IfNotExist, %filePath%
-		LoadDate:=0
-	If (LoadDate!=CurrentDate)
-		LoadFile(URL, filePath)
+	LoadFile(URL, filePath, true)
 }
 
 pkgsMgr_packagesMenu(){
 	FilePath:="resources\Packages.txt"
-	FormatTime, CurrentDate, %A_Now%, yyyyMMdd
-	FileGetTime, LoadDate, %FilePath%, M
-	FormatTime, LoadDate, %LoadDate%, yyyyMMdd
-	IfNotExist, %FilePath%
-		LoadDate:=0
-	If (LoadDate!=CurrentDate)
-		LoadFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/Packages.txt", FilePath)
+	IniRead, updateResources, %configFile%, settings, updateResources, 0
+	If updateResources
+		LoadFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/Packages.txt", FilePath, true)
 	
 	FileRead, Data, %FilePath%
 	DataSplit:=strSplit(StrReplace(Data, "`r", ""), "`n")
@@ -182,7 +168,7 @@ pkgsMgr_loadPackage(Name){
 					return
 				}
 				If (PackInfo[3]!="") {
-					If LoadFile(PackInfo[2], A_Temp "\Package.zip", PackInfo[3]) {
+					If LoadFile(PackInfo[2], A_Temp "\Package.zip", false, PackInfo[3]) {
 						unZipArchive(A_Temp "\Package.zip", configFolder)
 						If FileExist(configFolder "\" Name ".ahk")
 							ReStart()
