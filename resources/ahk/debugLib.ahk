@@ -1,44 +1,27 @@
 ﻿
 ;Инициализация
 devInit() {
-	IniRead, debugMode, %configFile%, settings, debugMode, 0
 	devMenu()
 }
 
 ;Создание меню разработчика
 devMenu() {
-	Menu, devMenu1, Standard
-	
-	Menu, devMenu2, Add, https://poelab.com/gtgax, reloadLab
-	Menu, devMenu2, Add, https://poelab.com/r8aws, reloadLab
-	Menu, devMenu2, Add, https://poelab.com/riikv, reloadLab
-	Menu, devMenu2, Add, https://poelab.com/wfbra, reloadLab
-	
-	/*
-	Menu, devMenu, Add, Режим отладки, switchDebugMode
-	If debugMode
-		Menu, devMenu, Check, Режим отладки
-	*/
+	Menu, devMenu, Add, Создать ярлык, createShortcut
+	Menu, devMenu, Add
+	Menu, devMenu, Add, Папка макроса, openScriptFolder	
+	Menu, devMenu, Add, Папка настроек, openConfigFolder	
+	Menu, devMenu, Add
 	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
-	Menu, devMenu, Add, Открыть папку настроек, openConfigFolder
-	Menu, devMenu, Add, Открыть папку макроса, openScriptFolder
 	IniRead, updateResources, %configFile%, settings, updateResources, 0
 	If updateResources
 		Menu, devMenu, Add, Перезагрузить данные, devClSD
-	Menu, devMenu, Add, Перезагрузить лабиринт, :devMenu2
-	Menu, devMenu, Add, AutoHotkey, :devMenu1
-}
-
-;Переключение режима разработчика
-switchDebugMode() {
-	If !debugMode
-		MsgBox, 0x1024, %prjName%, Включение режима отладки может сделать работу %prjName% нестабильной!`n`nВы уверены, что хотите продолжить?
-		IfMsgBox No
-			return
-	newDebugMode:=!debugMode
-	IniWrite, %newDebugMode%, %configFile%, dev, debugMode
-	Sleep 500
-	Reload
+	Menu, devMenu, Add
+	Menu, devMenu, Add, https://poelab.com/gtgax, reloadLab
+	Menu, devMenu, Add, https://poelab.com/r8aws, reloadLab
+	Menu, devMenu, Add, https://poelab.com/riikv, reloadLab
+	Menu, devMenu, Add, https://poelab.com/wfbra, reloadLab
+	Menu, devMenu, Add
+	Menu, devMenu, Standard
 }
 
 ;Откатиться на релизную версию
@@ -59,7 +42,7 @@ devClSD(){
 
 ;Запись отладочной информации
 devLog(msg){
-	If debugMode {
+	If RegExMatch(args, "i)/Debug") {
 		FormatTime, Time, dddd MMMM, dd.MM HH:mm:ss
 		FileAppend, %Time% v%verScript% - %msg%`n, %configFolder%\dev.log, UTF-8
 	}
@@ -67,7 +50,7 @@ devLog(msg){
 
 ;Добавление в отслеживаемый список
 devAddInList(Line){
-	If !debugMode
+	If !RegExMatch(args, "i)/Debug")
 		return
 	FilePath:=configFolder "\devList.txt"
 	FileRead, DataList, %FilePath%
@@ -91,7 +74,7 @@ loadEvent(onStart=false){
 	For k, val in eventDataSplit {
 		If RegExMatch(eventDataSplit[k], ";;")=1
 			Continue
-		If RegExMatch(eventDataSplit[k], ";StartUIMsg=(.*)$", StartUIMsg)
+		If (onStart && RegExMatch(eventDataSplit[k], ";StartUIMsg=(.*)$", StartUIMsg))
 			rStartUIMsg:=StartUIMsg1
 		If RegExMatch(eventDataSplit[k], ";EventName=(.*)$", EventName)
 			rEventName:=EventName1
@@ -198,6 +181,8 @@ pkgsMgr_delPackage(Name){
 }
 
 pkgsMgr_startCustomScripts(){
+	If RegExMatch(args, "i)/DisableAddons")
+		return
 	Loop, %configFolder%\*.ahk, 1
 	{
 		IniRead, MD5, %configFile%, pkgsMgr, %A_LoopFileName%, %A_Space%
@@ -209,4 +194,8 @@ pkgsMgr_startCustomScripts(){
 		IniWrite, %MD5File%, %configFile%, pkgsMgr, %A_LoopFileName%
 		RunWait *RunAs "%A_AhkPath%" "%configFolder%\%A_LoopFileName%" "%A_ScriptDir%"
 	}
+}
+
+createShortcut(){
+	FileCreateShortcut, %A_ScriptFullPath%, %A_Desktop%\LeagueOverlay_ru.lnk, %A_ScriptDir%, /Debug /LoadTimer /GamepadXBox
 }

@@ -50,16 +50,18 @@ If InStr(FileExist(A_ScriptDir "\..\Profile"), "D")
 	configFolder:=A_ScriptDir "\..\Profile"
 global configFile:=configFolder "\settings.ini"
 global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, textCmd11, textCmd12, textCmd13, textCmd14, textCmd15, textCmd16, textCmd17, textCmd18, textCmd19, textCmd20, cmdNum=20
-global verScript, LastImg, debugMode=0, globalOverlayPosition, OverlayStatus=0
+global verScript, args, LastImg, globalOverlayPosition, OverlayStatus=0
+Loop, %0%
+	args.=" " %A_Index%
 FileReadLine, verScript, resources\Updates.txt, 1
 
+;Проверка требований и параметров запуска
+checkRequirementsAndArgs()
+	
 ;Установка иконки и описания в области уведомлений
 If FileExist("resources\icons\icon.png")
 	Menu, Tray, Icon, resources\icons\icon.png
 Menu, Tray, Tip, %prjName% %verScript% | AHK %A_AhkVersion%
-
-;Проверка требований
-checkRequirements()
 
 ;UI загрузки и загрузка инструментов разработчика
 showStartUI()
@@ -87,7 +89,7 @@ Globals.Set("mouseDistance", mouseDistance)
 pkgsMgr_startCustomScripts()
 
 ;Загрузка и установка данных
-downloadDataAndSetTimer()
+downloadData(true)
 
 ;Назначим управление и создадим меню
 menuCreate()
@@ -102,27 +104,33 @@ Return
 
 #IfWinActive ahk_group WindowGrp
 
-checkRequirements() {
-	If (!A_IsAdmin) {
-		Run *RunAs "%A_AhkPath%" "%A_ScriptFullPath%"
+checkRequirementsAndArgs() {
+	If !A_IsAdmin
+		ReStart()
+	If RegExMatch(args, "i)/Help") {
+		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/Debug - режим отладки`n/ShowCurl - отображать окно cURL`n/GamepadXBox - использовать геймпад XBox(бета)`n/GamepadPS - использовать геймпад PlayStation(бета)`n/LoadTimer - использовать таймер загрузок`n/NoAddons - пропуск загрузки дополнений`n/Ignore - пропуск проверки системы
 		ExitApp
 	}
-	;RegExMatch(A_OSVersion, "(\d+)$", OSBuild)
-	OSBuild:=DllCall("GetVersion") >> 16 & 0xFFFF        
-	If (OSBuild<7601) {
-		MsgBox, 0x1010, %prjName%, Для работы %prjName% требуется операционная система Windows 7 Service Pack 1 или выше!
-		ExitApp
-	}
-	If (A_PtrSize!=8) {
-		msgtext:="Для работы " prjName " требуется 64-разрядный интерпретатор AutoHotkey!"
-		Loop, %A_AhkPath%
-			AhkDir:=A_LoopFileDir
-		If FileExist(AhkDir "\Installer.ahk")
-			msgtext.="`n`nПосле нажатия кнопки 'ОК' откроется 'AutoHotkey Setup', выберите в нем 'Modify', а затем 'Unicode 64-bit'."
-		MsgBox, 0x1010, %prjName%, %msgtext%
-		If FileExist(AhkDir "\Installer.ahk")
-			Run *RunAs "%AhkDir%\Installer.ahk"
-		ExitApp
+	If (args!="")
+		Msgbox, 0x1020, Запущен с параметрами, %args%, 2
+	If !RegExMatch(args, "i)/Ignore") {
+		;RegExMatch(A_OSVersion, "(\d+)$", OSBuild)
+		OSBuild:=DllCall("GetVersion") >> 16 & 0xFFFF        
+		If (OSBuild!=7601 && OSBuild<17763) {
+			MsgBox, 0x1010, %prjName%, Для работы %prjName% требуется операционная система Windows 10 1809 или выше!
+			ExitApp
+		}
+		If (A_PtrSize!=8) {
+			msgtext:="Для работы " prjName " требуется 64-разрядный интерпретатор AutoHotkey!"
+			Loop, %A_AhkPath%
+				AhkDir:=A_LoopFileDir
+			If FileExist(AhkDir "\Installer.ahk")
+				msgtext.="`n`nПосле нажатия кнопки 'ОК' откроется 'AutoHotkey Setup', выберите в нем 'Modify', а затем 'Unicode 64-bit'."
+			MsgBox, 0x1010, %prjName%, %msgtext%
+			If FileExist(AhkDir "\Installer.ahk")
+				Run *RunAs "%AhkDir%\Installer.ahk"
+			ExitApp
+		}
 	}
 	If !FileExist(A_WinDir "\System32\curl.exe") {
 		If !FileExist(configfolder "\curl.exe") {
@@ -172,7 +180,6 @@ migrateConfig() {
 			}
 			If (verConfig<220312) {
 				IniWrite, 3, %configFile%, curl, connect-timeout
-				IniWrite, 0, %configFile%, settings, useLoadTimers
 				IniWrite, 0, %configFile%, settings, loadLab
 				IniWrite, %A_Space%, %configFile%, settings, itemFilter
 			}
@@ -196,23 +203,24 @@ migrateConfig() {
 	}
 }
 
-downloadDataAndSetTimer(){
-	loadPresetData(true)
-	ItemMenu_IDCLInit(true)
-	downloadLabLayout(,true)
+downloadData(OnStart=false){
+	loadPresetData(OnStart)
+	ItemMenu_IDCLInit(OnStart)
+	downloadLabLayout(,OnStart)
 	loadFilter()
 	
-	IniRead, useLoadTimers, %configFile%, settings, useLoadTimers, 0
-	If useLoadTimers
-		SetTimer, loadTimer, 7200000
+	If OnStart && RegExMatch(args, "i)/LoadTimer")
+		SetTimer, downloadData, 3600000
 }
 
+/*
 loadTimer(){
 	loadPresetData()
 	ItemMenu_IDCLInit()
 	downloadLabLayout()
 	loadFilter()
 }
+*/
 
 shLastImage(){
 	SplitLastImg:=StrSplit(LastImg, "|")
@@ -611,7 +619,6 @@ showSettings(){
 	posW:=splitOverlayPosition[3]
 	posH:=splitOverlayPosition[4]
 	
-	IniRead, debugMode, %configFile%, settings, debugMode, 0
 	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
 	IniRead, preset1, %configFile%, settings, preset1, default
 	IniRead, preset2, %configFile%, settings, preset2, %A_Space%
@@ -625,9 +632,7 @@ showSettings(){
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	IniRead, lr, %configFile%, curl, limit-rate, 1000
 	IniRead, ct, %configFile%, curl, connect-timeout, 3
-	IniRead, curlProgress, %configFile%, curl, curlProgress, 0
 	IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
-	IniRead, useLoadTimers, %configFile%, settings, useLoadTimers, 0
 	IniRead, updateResources, %configFile%, settings, updateResources, 0
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	IniRead, itemFilter, %configFile%, settings, itemFilter, %A_Space%
@@ -648,10 +653,7 @@ showSettings(){
 	Gui, Settings:Add, Tab, x0 y0 w640 h385, Основные|Загрузки|Команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
-	
-	Gui, Settings:Add, Checkbox, vdebugMode x12 y30 w525 Checked%debugMode% disabled, Режим отладки
-	
-	Gui, Settings:Add, Text, x12 yp+21 w150, Другое окно для проверки:
+	Gui, Settings:Add, Text, x12 y30 w150, Другое окно для проверки:
 	Gui, Settings:Add, Edit, vwindowLine x+2 yp-2 w465 h17, %windowLine%
 	
 	Gui, Settings:Add, Text, x10 y+3 w620 h1 0x12
@@ -718,13 +720,9 @@ showSettings(){
 	Gui, Settings:Add, Edit, vct x+2 yp-2 w100 h18 Number, %ct%
 	Gui, Settings:Add, UpDown, Range1-99999 0x80, %ct%
 	
-	Gui, Settings:Add, Checkbox, vcurlProgress x12 yp+21 w525 Checked%curlProgress%, cURL | Отображать окно в режиме отладки
-	
 	Gui, Settings:Add, Text, x10 y+5 w620 h1 0x12
 	
 	Gui, Settings:Add, Checkbox, vautoUpdate x12 y+6 w525 Checked%autoUpdate%, Автоматическая проверка обновлений при запуске
-	
-	Gui, Settings:Add, Checkbox, vuseLoadTimers x12 yp+21 w525 Checked%useLoadTimers% disabled, Использовать таймер загрузок для обновления данных
 	
 	Gui, Settings:Add, Checkbox, vupdateResources x12 yp+21 w525 Checked%updateResources%, Разрешить обновление данных
 	
@@ -812,7 +810,6 @@ saveSettings(){
 	;Настройки первой вкладки
 	IniWrite, %posX%/%posY%/%posW%/%posH%, %configFile%, settings, overlayPosition
 	
-	IniWrite, %debugMode%, %configFile%, settings, debugMode
 	IniWrite, %expandMyImages%, %configFile%, settings, expandMyImages
 	IniWrite, %preset1%, %configFile%, settings, preset1
 	IniWrite, %preset2%, %configFile%, settings, preset2
@@ -826,9 +823,7 @@ saveSettings(){
 	IniWrite, %UserAgent%, %configFile%, curl, user-agent
 	IniWrite, %lr%, %configFile%, curl, limit-rate
 	IniWrite, %ct%, %configFile%, curl, connect-timeout
-	IniWrite, %curlProgress%, %configFile%, curl, curlProgress
 	IniWrite, %autoUpdate%, %configFile%, settings, autoUpdate
-	IniWrite, %useLoadTimers%, %configFile%, settings, useLoadTimers
 	IniWrite, %updateResources%, %configFile%, settings, updateResources
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
 	IniWrite, %itemFilter%, %configFile%, settings, itemFilter
@@ -880,6 +875,11 @@ setHotkeys(){
 		If (textCmd%A_Index%!="")  && (RegExMatch(textCmd%A_Index%, ";")!=1) && (tempVar!="")
 			Hotkey, % tempVar, fastCmd%A_Index%, On
 	}
+	;Если передан параметр, то активировать бета поддержку геймпада
+	If RegExMatch(args, "i)/GamepadXBox")
+		Hotkey, Joy7, useGamepad, On
+	If RegExMatch(args, "i)/GamepadPS")
+		Hotkey, Joy14, useGamepad, On
 }
 
 menuCreate(){
@@ -939,13 +939,15 @@ openScriptFolder(){
 ReStart(){
 	Gdip_Shutdown(pToken)
 	sleep 250
-	Reload
+	;Reload
+	Run *RunAs "%A_AhkPath%" "%A_ScriptFullPath%" %args%
+	ExitApp
 }
 
 showDonateUIOnStart() {
 	;Иногда после запуска будем предлагать поддержать проект
 	Random, randomNum, 1, 15
-	If (randomNum=1 && !debugMode) {
+	If (randomNum=1 && !RegExMatch(args, "i)/Debug")) {
 		showDonateUI()
 		Sleep 10000
 		Gui, DonateUI:Minimize
@@ -1028,7 +1030,6 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 	Sleep 100
 	
 	If (CurlLine!="") {
-		IniRead, curlProgress, %configFile%, curl, curlProgress, 0
 		IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 		If (UserAgent="")
 			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36"
@@ -1040,7 +1041,7 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 			CurlLine.=" --connect-timeout " ct
 		If lr>0
 			CurlLine.=" --limit-rate " lr "K"
-		If curlProgress && debugMode
+		If RegExMatch(args, "i)/ShowCurl")
 			RunWait, %CurlLine%
 		Else
 			RunWait, %CurlLine%, , hide
@@ -1056,6 +1057,34 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 		return false
 	}
 	return true	
+}
+
+useGamepad(){
+	destroyOverlay()
+	showToolTip("🡹 Лабиринт`n🡻 Кража`n🡸 Синдикат`n🡺 Возмездие", 1000, false)
+	Sleep 1000
+	GetKeyState, Jp, JoyPOV
+	ImgFile:=
+	If (Jp=0)
+		ImgFile:=configFolder "\MyFiles\Labyrinth.jpg"
+	If (Jp=18000)
+		ImgFile:="resources\presets\russian\Heist.jpg"
+	If (Jp=27000)
+		ImgFile:="resources\presets\russian\Syndicate.jpg"
+	If (Jp=9000)
+		ImgFile:="resources\presets\russian\Archnemesis.jpg"
+	/*
+	If (J7="D" && Jr<10)
+		ImgFile:="resources\presets\russian\Delve.jpg"
+	If (J7="D" && Jr>90)
+		ImgFile:="resources\presets\russian\Oils.jpg"
+	If (J7="D" && Ju<10)
+		ImgFile:=""
+	If (J7="D" && Ju>90)
+		ImgFile:=""
+	*/
+	If (ImgFile!="")
+		shOverlay(ImgFile)
 }
 
 ;#################################################
