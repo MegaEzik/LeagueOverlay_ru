@@ -2,6 +2,10 @@
 ;Инициализация
 devInit() {
 	devMenu()
+	
+	IniRead, hotkeyGamepad, %configFile%, hotkeys, hotkeyGamepad, %A_Space%
+	If (hotkeyGamepad!="")
+		Hotkey, % hotkeyGamepad, shGamepadMenu, On
 }
 
 ;Создание меню разработчика
@@ -197,5 +201,52 @@ pkgsMgr_startCustomScripts(){
 }
 
 createShortcut(){
-	FileCreateShortcut, %A_ScriptFullPath%, %A_Desktop%\LeagueOverlay_ru.lnk, %A_ScriptDir%, /Debug /LoadTimer /GamepadXBox
+	FileCreateShortcut, %A_ScriptFullPath%, %A_Desktop%\LeagueOverlay_ru.lnk, %A_ScriptDir%, /Debug /LoadTimer
+}
+
+;GamepadBeta
+shGamepadMenu(){
+	IniRead, hotkeyGamepad, %configFile%, hotkeys, hotkeyGamepad, %A_Space%
+	destroyOverlay()
+	Sleep 500
+	GetKeyState, MyJoy, %hotkeyGamepad%
+	If (MyJoy="D") {
+		Run *RunAs "%A_AhkPath%" resources\PseudoMouse.ahk %hotkeyGamepad%,,, PseudoMousePID
+		shMainMenu()
+		Run *RunAs TASKKILL.EXE /PID %PseudoMousePID% /F,, hide
+	}
+}
+
+cfgGamepad(){
+	Gui, Settings:Destroy
+	
+	SetTimer, checkHotkeyGamepad, 500
+}
+
+checkHotkeyGamepad(){
+	showToolTip("Нажмите и удерживайте желаемую кнопку на геймпаде!`n`nДля DualShock рекомендуется TouchPad[Joy14]`nДля XBox рекомендуется кнопка Guide[vk07]`n`nДля выхода из настройки удерживайте [Escape]")
+	hotkeyGamepad:=""
+	Loop 32 {
+		GetKeyState, currentJoy, Joy%A_Index%
+		If (currentJoy="D")
+			hotkeyGamepad:="Joy" A_Index
+	}
+	GetKeyState, currentJoy, vk07
+	If (currentJoy="D")
+		hotkeyGamepad:="vk07"
+	GetKeyState, currentJoy, Esc
+	If (currentJoy="D")
+		hotkeyGamepad:=A_Space
+		
+	If (hotkeyGamepad!="") {
+		SetTimer, checkHotkeyGamepad, Delete
+		removeToolTip()
+		msgbox, 0x1024, %prjName%, Хотите назначить [%hotkeyGamepad%]?
+		IfMSgBox Yes
+		{
+			IniWrite, %hotkeyGamepad%, %configFile%, hotkeys, hotkeyGamepad
+			ReStart()
+		}
+		Return
+	}
 }

@@ -108,11 +108,11 @@ checkRequirementsAndArgs() {
 	If !A_IsAdmin
 		ReStart()
 	If RegExMatch(args, "i)/Help") {
-		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/Debug - режим отладки`n/ShowCurl - отображать окно cURL`n/GamepadXBox - использовать геймпад XBox(бета)`n/GamepadPS - использовать геймпад PlayStation(бета)`n/LoadTimer - использовать таймер загрузок`n/NoAddons - пропуск загрузки дополнений`n/Ignore - пропуск проверки системы
+		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/Debug - режим отладки`n/ShowCurl - отображать окно cURL`n/LoadTimer - использовать таймер загрузок`n/NoAddons - пропуск загрузки дополнений`n/Ignore - пропуск проверки системы
 		ExitApp
 	}
 	If (args!="")
-		Msgbox, 0x1020, Запущен с параметрами, %args%, 2
+		Msgbox, 0x1020, Запущен с параметрами, %args%, 1
 	If !RegExMatch(args, "i)/Ignore") {
 		;RegExMatch(A_OSVersion, "(\d+)$", OSBuild)
 		OSBuild:=DllCall("GetVersion") >> 16 & 0xFFFF        
@@ -626,6 +626,7 @@ showSettings(){
 	IniRead, windowLine, %configFile%, settings, windowLine, %A_Space%
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
+	IniRead, hotkeyGamepad, %configFile%, hotkeys, hotkeyGamepad, %A_Space%
 	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, %A_Space%
 	
 	;Настройки второй вкладки
@@ -706,6 +707,10 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x12 yp+21 w515, Меню предмета:
 	Gui, Settings:Add, Hotkey, vhotkeyItemMenu x+2 yp-2 w100 h17, %hotkeyItemMenu%
+	
+	Gui, Settings:Add, Text, x12 yp+21 w515, Геймпад(Beta) - Нажмите и удерживайте [%hotkeyGamepad%] для вызова "Меню быстрого доступа"
+	Gui, Settings:Add, Button, x+1 yp-3 w102 h23 gcfgGamepad, Изменить
+	;Gui, Settings:Add, Edit, vhotkeyGamepad x+2 yp-2 w100 h17, %hotkeyGamepad%
 	
 	Gui, Settings:Tab, 2 ;Вторая вкладка
 	
@@ -817,6 +822,7 @@ saveSettings(){
 	IniWrite, %windowLine%, %configFile%, settings, windowLine
 	IniWrite, %hotkeyLastImg%, %configFile%, hotkeys, hotkeyLastImg
 	IniWrite, %hotkeyMainMenu%, %configFile%, hotkeys, hotkeyMainMenu
+	IniWrite, %hotkeyGamepad%, %configFile%, hotkeys, hotkeyGamepad
 	IniWrite, %hotkeyItemMenu%, %configFile%, hotkeys, hotkeyItemMenu
 	
 	;Настройки второй вкладки
@@ -1061,7 +1067,7 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 
 useGamepad(){
 	destroyOverlay()
-	showToolTip("🡹 Лабиринт`n🡻 Кража`n🡸 Синдикат`n🡺 Возмездие", 1000, false)
+	showToolTip("Нажмите и удерживайте:`n 🡹 Лабиринт`n 🡻 Кража`n 🡸 Синдикат`n 🡺 Возмездие", 1000, false)
 	Sleep 1000
 	GetKeyState, Jp, JoyPOV
 	ImgFile:=
