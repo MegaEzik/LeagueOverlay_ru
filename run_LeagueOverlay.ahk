@@ -108,15 +108,13 @@ checkRequirementsAndArgs() {
 	If !A_IsAdmin
 		ReStart()
 	If RegExMatch(args, "i)/Help") {
-		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/Debug - режим отладки`n/ShowCurl - отображать окно cURL`n/LoadTimer - использовать таймер загрузок`n/NoAddons - пропуск загрузки дополнений`n/Ignore - пропуск проверки системы
+		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/Debug - режим отладки`n/ShowCurl - отображать окно cURL`n/LoadTimer - использовать таймер загрузок`n/NoAddons - пропуск загрузки дополнений`n/Win7 - пропуск проверки системы
 		ExitApp
 	}
-	If (args!="")
-		Msgbox, 0x1020, Запущен с параметрами, %args%, 1
-	If !RegExMatch(args, "i)/Ignore") {
+	If !RegExMatch(args, "i)/Win7") {
 		;RegExMatch(A_OSVersion, "(\d+)$", OSBuild)
 		OSBuild:=DllCall("GetVersion") >> 16 & 0xFFFF        
-		If (OSBuild!=7601 && OSBuild<17763) {
+		If (OSBuild<17763) {
 			MsgBox, 0x1010, %prjName%, Для работы %prjName% требуется операционная система Windows 10 1809 или выше!
 			ExitApp
 		}
@@ -133,6 +131,9 @@ checkRequirementsAndArgs() {
 		}
 	}
 	If !FileExist(A_WinDir "\System32\curl.exe") {
+		msgtext:="В вашей системе не найдена утилита 'curl.exe', без нее некоторые функции " prjName " не будут работать!"
+		MsgBox, 0x1030, %prjName%, %msgtext%
+		/*
 		If !FileExist(configfolder "\curl.exe") {
 			FileCreateDir, %configFolder%
 			SplashTextOn, 400, 20, %prjName%, Загрузка утилиты 'curl.exe'...
@@ -146,6 +147,7 @@ checkRequirementsAndArgs() {
 			}
 			SplashTextOff
 		}
+		*/
 	}
 	;Запуск gdi+
 	If !pToken:=Gdip_Startup()
@@ -563,9 +565,9 @@ showStartUI(SpecialText=""){
 		initMsg:=NewInitMsg
 	}
 	
-	dNames:=["AbyssSPIRIT", "milcart", "Pip4ik", "Данил А. Р.", "MON9", "Иван А. К.", "Роман В. К."]
+	dNames:=["AbyssSPIRIT", "milcart", "Pip4ik", "ДанилАР", "MONI9K", "ИванАК", "РоманВК"]
 	Random, randomNum, 1, dNames.MaxIndex()
-	dName:="Спасибо, " dNames[randomNum] ") "
+	dName:="@" dNames[randomNum] " ty) "
 	
 	Gui, StartUI:Add, Progress, w500 h26 x0 y0 Background481D05
 
@@ -580,8 +582,13 @@ showStartUI(SpecialText=""){
 	Gui, StartUI:Font, s10 bold italic
 	Gui, StartUI:Add, Text, x0 y+10 h18 w500 +Center BackgroundTrans, %initMsg%
 	
+	Gui, StartUI:Font, s8 norm
+	Gui, StartUI:Font, cFF0000
+	Gui, StartUI:Add, Text, x4 y+3 w340 BackgroundTrans, %args%
+	
 	Gui, StartUI:Font, s8 norm italic
-	Gui, StartUI:Add, Text, x5 y+3 w490 BackgroundTrans +Right, %dName%
+	Gui, StartUI:Font, c000000
+	Gui, StartUI:Add, Text, x+2 w150 BackgroundTrans +Right, %dName%
 	
 	;Gui, StartUI:+AlwaysOnTop -SysMenu
 	Gui, StartUI:+ToolWindow -Caption +Border +AlwaysOnTop
@@ -708,7 +715,7 @@ showSettings(){
 	Gui, Settings:Add, Text, x12 yp+21 w515, Меню предмета:
 	Gui, Settings:Add, Hotkey, vhotkeyItemMenu x+2 yp-2 w100 h17, %hotkeyItemMenu%
 	
-	Gui, Settings:Add, Text, x12 yp+21 w515, Геймпад(Beta) - Удерживайте [%hotkeyGamepad%] для вызова "Меню быстрого доступа"
+	Gui, Settings:Add, Text, x12 yp+21 w515, Игровой контроллер(Beta) - Удерживайте [%hotkeyGamepad%] для вызова "Меню быстрого доступа"
 	Gui, Settings:Add, Button, x+1 yp-3 w102 h23 gcfgGamepad, Изменить
 	;Gui, Settings:Add, Edit, vhotkeyGamepad x+2 yp-2 w100 h17, %hotkeyGamepad%
 	
@@ -1014,13 +1021,6 @@ timerToolTip() {
 }
 
 LoadFile(URL, FilePath, CheckDate=false, MD5="") {	
-	;Проверка наличия утилиты Curl
-	If FileExist(A_WinDir "\System32\curl.exe") {
-		CurlLine:="curl "
-	} Else If FileExist(configfolder "\curl.exe") {
-		CurlLine:="""" configFolder "\curl.exe"" "
-	}
-	
 	;Сверим дату
 	If CheckDate {
 		FormatTime, CurrentDate, %A_Now%, yyyyMMdd
@@ -1035,14 +1035,14 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 	FileDelete, %FilePath%
 	Sleep 100
 	
-	If (CurlLine!="") {
+	If FileExist(A_WinDir "\System32\curl.exe") {
 		IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 		If (UserAgent="")
 			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36"
 		IniRead, lr, %configFile%, curl, limit-rate, 1000
 		IniRead, ct, %configFile%, curl, connect-timeout, 10
 		
-		CurlLine.="-L -A """ UserAgent """ -o """ FilePath """" " " """" URL """"
+		CurlLine:="curl -L -A """ UserAgent """ -o """ FilePath """" " " """" URL """"
 		If ct>0
 			CurlLine.=" --connect-timeout " ct
 		If lr>0
@@ -1067,10 +1067,10 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 
 useGamepad(){
 	destroyOverlay()
-	showToolTip("Нажмите и удерживайте:`n 🡹 Лабиринт`n 🡻 Кража`n 🡸 Синдикат`n 🡺 Возмездие", 1000, false)
-	Sleep 1000
+	showToolTip("Нажмите и удерживайте:`n 🡹 Лабиринт`n 🡻 Кража`n 🡸 Синдикат`n 🡺 Возмездие", 1500, false)
+	Sleep 1500
 	GetKeyState, Jp, JoyPOV
-	ImgFile:=
+	ImgFile:=""
 	If (Jp=0)
 		ImgFile:=configFolder "\MyFiles\Labyrinth.jpg"
 	If (Jp=18000)
@@ -1079,16 +1079,6 @@ useGamepad(){
 		ImgFile:="resources\presets\russian\Syndicate.jpg"
 	If (Jp=9000)
 		ImgFile:="resources\presets\russian\Archnemesis.jpg"
-	/*
-	If (J7="D" && Jr<10)
-		ImgFile:="resources\presets\russian\Delve.jpg"
-	If (J7="D" && Jr>90)
-		ImgFile:="resources\presets\russian\Oils.jpg"
-	If (J7="D" && Ju<10)
-		ImgFile:=""
-	If (J7="D" && Ju>90)
-		ImgFile:=""
-	*/
 	If (ImgFile!="")
 		shOverlay(ImgFile)
 }
