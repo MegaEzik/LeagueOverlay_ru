@@ -208,7 +208,7 @@ createShortcut(){
 shGamepadMenu(){
 	IniRead, hotkeyGamepad, %configFile%, hotkeys, hotkeyGamepad, %A_Space%
 	destroyOverlay()
-	Sleep 500
+	Sleep 700
 	GetKeyState, MyJoy, %hotkeyGamepad%
 	If (MyJoy="D") {
 		Run *RunAs "%A_AhkPath%" resources\PseudoMouse.ahk %hotkeyGamepad%,,, PseudoMousePID
@@ -220,10 +220,10 @@ shGamepadMenu(){
 cfgGamepad(){
 	Gui, Settings:Destroy
 	
-	SetTimer, checkHotkeyGamepad, 500
+	SetTimer, setHotkeyGamepad, 500
 }
 
-checkHotkeyGamepad(){
+setHotkeyGamepad(){
 	showToolTip("Нажмите и удерживайте желаемую кнопку на геймпаде!`n`nДля DualShock рекомендуется TouchPad[Joy14]`nДля XBox рекомендуется кнопка Guide[vk07]`n`nДля выхода из настройки удерживайте [Escape]")
 	hotkeyGamepad:=""
 	Loop 32 {
@@ -239,7 +239,7 @@ checkHotkeyGamepad(){
 		hotkeyGamepad:=A_Space
 		
 	If (hotkeyGamepad!="") {
-		SetTimer, checkHotkeyGamepad, Delete
+		SetTimer, setHotkeyGamepad, Delete
 		removeToolTip()
 		msgbox, 0x1024, %prjName%, Хотите назначить [%hotkeyGamepad%]?
 		IfMSgBox Yes

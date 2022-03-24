@@ -10,7 +10,7 @@ Loop, %0%
 If (LMBHotkey!="")
 	Hotkey, % LMBHotkey, LMBClick, On
 
-JoyMultiplier = 0.15 ;Скорость курсора
+JoyMultiplier = 0.12 ;Скорость курсора
 JoyThreshold = 10 ;Уровень отклонения
 InvertYAxis := false ;ИНвертирование оси Y
 ;ButtonLeft = 1 ;Номер кнопки отвечающей за ЛКМ

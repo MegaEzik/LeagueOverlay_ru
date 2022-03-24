@@ -708,7 +708,7 @@ showSettings(){
 	Gui, Settings:Add, Text, x12 yp+21 w515, Меню предмета:
 	Gui, Settings:Add, Hotkey, vhotkeyItemMenu x+2 yp-2 w100 h17, %hotkeyItemMenu%
 	
-	Gui, Settings:Add, Text, x12 yp+21 w515, Геймпад(Beta) - Нажмите и удерживайте [%hotkeyGamepad%] для вызова "Меню быстрого доступа"
+	Gui, Settings:Add, Text, x12 yp+21 w515, Геймпад(Beta) - Удерживайте [%hotkeyGamepad%] для вызова "Меню быстрого доступа"
 	Gui, Settings:Add, Button, x+1 yp-3 w102 h23 gcfgGamepad, Изменить
 	;Gui, Settings:Add, Edit, vhotkeyGamepad x+2 yp-2 w100 h17, %hotkeyGamepad%
 	
