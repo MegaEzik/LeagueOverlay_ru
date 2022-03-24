@@ -108,10 +108,10 @@ checkRequirementsAndArgs() {
 	If !A_IsAdmin
 		ReStart()
 	If RegExMatch(args, "i)/Help") {
-		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/Debug - режим отладки`n/ShowCurl - отображать окно cURL`n/LoadTimer - использовать таймер загрузок`n/NoAddons - пропуск загрузки дополнений`n/Win7 - пропуск проверки системы
+		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/Debug - режим отладки`n/ShowCurl - отображать окно cURL`n/LoadTimer - использовать таймер загрузок`n/NoAddons - пропуск загрузки дополнений`n/BypassSystemCheck - пропуск проверки системы
 		ExitApp
 	}
-	If !RegExMatch(args, "i)/Win7") {
+	If !RegExMatch(args, "i)/BypassSystemCheck") {
 		;RegExMatch(A_OSVersion, "(\d+)$", OSBuild)
 		OSBuild:=DllCall("GetVersion") >> 16 & 0xFFFF        
 		If (OSBuild<17763) {
@@ -629,7 +629,7 @@ showSettings(){
 	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
 	IniRead, preset1, %configFile%, settings, preset1, default
 	IniRead, preset2, %configFile%, settings, preset2, %A_Space%
-	IniRead, mouseDistance, %configFile%, settings, mouseDistance, 700
+	IniRead, mouseDistance, %configFile%, settings, mouseDistance, 500
 	IniRead, windowLine, %configFile%, settings, windowLine, %A_Space%
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
