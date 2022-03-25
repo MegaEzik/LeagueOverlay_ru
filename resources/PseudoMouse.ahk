@@ -18,6 +18,8 @@ InvertYAxis := false ;ИНвертирование оси Y
 ;ButtonMiddle = 3 ;Номер кнопки отвечающей за Нажатие на колесо
 WheelDelay = 150 ;Задержка между реакцией на колесо
 JoystickNumber = 1 ;Номер геймпада
+If RegExMatch(LMBHotkey, "(\d+)Joy", JNum)
+	JoystickNumber:=JNum1
 
 JoystickPrefix = %JoystickNumber%Joy
 /* ;Присвоение функций кнопкам(заблокировано, ЛКМ назначается через переданный параметр)

@@ -227,11 +227,21 @@ cfgGamepad(){
 
 setHotkeyGamepad(){
 	showToolTip("Нажмите и удерживайте желаемую кнопку на игровом контроллере!`n`nДля контроллера XBox рекомендуется кнопка Guide[vk07]`nДля DualShock рекомендуется TouchPad[Joy14]`n`nДля выхода из настройки удерживайте [Esc]")
+	Loop 16
+	{
+		GetKeyState, JName, %A_Index%JoyName
+		If (JName!="")
+			JNum=%A_Index%
+	}
+	
+	If (JNum<1)
+		Return
+	
 	hotkeyGamepad:=""
 	Loop 32 {
-		GetKeyState, currentJoy, Joy%A_Index%
+		GetKeyState, currentJoy, %JNum%Joy%A_Index%
 		If (currentJoy="D")
-			hotkeyGamepad:="Joy" A_Index
+			hotkeyGamepad:=JNum "Joy" A_Index
 	}
 	GetKeyState, currentJoy, vk07
 	If (currentJoy="D")
