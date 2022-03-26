@@ -10,14 +10,15 @@ Loop, %0%
 If (LMBHotkey!="")
 	Hotkey, % LMBHotkey, LMBClick, On
 
-JoyMultiplier = 0.12 ;Скорость курсора
-JoyThreshold = 10 ;Уровень отклонения
+JoyMultiplier = 0.15 ;Скорость курсора
+JoyThreshold = 5 ;Уровень отклонения
 InvertYAxis := false ;ИНвертирование оси Y
 ;ButtonLeft = 1 ;Номер кнопки отвечающей за ЛКМ
 ;ButtonRight = 2 ;Номер кнопки отвечающей за ПКМ
 ;ButtonMiddle = 3 ;Номер кнопки отвечающей за Нажатие на колесо
 WheelDelay = 150 ;Задержка между реакцией на колесо
 JoystickNumber = 1 ;Номер геймпада
+
 If RegExMatch(LMBHotkey, "(\d+)Joy", JNum)
 	JoystickNumber:=JNum1
 

@@ -15,6 +15,8 @@
 		*itemMenu.ahk - Библиотека для формирования меню предмета
 		*MD5.ahk - Подсчет контрольной суммы файла
 		*Filter.ahk - Обновление фильтра предметов
+		*Gamepad.ahk - Отвечает за игровой контроллер
+		*pkgsMgr.ahk - Управление дополнениями
 	
 	Управление:
 		[Alt+F1] - Последнее изображение
@@ -38,6 +40,8 @@ SetWorkingDir %A_ScriptDir%
 #Include, %A_ScriptDir%\resources\ahk\itemMenu.ahk
 #Include, %A_ScriptDir%\resources\ahk\MD5.ahk
 #Include, %A_ScriptDir%\resources\ahk\Filter.ahk
+#Include, %A_ScriptDir%\resources\ahk\Gamepad.ahk
+#Include, %A_ScriptDir%\resources\ahk\pkgsMgr.ahk
 
 ;Список окон Path of Exile
 GroupAdd, WindowGrp, Path of Exile ahk_class POEWindowClass
@@ -133,21 +137,6 @@ checkRequirementsAndArgs() {
 	If !FileExist(A_WinDir "\System32\curl.exe") {
 		msgtext:="В вашей системе не найдена утилита 'curl.exe', без нее некоторые функции " prjName " не будут работать!"
 		MsgBox, 0x1030, %prjName%, %msgtext%
-		/*
-		If !FileExist(configfolder "\curl.exe") {
-			FileCreateDir, %configFolder%
-			SplashTextOn, 400, 20, %prjName%, Загрузка утилиты 'curl.exe'...
-			If LoadFile("https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/210520.5/curl.zip", A_Temp "\lo_curl.zip", false, "F9A76C4CC50F15506A880AB2F94634BC") {
-				unZipArchive(A_Temp "\lo_curl.zip", configFolder "\")
-				FileDelete, %A_Temp%\lo_curl.zip
-			} Else {
-				msgtext:="В вашей системе не найдена утилита 'curl.exe', без нее работа " prjName " невозможна!`n`nДля устранения этой проблемы скачайте утилиту 'curl.exe' вручную и поместите ее в папку: " configFolder
-				MsgBox, 0x1010, %prjName%, %msgtext%
-				ExitApp
-			}
-			SplashTextOff
-		}
-		*/
 	}
 	;Запуск gdi+
 	If !pToken:=Gdip_Startup()
@@ -212,17 +201,8 @@ downloadData(OnStart=false){
 	loadFilter()
 	
 	If OnStart && RegExMatch(args, "i)/LoadTimer")
-		SetTimer, downloadData, 3600000
+		SetTimer, downloadData, 7200000
 }
-
-/*
-loadTimer(){
-	loadPresetData()
-	ItemMenu_IDCLInit()
-	downloadLabLayout()
-	loadFilter()
-}
-*/
 
 shLastImage(){
 	SplitLastImg:=StrSplit(LastImg, "|")
@@ -230,33 +210,16 @@ shLastImage(){
 }
 
 firstAprilJoke(){
-	tmpPresetData:=""
 	presetsDataSplit:=strSplit(Globals.Get("presetsData"), "`n")
 	For k, val in presetsDataSplit {
 		ImgSplit:=strSplit(presetsDataSplit[k], "|")
-		If (ImgSplit[3]="" || ImgSplit[3]>1)
-			ImgSplit[3]:=1		
-		Random, randomNum, ImgSplit[3]/2.5, ImgSplit[3]
-		ImgSplit[3]:=Round(randomNum, 2)
 		If FileExist(StrReplace(ImgSplit[2], "<configFolder>", configFolder))
-			tmpPresetData.=StrReplace(ImgSplit[2], "<configFolder>", configFolder) "|" ImgSplit[3] "|" ImgSplit[4] "`n"
+			tmpPresetData.=StrReplace(ImgSplit[2], "<configFolder>", configFolder) "`n"
 	}
 	presetsDataSplit:=strSplit(tmpPresetData, "`n")
 	Random, randomNum, 1, presetsDataSplit.MaxIndex()-1
-	ImgSplit:=strSplit(presetsDataSplit[randomNum], "|")
-	If FileExist(ImgSplit[1]) {
-		shOverlay(ImgSplit[1], ImgSplit[2], ImgSplit[3])
-		return
-	} Else {
-		return
-	}
-}
-
-shMainMenu(){
-	destroyOverlay()
-	createMainMenu()
-	sleep 5
-	Menu, mainMenu, Show
+	shOverlay(presetsDataSplit[randomNum])
+	return
 }
 
 loadPreset(presetName){
@@ -308,6 +271,51 @@ loadPresetData(onStart=false){
 	}
 }
 
+loadEvent(onStart=false){
+	IniRead, updateResources, %configFile%, settings, updateResources, 0
+	If !updateResources
+		return
+	Path:="resources\data\Event.txt"
+	LoadFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/data/Event.txt", Path, true)
+	FormatTime, CurrentDate, %A_Now%, yyyyMMdd
+	
+	eventData:=loadPreset("Event")
+	eventDataSplit:=StrSplit(eventData, "`n")
+	For k, val in eventDataSplit {
+		If RegExMatch(eventDataSplit[k], ";;")=1
+			Continue
+		If (onStart && RegExMatch(eventDataSplit[k], ";StartUIMsg=(.*)$", StartUIMsg))
+			rStartUIMsg:=StartUIMsg1
+		If RegExMatch(eventDataSplit[k], ";EventName=(.*)$", EventName)
+			rEventName:=EventName1
+		If RegExMatch(eventDataSplit[k], ";StartDate=(.*)$", StartDate)
+			rStartDate:=StartDate1
+		If RegExMatch(eventDataSplit[k], ";EndDate=(.*)$", EndDate)
+			rEndDate:=EndDate1
+		If RegExMatch(eventDataSplit[k], ";MinVersion=(.*)$", MinVersion)
+			rMinVersion:=MinVersion1
+		If RegExMatch(eventDataSplit[k], ";ResourceFile=(.*)$", rURL)
+			loadEventResourceFile(rURL1)
+	}
+	
+	If (rMinVersion>verScript || rStartDate="" || rEndDate="" || CurrentDate<rStartDate || CurrentDate>rEndDate)
+		return
+	
+	If (rStartUIMsg!="")
+		showStartUI(rStartUIMsg)
+	
+	If (onStart && rEventName!="")
+		trayMsg(rStartDate " - " rEndDate, rEventName)
+	
+	return eventData
+}
+
+loadEventResourceFile(URL){
+	eventFileSplit:=strSplit(URL, "/")
+	filePath:="resources\data\" eventFileSplit[eventFileSplit.MaxIndex()]
+	LoadFile(URL, filePath, true)
+}
+
 presetInMenu(){
 	If (Globals.Get("presetsData")!="") {
 		presetsDataSplit:=StrSplit(Globals.Get("presetsData"), "`n")
@@ -349,22 +357,22 @@ openMyImagesFolder(){
 	Run, explorer "%configFolder%\MyFiles"
 }
 
-myImagesMenuCreate(selfMenu=true){
-	If selfMenu {
+myImagesMenuCreate(expandMenu=true){
+	If expandMenu {
+		Loop, %configFolder%\MyFiles\*.*, 1
+			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt)$")
+				Menu, mainMenu, Add, %A_LoopFileName%, shMyImage
+		Menu, mainMenu, Add
+	} Else {
 		Menu, myImagesMenu, Add
 		Menu, myImagesMenu, DeleteAll
 		
 		Loop, %configFolder%\MyFiles\*.*, 1
 			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt)$")
 				Menu, myImagesMenu, Add, %A_LoopFileName%, shMyImage
-			Menu, myImagesMenu, Add
-			Menu, myImagesMenu, Add, Открыть папку, openMyImagesFolder
-			Menu, mainMenu, Add, Мои файлы, :myImagesMenu
-	} Else {
-		Loop, %configFolder%\MyFiles\*.*, 1
-			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt)$")
-				Menu, mainMenu, Add, %A_LoopFileName%, shMyImage
-		Menu, mainMenu, Add
+		Menu, myImagesMenu, Add
+		Menu, myImagesMenu, Add, Открыть папку, openMyImagesFolder
+		Menu, mainMenu, Add, Мои файлы, :myImagesMenu
 	}
 }
 
@@ -450,41 +458,6 @@ clearPoECache(){
 	
 	SplashTextOff
 	trayMsg("Очистка кэша завершена)")
-	
-	/*				;Резервный способ
-	tmpCmdFile:=A_Temp "\ClearPoE.cmd"
-	FileDelete, %tmpCmdFile%
-	sleep 100
-	FileAppend, title Очистка кэша Path of Exile`n@Echo off`ncls`nrd "%PoECacheFolder%" /S /Q, %tmpCmdFile%, CP866
-	RunWait "%tmpCmdFile%"
-	FileDelete, %tmpCmdFile%
-	*/
-	/*				;Устаревший способ
-	msgbox, 0x1044, %prjName%, Во время очистки кэша рекомендуется закрыть игру.`n`nХотите продолжить?
-	IfMsgBox Yes
-	{
-		FileSelectFile, FilePath, , C:\Program Files (x86)\Grinding Gear Games\Path of Exile\Content.ggpk, Укажите путь к файлу Content.ggpk в папке с игрой, (Content.ggpk)
-		SplashTextOn, 400, 20, %prjName%, Очистка кэша, пожалуйста подождите...
-		If (FilePath!="" && FileExist(FilePath)) {
-			SplitPath, FilePath, , PoEFolderPath
-			FileRemoveDir, %PoEFolderPath%\logs, 1
-			;DirectX11
-			FileRemoveDir, %PoEFolderPath%\CachedHLSLShaders, 1
-			FileRemoveDir, %PoEFolderPath%\ShaderCacheD3D11, 1
-			FileRemoveDir, %PoEFolderPath%\ShaderCacheD3D11_GI, 1
-			;Vulkan
-			FileRemoveDir, %PoEFolderPath%\ShaderCacheVulkan, 1
-		}
-		PoEConfigFolderPath:=A_MyDocuments "\My Games\Path of Exile"
-		FileRemoveDir, %PoEConfigFolderPath%\Countdown, 1
-		FileRemoveDir, %PoEConfigFolderPath%\DailyDealCache, 1
-		FileRemoveDir, %PoEConfigFolderPath%\Minimap, 1
-		FileRemoveDir, %PoEConfigFolderPath%\MOTDCache, 1
-		FileRemoveDir, %PoEConfigFolderPath%\ShopImages, 1
-		FileRemoveDir, %PoEConfigFolderPath%\OnlineFilters, 1
-		SplashTextOff
-	}
-	*/
 }
 
 copyPreset(){
@@ -575,15 +548,13 @@ showStartUI(SpecialText=""){
 	
 	Gui, StartUI:Add, Text, x5 y3 h20 w490 +Center BackgroundTrans, %prjName% %verScript% | AHK %A_AhkVersion%
 	
-	;Gui, StartUI:Color, 030405
-	;Gui, StartUI:Font, cFEEAC5
 	Gui, StartUI:Font, c000000
 	
 	Gui, StartUI:Font, s10 bold italic
 	Gui, StartUI:Add, Text, x0 y+10 h18 w500 +Center BackgroundTrans, %initMsg%
 	
 	Gui, StartUI:Font, s8 norm
-	Gui, StartUI:Font, cFF0000
+	Gui, StartUI:Font, c707070
 	Gui, StartUI:Add, Text, x4 y+3 w340 BackgroundTrans, %args%
 	
 	Gui, StartUI:Font, s8 norm italic
@@ -598,8 +569,6 @@ showStartUI(SpecialText=""){
 closeStartUI(){
 	sleep 200
 	Gui, StartUI:Destroy
-	;If debugMode && FileExist(A_WinDir "\Media\Windows Proximity Notification.wav")
-		;SoundPlay, %A_WinDir%\Media\Windows Proximity Notification.wav
 	IniRead, showHistory, %configFile%, info, showHistory, 1
 	If showHistory {
 		showUpdateHistory()
@@ -717,7 +686,6 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x12 yp+21 w515, Игровой контроллер(Beta) - Удерживайте [%hotkeyGamepad%] для вызова "Меню быстрого доступа"
 	Gui, Settings:Add, Button, x+1 yp-3 w102 h23 gcfgGamepad, Изменить
-	;Gui, Settings:Add, Edit, vhotkeyGamepad x+2 yp-2 w100 h17, %hotkeyGamepad%
 	
 	Gui, Settings:Tab, 2 ;Вторая вкладка
 	
@@ -759,10 +727,6 @@ showSettings(){
 	Gui, Settings:Add, Text, x+4 yp+2 w205, /oos(синхронизация):
 	Gui, Settings:Add, Hotkey, vhotkeyForceSync x+2 yp-2 w100 h17, %hotkeyForceSync%
 	
-	;Gui, Settings:Add, Text, x12 y+3 w620 h1 0x12
-	
-	;Gui, Settings:Add, Text, x12 yp-14 w0 h0
-	
 	;Настраиваемые команды fastReply
 	LoopVar:=cmdNum/2
 	Loop %LoopVar% {
@@ -795,7 +759,6 @@ showSettings(){
 		Gui, Settings:Add, Edit, vtextCmd%TwoColumn% x+4 w205 h17, %tempVar%
 		IniRead, tempVar, %configFile%, fastReply, hotkeyCmd%TwoColumn%, %A_Space%
 		Gui, Settings:Add, Hotkey, vhotkeyCmd%TwoColumn% x+2 w100 h17, %tempVar%
-		;Msgbox, %TwoColumn%
 	}
 	
 	helptext:="/dance - простая команда чата`n/whois <last> - команда в отношении последнего игрока`n@<last> ty, gl) - сообщение последнему игроку`n_ty, gl) - сообщение в чат области`n%ty, gl) - сообщение в групповой чат`n>calc.exe - открытие программы или веб страницы`n<configFolder>\my.jpg - изображение или текстовый файл`n!текст - всплывающая подсказка"
@@ -888,11 +851,11 @@ setHotkeys(){
 		If (textCmd%A_Index%!="")  && (RegExMatch(textCmd%A_Index%, ";")!=1) && (tempVar!="")
 			Hotkey, % tempVar, fastCmd%A_Index%, On
 	}
-	;Если передан параметр, то активировать бета поддержку геймпада
-	If RegExMatch(args, "i)/GamepadXBox")
-		Hotkey, Joy7, useGamepad, On
-	If RegExMatch(args, "i)/GamepadPS")
-		Hotkey, Joy14, useGamepad, On
+	
+	;Инициализация Игрового контроллера
+	IniRead, hotkeyGamepad, %configFile%, hotkeys, hotkeyGamepad, %A_Space%
+	If (hotkeyGamepad!="")
+		Hotkey, % hotkeyGamepad, shGamepadMenu, On
 }
 
 menuCreate(){
@@ -908,37 +871,36 @@ menuCreate(){
 	Menu, Tray, Add, Очистить кэш PoE, clearPoECache
 	pkgsMgr_packagesMenu()
 	Menu, Tray, Add, Дополнения, :packagesMenu
-	Menu, Tray, Add, Меню отладки, :devMenu
+	Menu, Tray, Add, Меню разработчика, :devMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить, ReStart
 	Menu, Tray, Add, Выход, Exit
 	Menu, Tray, NoStandard
 }
 
-createMainMenu(){
+shMainMenu(Gamepad=false){
+	destroyOverlay()
 	Menu, mainMenu, Add
 	Menu, mainMenu, DeleteAll
-	
 	FormatTime, CurrentDate, %A_NowUTC%, MMdd
-	Random, randomNum, 1, 250
-	If (CurrentDate==0401 || randomNum=1) {
-		Menu, mainMenu, Add, Криллсон - Самоучитель по рыбалке, firstAprilJoke
-		Menu, mainMenu, Add
+	If (CurrentDate==0401) {
+		listJoke:=["Криллсон - Самоучитель по рыбалке", "Навали - Пророчества", "Зана - Прогрессия карт", "Мастер испытаний - Ультиматум"]
+		Random, randomNum, 1, listJoke.MaxIndex()
+		nameJoke:=listJoke[randomNum]
+		Menu, mainMenu, Add, %nameJoke%, firstAprilJoke
 	}
-	
 	presetInMenu()
-	
 	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
-	myImagesMenuCreate(!expandMyImages)
-	
+	myImagesMenuCreate((expandMyImages || Gamepad)?true:false)
 	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
 	IfWinActive Path of Exile ahk_class POEWindowClass
 		If (hotkeyCustomCommandsMenu="") {
 			createCustomCommandsMenu()
 			Menu, mainMenu, Add, Меню команд, :customCommandsMenu
 		}
-	
 	Menu, mainMenu, Add, Область уведомлений, :Tray
+	sleep 5
+	Menu, mainMenu, Show
 }
 
 openConfigFolder(){
@@ -975,12 +937,10 @@ showDonateUI() {
 	Gui, DonateUI:Add, Edit, x10 y+3 w300 h18 +ReadOnly, 4274 3200 7505 4976
 	Gui, DonateUI:Add, Text, x10 y+7 w300 +Center, Перевод по номеру телефона для клиентов Сбербанка: 
 	Gui, DonateUI:Add, Edit, x10 y+3 w300 h18 +ReadOnly, +7 900 917 25 92
-	
 	Gui, DonateUI:Add, Text, x0 y+10 w400 h2 0x10
 	Gui, DonateUI:Add, Text, x30 y+7 w260 +Center, Спасибо за вашу поддержку) 
 	Gui, DonateUI:Add, Text, x0 y+10 w400 h2 0x10
 	Gui, DonateUI:Add, Link, x30 yp+7 w260 +Center, Если хотите попасть на экран загрузки, то после совершения пожертвования напишите <a href="https://ru.pathofexile.com/private-messages/compose/to/MegaEzik@pc">мне в ЛС</a>)
-	
 	Gui, DonateUI:+AlwaysOnTop -MinimizeBox -MaximizeBox
 	Gui, DonateUI:Show, w320 h165, Поддержать/Задонатить %githubUser%
 }
@@ -1063,24 +1023,6 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 		return false
 	}
 	return true	
-}
-
-useGamepad(){
-	destroyOverlay()
-	showToolTip("Нажмите и удерживайте:`n 🡹 Лабиринт`n 🡻 Кража`n 🡸 Синдикат`n 🡺 Возмездие", 1500, false)
-	Sleep 1500
-	GetKeyState, Jp, JoyPOV
-	ImgFile:=""
-	If (Jp=0)
-		ImgFile:=configFolder "\MyFiles\Labyrinth.jpg"
-	If (Jp=18000)
-		ImgFile:="resources\presets\russian\Heist.jpg"
-	If (Jp=27000)
-		ImgFile:="resources\presets\russian\Syndicate.jpg"
-	If (Jp=9000)
-		ImgFile:="resources\presets\russian\Archnemesis.jpg"
-	If (ImgFile!="")
-		shOverlay(ImgFile)
 }
 
 ;#################################################

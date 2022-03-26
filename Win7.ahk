@@ -9,8 +9,8 @@ If !A_IsAdmin {
 }
 
 OSBuild:=DllCall("GetVersion") >> 16 & 0xFFFF        
-If (OSBuild!=7601) {
-	MsgBox, 0x1010, %prjName%, У вас не Windows 7 Service Pack 1!
+If (OSBuild!=7601 && OSBuild!=9600) {
+	MsgBox, 0x1010, %prjName%, Данный скрипт совместим только с:`nWindows 7 Service Pack 1 и Windows 8.1
 	ExitApp
 }
 
