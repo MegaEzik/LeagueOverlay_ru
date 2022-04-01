@@ -43,10 +43,6 @@ SetWorkingDir %A_ScriptDir%
 #Include, %A_ScriptDir%\resources\ahk\Gamepad.ahk
 #Include, %A_ScriptDir%\resources\ahk\pkgsMgr.ahk
 
-;Список окон Path of Exile
-GroupAdd, WindowGrp, Path of Exile ahk_class POEWindowClass
-GroupAdd, WindowGrp, ahk_exe GeForceNOWStreamer.exe
-
 ;Объявление и загрузка основных переменных
 global prjName="LeagueOverlay_ru", githubUser="MegaEzik"
 global configFolder:=A_MyDocuments "\AutoHotKey\" prjName
@@ -58,6 +54,19 @@ global verScript, args, LastImg, globalOverlayPosition, OverlayStatus=0
 Loop, %0%
 	args.=" " %A_Index%
 FileReadLine, verScript, resources\Updates.txt, 1
+
+;Список окон Path of Exile
+GroupAdd, WindowGrp, Path of Exile ahk_class POEWindowClass
+GroupAdd, WindowGrp, ahk_exe GeForceNOWStreamer.exe
+If FileExist(configFolder "\windows.list") {
+	FileRead, WinList, %configFolder%\windows.list
+	splitWinList:=strSplit(strReplace(WinList, "`r", ""), "`n")
+	For k, val in splitWinList
+		If (splitWinList[k]!="") {
+			WinName:=splitWinList[k]
+			GroupAdd, WindowGrp, %WinName%
+		}
+}
 
 ;Проверка требований и параметров запуска
 checkRequirementsAndArgs()
@@ -83,9 +92,6 @@ migrateConfig()
 ;Подгрузим некоторые значения
 IniRead, LastImg, %configFile%, info, lastImg, %A_Space%
 IniRead, globalOverlayPosition, %configFile%, settings, overlayPosition, %A_Space%
-IniRead, windowLine, %configFile%, settings, windowLine, %A_Space%
-If (windowLine!="")
-	GroupAdd, WindowGrp, %windowLine%
 IniRead, mouseDistance, %configFile%, settings, mouseDistance, 500
 Globals.Set("mouseDistance", mouseDistance)
 
@@ -174,6 +180,11 @@ migrateConfig() {
 				IniWrite, 0, %configFile%, settings, loadLab
 				IniWrite, %A_Space%, %configFile%, settings, itemFilter
 			}
+			If (verConfig<220319.5) {
+				FileMove, %configFolder%\commands.txt, %configFolder%\cmds.preset, 1
+				FileDelete, %configFolder%\curl.exe
+				FileDelete, %configFolder%\curl-ca-bundle.crt
+			}
 		}
 		
 		showSettings()
@@ -228,6 +239,8 @@ loadPreset(presetName){
 		presetPath:=A_ScriptDir "\resources\data\Event.txt"
 	If RegExMatch(presetName, ".preset$")
 		presetPath:=configFolder "\presets\" presetName
+	If FileExist(presetName)
+		presetPath:=presetName
 	If FileExist(presetPath)
 		FileRead, presetData, %presetPath%
 	return StrReplace(presetData, "`r", "")
@@ -360,7 +373,7 @@ openMyImagesFolder(){
 myImagesMenuCreate(expandMenu=true){
 	If expandMenu {
 		Loop, %configFolder%\MyFiles\*.*, 1
-			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt)$")
+			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt|preset)$")
 				Menu, mainMenu, Add, %A_LoopFileName%, shMyImage
 		Menu, mainMenu, Add
 	} Else {
@@ -368,7 +381,7 @@ myImagesMenuCreate(expandMenu=true){
 		Menu, myImagesMenu, DeleteAll
 		
 		Loop, %configFolder%\MyFiles\*.*, 1
-			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt)$")
+			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt|preset)$")
 				Menu, myImagesMenu, Add, %A_LoopFileName%, shMyImage
 		Menu, myImagesMenu, Add
 		Menu, myImagesMenu, Add, Открыть папку, openMyImagesFolder
@@ -380,6 +393,10 @@ textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 	global
 	tfwFilePath:=FilePath
 	Gui, tfwGui:Destroy
+	
+	If (Title="")
+		Title:=FilePath
+	
 	Gui, tfwGui:Font, s10, Consolas
 	FileRead, tfwContentFile, %tfwFilePath%
 	If ReadOnlyStatus {
@@ -515,12 +532,10 @@ showStartUI(SpecialText=""){
 				,"Входим в 820ый для поиска лаб ... а ну да"
 				,"Удаляем Зеркало Каландры из вашего фильтра предметов"]
 				
-	FormatTime, CurrentDate, %A_NowUTC%, MMdd
+	FormatTime, CurrentDate, %A_Now%, MMdd
 	
 	If (CurrentDate==1231 || CurrentDate==0101)
 		initMsgs:=["Мммм, Ледники"]
-	If (CurrentDate==0214)
-		initMsgs:=["Похоже кто-то будет соло", "<3 <3 <3 <3 <3 <3 <3"]
 	If (CurrentDate==0223)
 		initMsgs:=["Все мужики любят носки", "Есть один подарок лучше, чем носки. Это пена для бритья"]
 	If (CurrentDate==0308)
@@ -542,7 +557,10 @@ showStartUI(SpecialText=""){
 	Random, randomNum, 1, dNames.MaxIndex()
 	dName:="@" dNames[randomNum] " ty) "
 	
-	Gui, StartUI:Add, Progress, w500 h26 x0 y0 Background481D05
+	BGTitle:="481D05"
+	If RegExMatch(verScript, "i)Beta")
+		BGTitle:="CC0000"
+	Gui, StartUI:Add, Progress, w500 h26 x0 y0 Background%BGTitle%
 
 	Gui, StartUI:Font, s12 cFEC076 bold
 	
@@ -599,7 +617,6 @@ showSettings(){
 	IniRead, preset1, %configFile%, settings, preset1, default
 	IniRead, preset2, %configFile%, settings, preset2, %A_Space%
 	IniRead, mouseDistance, %configFile%, settings, mouseDistance, 500
-	IniRead, windowLine, %configFile%, settings, windowLine, %A_Space%
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
 	IniRead, hotkeyGamepad, %configFile%, hotkeys, hotkeyGamepad, %A_Space%
@@ -616,7 +633,6 @@ showSettings(){
 	itemFilerPrevious:=itemFilter
 	
 	;Настройки третьей вкладки
-	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
 	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
 	IniRead, hotkeyToCharacterSelection, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
 	
@@ -630,12 +646,7 @@ showSettings(){
 	Gui, Settings:Add, Tab, x0 y0 w640 h385, Основные|Загрузки|Команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
-	Gui, Settings:Add, Text, x12 y30 w150, Другое окно для проверки:
-	Gui, Settings:Add, Edit, vwindowLine x+2 yp-2 w465 h17, %windowLine%
-	
-	Gui, Settings:Add, Text, x10 y+3 w620 h1 0x12
-	
-	Gui, Settings:Add, Text, x12 yp+6 w325, Позиция области изображений(пиксели):
+	Gui, Settings:Add, Text, x12 y30 w325, Позиция области изображений(пиксели):
 	Gui, Settings:Add, Text, x+7 w12 +Right, X
 	Gui, Settings:Add, Text, x+60 w12 +Right, Y
 	Gui, Settings:Add, Text, x+60 w12 +Right, W
@@ -716,12 +727,7 @@ showSettings(){
 	
 	Gui, Settings:Tab, 3 ; Третья вкладка
 	
-	Gui, Settings:Add, Text, x12 y30 w516, Меню команд:
-	Gui, Settings:Add, Hotkey, vhotkeyCustomCommandsMenu x+2 yp-2 w100 h17, %hotkeyCustomCommandsMenu%
-	
-	Gui, Settings:Add, Text, x10 y+3 w620 h1 0x12
-	
-	Gui, Settings:Add, Text, x12 yp+6 w205, /exit(к персонажам):
+	Gui, Settings:Add, Text, x12 y30 w205, /exit(к персонажам):
 	Gui, Settings:Add, Hotkey, vhotkeyToCharacterSelection x+2 yp-2 w100 h17, %hotkeyToCharacterSelection%
 	
 	Gui, Settings:Add, Text, x+4 yp+2 w205, /oos(синхронизация):
@@ -789,7 +795,6 @@ saveSettings(){
 	IniWrite, %preset1%, %configFile%, settings, preset1
 	IniWrite, %preset2%, %configFile%, settings, preset2
 	IniWrite, %mouseDistance%, %configFile%, settings, mouseDistance
-	IniWrite, %windowLine%, %configFile%, settings, windowLine
 	IniWrite, %hotkeyLastImg%, %configFile%, hotkeys, hotkeyLastImg
 	IniWrite, %hotkeyMainMenu%, %configFile%, hotkeys, hotkeyMainMenu
 	IniWrite, %hotkeyGamepad%, %configFile%, hotkeys, hotkeyGamepad
@@ -805,7 +810,6 @@ saveSettings(){
 	IniWrite, %itemFilter%, %configFile%, settings, itemFilter
 	
 	;Настройки третьей вкладки
-	IniWrite, %hotkeyCustomCommandsMenu%, %configFile%, hotkeys, hotkeyCustomCommandsMenu
 	IniWrite, %hotkeyForceSync%, %configFile%, hotkeys, hotkeyForceSync
 	IniWrite, %hotkeyToCharacterSelection%, %configFile%, hotkeys, hotkeyToCharacterSelection
 	
@@ -827,13 +831,10 @@ setHotkeys(){
 	;Инициализация основных клавиш макроса
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, %A_Space%
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, %A_Space%
-	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
 	If (hotkeyLastImg!="")
 		Hotkey, % hotkeyLastImg, shLastImage, On
 	If (hotkeyMainMenu!="")
 		Hotkey, % hotkeyMainMenu, shMainMenu, On
-	If (hotkeyCustomCommandsMenu!="")
-		Hotkey, % hotkeyCustomCommandsMenu, showCustomCommandsMenu, On
 	
 	;Инициализация встроенных команд fastReply
 	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
@@ -867,6 +868,7 @@ menuCreate(){
 	Menu, Tray, Add, Выполнить обновление, CheckUpdateFromMenu
 	Menu, Tray, Add, Настройки, showSettings
 	Menu, Tray, Default, Настройки
+	Menu, Tray, Add, Изменить 'Меню команд', customCmdsEdit
 	Menu, Tray, Add
 	Menu, Tray, Add, Очистить кэш PoE, clearPoECache
 	pkgsMgr_packagesMenu()
@@ -882,22 +884,24 @@ shMainMenu(Gamepad=false){
 	destroyOverlay()
 	Menu, mainMenu, Add
 	Menu, mainMenu, DeleteAll
-	FormatTime, CurrentDate, %A_NowUTC%, MMdd
+	
+	FormatTime, CurrentDate, %A_Now%, MMdd
 	If (CurrentDate==0401) {
 		listJoke:=["Криллсон - Самоучитель по рыбалке", "Навали - Пророчества", "Зана - Прогрессия карт", "Мастер испытаний - Ультиматум"]
 		Random, randomNum, 1, listJoke.MaxIndex()
 		nameJoke:=listJoke[randomNum]
 		Menu, mainMenu, Add, %nameJoke%, firstAprilJoke
 	}
+	
 	presetInMenu()
 	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
 	myImagesMenuCreate((expandMyImages || Gamepad)?true:false)
-	IniRead, hotkeyCustomCommandsMenu, %configFile%, hotkeys, hotkeyCustomCommandsMenu, %A_Space%
-	IfWinActive Path of Exile ahk_class POEWindowClass
-		If (hotkeyCustomCommandsMenu="") {
-			createCustomCommandsMenu()
-			Menu, mainMenu, Add, Меню команд, :customCommandsMenu
-		}
+	
+	If FileExist(configFolder "\cmds.preset") {
+		fastMenu(configFolder "\cmds.preset")
+		Menu, mainMenu, Add, Меню команд, :fastMenu
+	}
+	
 	Menu, mainMenu, Add, Область уведомлений, :Tray
 	sleep 5
 	Menu, mainMenu, Show
@@ -998,7 +1002,7 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 	If FileExist(A_WinDir "\System32\curl.exe") {
 		IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 		If (UserAgent="")
-			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36"
+			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.60 Safari/537.36"
 		IniRead, lr, %configFile%, curl, limit-rate, 1000
 		IniRead, ct, %configFile%, curl, connect-timeout, 10
 		

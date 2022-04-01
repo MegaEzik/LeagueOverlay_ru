@@ -91,38 +91,8 @@ fastCmd20(){
 	commandFastReply(textCmd20)
 }
 
-customCommandsEdit() {
-	textFileWindow("Редактирование 'Меню команд'", configFolder "\commands.txt", false, ">https://pathofexile.gamepedia.com/Chat_console`n---`n@<last> sure`n/global 820`n/whois <last>`n/deaths`n/passives")
-}
-
-timerCommandsEdit() {
-	If !WinExist(prjName " - Редактирование 'Меню команд'") {
-		SetTimer, timerCommandsEdit, Delete
-		sleep 1000
-		ReStart()
-	}
-}
-
-createCustomCommandsMenu(){
-	Menu, customCommandsMenu, Add
-	Menu, customCommandsMenu, DeleteAll
-	
-	If FileExist(configfolder "\commands.txt") {
-		FileRead, FileContent, %configfolder%\commands.txt
-		FileContent:=StrReplace(FileContent, "`r", "")
-		FileLines:=StrSplit(FileContent, "`n")
-		For k, val in FileLines {
-			Line:=FileLines[k]
-			If RegExMatch(FileLines[k], ";")=1
-				Continue
-			If ((InStr(FileLines[k], "/")=1) || (InStr(Line, "%")=1) || (InStr(Line, "_")=1) || (InStr(FileLines[k], "@<last> ")=1) || (InStr(FileLines[k], ">")=1) || RegExMatch(FileLines[k], ".(png|jpg|jpeg|bmp)"))
-				Menu, customCommandsMenu, Add, %Line%, commandFastReply
-			If (FileLines[k]="---")
-				Menu, customCommandsMenu, Add
-		}
-	}
-	Menu, customCommandsMenu, Add
-	Menu, customCommandsMenu, Add, Редактировать 'Меню команд', customCommandsEdit
+customCmdsEdit() {
+	textFileWindow("", configFolder "\cmds.preset", false, ">https://pathofexile.gamepedia.com/Chat_console`n---`n@<last> sure`n/global 820`n/whois <last>`n/deaths`n/passives`n/dance")
 }
 
 commandFastReply(Line:="/dance"){
@@ -184,7 +154,7 @@ commandFastReply(Line:="/dance"){
 		run, %Line%
 		return
 	}
-	If RegExMatch(Line, ".(png|jpg|jpeg|bmp|txt)") {
+	If RegExMatch(Line, ".(png|jpg|jpeg|bmp|txt|preset)") {
 		SplitImg:=StrSplit(Line, "|")
 		if RegExMatch(SplitImg[1], ".(png|jpg|jpeg|bmp)$") {
 			shOverlay(SplitImg[1], SplitImg[2], SplitImg[3])
@@ -194,12 +164,10 @@ commandFastReply(Line:="/dance"){
 			textFileWindow(SplitImg[1], SplitImg[1], false)
 			return
 		}
+		If RegExMatch(SplitImg[1], ".preset$") {
+			shFastMenu(SplitImg[1])
+			return
+		}
 	}
-	msgbox, 0x1010, %prjName%, Неизвестная команда!, 2
-}
-
-showCustomCommandsMenu(){
-	createCustomCommandsMenu()
-	sleep 5
-	Menu, customCommandsMenu, Show
+	msgbox, 0x1010, %prjName%, %Line%`nНеизвестная команда!, 3
 }

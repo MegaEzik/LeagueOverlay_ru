@@ -4,7 +4,8 @@ devInit() {
 	Menu, devMenu, Add, /Debug /LoadTimer, createShortcut
 	Menu, devMenu, Add
 	Menu, devMenu, Add, Папка макроса, openScriptFolder	
-	Menu, devMenu, Add, Папка настроек, openConfigFolder	
+	Menu, devMenu, Add, Папка настроек, openConfigFolder
+	Menu, devMenu, Add, Отслеживаемые окна, setWindowsList
 	Menu, devMenu, Add
 	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
 	IniRead, updateResources, %configFile%, settings, updateResources, 0
@@ -58,4 +59,47 @@ devAddInList(Line){
 
 createShortcut(Params){
 	FileCreateShortcut, %A_ScriptFullPath%, %A_Desktop%\LeagueOverlay_ru.lnk, %A_ScriptDir%, %Params%
+}
+
+shFastMenu(presetPath) {
+	destroyOverlay()
+	fastMenu(presetPath)
+	Menu, fastMenu, Show
+}
+
+fastMenu(presetPath){
+	destroyOverlay()
+	Globals.Set("fastPreset", loadPreset(presetPath))
+	Menu, fastMenu, Add
+	Menu, fastMenu, DeleteAll
+	presetsDataSplit:=StrSplit(Globals.Get("fastPreset"), "`n")
+	For k, val in presetsDataSplit {
+		If InStr(presetsDataSplit[k], ";")=1
+			Continue
+		If (presetsDataSplit[k]="---") {
+			Menu, fastMenu, Add
+			Continue
+		}
+		cmdInfo:=StrSplit(presetsDataSplit[k], "|")
+		cmdName:=cmdInfo[1]
+		If (cmdInfo[1]!="")
+			Menu, fastMenu, Add, %cmdName%, fastMenuCmd
+	}
+}
+
+fastMenuCmd(cmdName){
+	presetsDataSplit:=StrSplit(Globals.Get("fastPreset"), "`n")
+	For k, val in presetsDataSplit {
+		cmdInfo:=StrSplit(presetsDataSplit[k], "|")
+		If (cmdName=cmdInfo[1] && cmdInfo[2]!="") {
+			presetCmd:=SubStr(presetsDataSplit[k], StrLen(cmdInfo[1])+2)
+			commandFastReply(presetCmd)
+			return
+		}
+	}
+	commandFastReply(cmdName)
+}
+
+setWindowsList(){
+	textFileWindow("", configFolder "\windows.list", false, "ahk_exe notepad++.exe")
 }
