@@ -559,7 +559,7 @@ showStartUI(SpecialText=""){
 	
 	BGTitle:="481D05"
 	If RegExMatch(verScript, "i)Beta")
-		BGTitle:="CC0000"
+		BGTitle:="505256"
 	Gui, StartUI:Add, Progress, w500 h26 x0 y0 Background%BGTitle%
 
 	Gui, StartUI:Font, s12 cFEC076 bold
@@ -572,7 +572,7 @@ showStartUI(SpecialText=""){
 	Gui, StartUI:Add, Text, x0 y+10 h18 w500 +Center BackgroundTrans, %initMsg%
 	
 	Gui, StartUI:Font, s8 norm
-	Gui, StartUI:Font, c707070
+	Gui, StartUI:Font, c505256
 	Gui, StartUI:Add, Text, x4 y+3 w340 BackgroundTrans, %args%
 	
 	Gui, StartUI:Font, s8 norm italic
