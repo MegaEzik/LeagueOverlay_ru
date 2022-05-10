@@ -99,14 +99,14 @@ ItemMenu_Show(){
 			If (ItemName="Хроники Ацоатля" && RegExMatch(ItemDataSplit[k], "(.*) \(Уровень 3\)", findtext))
 				ItemMenu_AddHightlight(findtext1)
 		}
-		FileRead, hightlightData, %configFolder%\highlight.txt
+		FileRead, hightlightData, %configFolder%\highlight.list
 		hightlightDataSplit:=strSplit(StrReplace(hightlightData, "`r", ""), "`n")
 		For k, val in hightlightDataSplit
 			If RegExMatch(ItemData, hightlightDataSplit[k])
 				ItemMenu_AddHightlight(hightlightDataSplit[k])
 	} Else {
 		;showToolTip("ОШИБКА: Буфер обмена пуст, окно не в фокусе`n`tили не удалось определить тип предмета!", 5000)
-		FileRead, hightlightData, %configFolder%\highlight.txt
+		FileRead, hightlightData, %configFolder%\highlight.list
 		hightlightDataSplit:=strSplit(StrReplace(hightlightData, "`r", ""), "`n")
 		For k, val in hightlightDataSplit
 			If (InStr(hightlightDataSplit[k], ";")!=1)
@@ -158,7 +158,7 @@ ItemMenu_Hightlight(Line){
 }
 
 ItemMenu_customHightlight() {
-	textFileWindow("Редактирование подсветки", configFolder "\highlight.txt", false, "к максимуму здоровья`nк сопротивлению`nповышение скорости передвижения`nВосприятие|Контрмагия|Маскировка")
+	textFileWindow("Редактирование подсветки", configFolder "\highlight.list", false, "к максимуму здоровья`nк сопротивлению`nповышение скорости передвижения`nВосприятие|Контрмагия|Маскировка")
 }
 
 ItemMenu_IDCLInit(setHotkey=false){

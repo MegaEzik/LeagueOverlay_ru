@@ -31,7 +31,6 @@ devClSD(){
 	FileDelete, resources\Packages.txt
 	FileDelete, %configFolder%\MyFiles\Labyrinth.jpg
 	FileDelete, resources\data\*
-	delFilter()
 	Sleep 100
 	ReStart()
 }
@@ -48,7 +47,7 @@ devLog(msg){
 devAddInList(Line){
 	If !RegExMatch(args, "i)/Debug")
 		return
-	FilePath:=configFolder "\devList.txt"
+	FilePath:=configFolder "\devList.list"
 	FileRead, DataList, %FilePath%
 	DataListSplit:=strSplit(StrReplace(DataList, "`r", ""), "`n")
 	For k, val in DataListSplit

@@ -8,9 +8,14 @@ shGamepadMenu(){
 			return
 		Sleep 50
 	}
+	
+	WinGetPos,,,PosW,,A
+	MouseMove, round(PosW*0.4), 0, 0
+	
 	Run *RunAs "%A_AhkPath%" resources\PseudoMouse.ahk %hotkeyGamepad%,,, PseudoMousePID
 	shMainMenu(true)
 	Run *RunAs TASKKILL.EXE /PID %PseudoMousePID% /F,, hide
+	;MouseMove, 10, 10, 0
 	;Run *RunAs "%A_AhkPath%" resources\PseudoMouse.ahk
 }
 

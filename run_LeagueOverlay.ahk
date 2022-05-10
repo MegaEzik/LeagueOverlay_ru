@@ -14,7 +14,6 @@
 		*ItemDataConverterLib.ahk - Библиотека для конвертирования описания предмета
 		*itemMenu.ahk - Библиотека для формирования меню предмета
 		*MD5.ahk - Подсчет контрольной суммы файла
-		*Filter.ahk - Обновление фильтра предметов
 		*Gamepad.ahk - Отвечает за игровой контроллер
 		*pkgsMgr.ahk - Управление дополнениями
 	
@@ -39,7 +38,6 @@ SetWorkingDir %A_ScriptDir%
 #Include, %A_ScriptDir%\resources\ahk\ItemDataConverterLib.ahk
 #Include, %A_ScriptDir%\resources\ahk\itemMenu.ahk
 #Include, %A_ScriptDir%\resources\ahk\MD5.ahk
-#Include, %A_ScriptDir%\resources\ahk\Filter.ahk
 #Include, %A_ScriptDir%\resources\ahk\Gamepad.ahk
 #Include, %A_ScriptDir%\resources\ahk\pkgsMgr.ahk
 
@@ -178,12 +176,14 @@ migrateConfig() {
 			If (verConfig<220312) {
 				IniWrite, 3, %configFile%, curl, connect-timeout
 				IniWrite, 0, %configFile%, settings, loadLab
-				IniWrite, %A_Space%, %configFile%, settings, itemFilter
 			}
 			If (verConfig<220319.5) {
 				FileMove, %configFolder%\commands.txt, %configFolder%\cmds.preset, 1
 				FileDelete, %configFolder%\curl.exe
 				FileDelete, %configFolder%\curl-ca-bundle.crt
+			}
+			If (verConfig<220417.1) {
+				FileMove, %configFolder%\highlight.txt, %configFolder%\highlight.list, 1
 			}
 		}
 		
@@ -209,7 +209,6 @@ downloadData(OnStart=false){
 	loadPresetData(OnStart)
 	ItemMenu_IDCLInit(OnStart)
 	downloadLabLayout(,OnStart)
-	loadFilter()
 	
 	If OnStart && RegExMatch(args, "i)/LoadTimer")
 		SetTimer, downloadData, 7200000
@@ -629,8 +628,6 @@ showSettings(){
 	IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
 	IniRead, updateResources, %configFile%, settings, updateResources, 0
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
-	IniRead, itemFilter, %configFile%, settings, itemFilter, %A_Space%
-	itemFilerPrevious:=itemFilter
 	
 	;Настройки третьей вкладки
 	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
@@ -715,15 +712,10 @@ showSettings(){
 	
 	Gui, Settings:Add, Checkbox, vautoUpdate x12 y+6 w525 Checked%autoUpdate%, Автоматическая проверка обновлений при запуске
 	
-	Gui, Settings:Add, Checkbox, vupdateResources x12 yp+21 w525 Checked%updateResources%, Разрешить обновление данных
+	Gui, Settings:Add, Checkbox, vupdateResources x12 yp+21 w525 Checked%updateResources%, Разрешить обновление данных при запуске
 	
-	Gui, Settings:Add, Checkbox, vloadLab x12 yp+21 w515 Checked%loadLab%, Скачивать раскладку лабиринта('Мои файлы'>Labyrinth.jpg)
+	Gui, Settings:Add, Checkbox, vloadLab x12 yp+21 w515 Checked%loadLab%, Скачивать раскладку лабиринта при запуске('Мои файлы'>Labyrinth.jpg)
 	Gui, Settings:Add, Link, x+2 yp+0 w100 +Right, <a href="https://www.poelab.com/">POELab.com</a>
-	
-	LFilter:=listFilters()
-	Gui, Settings:Add, Text, x12 yp+21 w515, Обновлять фильтр предметов:
-	Gui, Settings:Add, DropDownList, vitemFilter x+2 yp-2 w100, %LFilter%
-	GuiControl,Settings:ChooseString, itemFilter, %itemFilter%
 	
 	Gui, Settings:Tab, 3 ; Третья вкладка
 	
@@ -785,9 +777,6 @@ saveSettings(){
 	If (preset1=preset2)
 		preset2:=""
 		
-	If (itemFilter!=itemFilerPrevious)
-		delFilter()
-	
 	;Настройки первой вкладки
 	IniWrite, %posX%/%posY%/%posW%/%posH%, %configFile%, settings, overlayPosition
 	
@@ -807,7 +796,6 @@ saveSettings(){
 	IniWrite, %autoUpdate%, %configFile%, settings, autoUpdate
 	IniWrite, %updateResources%, %configFile%, settings, updateResources
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
-	IniWrite, %itemFilter%, %configFile%, settings, itemFilter
 	
 	;Настройки третьей вкладки
 	IniWrite, %hotkeyForceSync%, %configFile%, hotkeys, hotkeyForceSync
@@ -868,7 +856,7 @@ menuCreate(){
 	Menu, Tray, Add, Выполнить обновление, CheckUpdateFromMenu
 	Menu, Tray, Add, Настройки, showSettings
 	Menu, Tray, Default, Настройки
-	Menu, Tray, Add, Изменить 'Меню команд', customCmdsEdit
+	;Menu, Tray, Add, Изменить 'Меню команд', customCmdsEdit
 	Menu, Tray, Add
 	Menu, Tray, Add, Очистить кэш PoE, clearPoECache
 	pkgsMgr_packagesMenu()
@@ -897,10 +885,10 @@ shMainMenu(Gamepad=false){
 	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
 	myImagesMenuCreate((expandMyImages || Gamepad)?true:false)
 	
-	If FileExist(configFolder "\cmds.preset") {
-		fastMenu(configFolder "\cmds.preset")
-		Menu, mainMenu, Add, Меню команд, :fastMenu
-	}
+	fastMenu(configFolder "\cmds.preset")
+	Menu, fastMenu, Add
+	Menu, fastMenu, Add, Редактировать 'Меню команд', customCmdsEdit
+	Menu, mainMenu, Add, Меню команд, :fastMenu
 	
 	Menu, mainMenu, Add, Область уведомлений, :Tray
 	sleep 5
