@@ -1,5 +1,8 @@
 ﻿
 pkgsMgr_packagesMenu(){
+	Menu, packagesMenu, Add, Добавить из файла, pkgsMgr_fromFile
+	Menu, packagesMenu, Add
+	
 	FilePath:="resources\Packages.txt"
 	IniRead, updateResources, %configFile%, settings, updateResources, 0
 	If updateResources
@@ -32,34 +35,46 @@ pkgsMgr_loadPackage(Name){
 		If inStr(DataSplit[k], "|") {
 			PackInfo:=StrSplit(DataSplit[k], "|")
 			If (PackInfo[1]=Name && PackInfo[2]!="") {
-				Name:=RegExReplace(Name, ".(pkg|zip|img|txt)$", "")
-				If RegExMatch(PackInfo[2], ".(jpg|jpeg|bmp|png|txt)$", ftype){
-					LoadFile(PackInfo[2], configFolder "\MyFiles\" Name ftype)
-					TrayTip, %prjName%, Файл '%Name%%ftype%' загружен!
+				If !LoadFile(PackInfo[2], A_Temp "\" PackInfo[1],, PackInfo[3]) {
+					msgbox, 0x1010, %prjName%, Ошибка загрузки '%Name%'!, 3
 					return
 				}
-				If RegExMatch(Name, ".ahk$") && RegExMatch(PackInfo[2], ".ahk$"){
-					LoadFile(PackInfo[2], configFolder "\" Name)
-					ReStart()
-					return
-				}
-				If (PackInfo[3]!="") {
-					If LoadFile(PackInfo[2], A_Temp "\Package.zip", false, PackInfo[3]) {
-						unZipArchive(A_Temp "\Package.zip", configFolder)
-						If FileExist(configFolder "\" Name ".ahk")
-							ReStart()
-						Sleep 500
-						TrayTip, %prjName%, Пакет '%Name%' установлен!
-						return
-					} else {
-						TrayTip, %prjName%, Возникла ошибка при установке пакета!
-						return
-					}
-				}
+				pkgsMgr_installPackage(A_Temp "\" PackInfo[1])
 			}
 		}
 	}
 	return
+}
+
+pkgsMgr_fromFile(){
+	FileSelectFile, FilePath,,,Укажите файл с дополнением, (*.zip;*.ahk;*.txt;*.preset;*.jpg;*.png;*jpeg;*bmp)
+	pkgsMgr_installPackage(FilePath)
+}
+
+pkgsMgr_installPackage(FilePath){
+	If (FilePath="" || !FileExist(FilePath)) {
+		msgtext:="Файл не найден, операция прервана!"
+		msgbox, 0x1010, %prjName%, %msgtext%, 3
+		return
+	}
+	SplitPath, FilePath, Name
+	If RegExMatch(FilePath, "i).(jpg|jpeg|bmp|png|txt)$") {
+		FileCopy, %FilePath%, %configFolder%\MyFiles\%Name%, 1
+	}
+	If RegExMatch(FilePath, "i).preset$") {
+		FileCopy, %FilePath%, %configFolder%\presets\%Name%, 1
+	}
+	If RegExMatch(FilePath, "i).ahk$") {
+		FileCopy, %FilePath%, %configFolder%\%Name%, 1
+		ReStart()
+	}
+	If RegExMatch(FilePath, "i).zip$") {
+		unZipArchive(FilePath, configFolder)
+		NameAHK:=RegExReplace(Name, "i).zip$", ".ahk")
+		If FileExist(configFolder "\" NameAHK)
+			ReStart()
+	}
+	TrayTip, %prjName%, Дополнение '%Name%' установлено!
 }
 
 pkgsMgr_delPackage(Name){
@@ -74,7 +89,7 @@ pkgsMgr_delPackage(Name){
 }
 
 pkgsMgr_startCustomScripts(){
-	If RegExMatch(args, "i)/DisableAddons")
+	If RegExMatch(args, "i)/NoAddons")
 		return
 	Loop, %configFolder%\*.ahk, 1
 	{

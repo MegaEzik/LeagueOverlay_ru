@@ -79,10 +79,8 @@ showStartUI()
 devInit()
 
 ;Проверка обновлений
-IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
-If autoUpdate
+If !RegExMatch(args, "i)/NoUpdate")
 	CheckUpdateFromMenu("onStart")
-	;SetTimer, CheckUpdate, 7200000
 
 ;Проверка версии и перенос настроек
 migrateConfig()
@@ -116,7 +114,7 @@ checkRequirementsAndArgs() {
 	If !A_IsAdmin
 		ReStart()
 	If RegExMatch(args, "i)/Help") {
-		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/Debug - режим отладки`n/ShowCurl - отображать окно cURL`n/LoadTimer - использовать таймер загрузок`n/NoAddons - пропуск загрузки дополнений`n/BypassSystemCheck - пропуск проверки системы
+		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/Debug - режим отладки`n/ShowCurl - отображать окно cURL`n/NoUpdate - не проверять наличие обновлений`n/LoadTimer - использовать таймер загрузок`n/NoAddons - пропуск загрузки дополнений`n/BypassSystemCheck - пропуск проверки системы
 		ExitApp
 	}
 	If !RegExMatch(args, "i)/BypassSystemCheck") {
@@ -182,8 +180,10 @@ migrateConfig() {
 				FileDelete, %configFolder%\curl.exe
 				FileDelete, %configFolder%\curl-ca-bundle.crt
 			}
-			If (verConfig<220417.1) {
+			If (verConfig<220417.2) {
 				FileMove, %configFolder%\highlight.txt, %configFolder%\highlight.list, 1
+				IniRead, preset, %configFile%, settings, preset1, default
+				IniWrite, %preset%, %configFile%, settings, preset
 			}
 		}
 		
@@ -252,20 +252,14 @@ loadPresetData(onStart=false){
 	presetDataEvent:=loadEvent(onStart)
 	
 	;Подгружаем первичный набор
-	IniRead, preset1, %configFile%, settings, preset1, %A_Space%
-	presetData1:=loadPreset(preset1)
-	
-	;Подгружаем вторичный набор
-	IniRead, preset2, %configFile%, settings, preset2, %A_Space%
-	presetData2:=loadPreset(preset2)
+	IniRead, preset, %configFile%, settings, preset, %A_Space%
+	presetData1:=loadPreset(preset)
 	
 	;Склейка и установка набора
 	If (presetDataEvent!="")
 		presetsData.=presetDataEvent "`n---`n"
 	If (presetData1!="")
 		presetsData.=presetData1 "`n---`n"
-	If (presetData2!="")
-		presetsData.=presetData2 "`n---`n"
 	
 	Globals.Set("presetsData", presetsData)
 	
@@ -374,7 +368,6 @@ myImagesMenuCreate(expandMenu=true){
 		Loop, %configFolder%\MyFiles\*.*, 1
 			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt|preset)$")
 				Menu, mainMenu, Add, %A_LoopFileName%, shMyImage
-		Menu, mainMenu, Add
 	} Else {
 		Menu, myImagesMenu, Add
 		Menu, myImagesMenu, DeleteAll
@@ -386,6 +379,7 @@ myImagesMenuCreate(expandMenu=true){
 		Menu, myImagesMenu, Add, Открыть папку, openMyImagesFolder
 		Menu, mainMenu, Add, Мои файлы, :myImagesMenu
 	}
+	Menu, mainMenu, Add
 }
 
 textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
@@ -476,19 +470,6 @@ clearPoECache(){
 	trayMsg("Очистка кэша завершена)")
 }
 
-copyPreset(){
-	Gui, Settings:Destroy
-	FileCreateDir, %configFolder%\presets
-	FileSelectFile, FilePath,,, Укажите путь к файлу набора изображений, (*.preset)
-	If (FilePath!="" && FileExist(FilePath)) {
-		FileCopy, %FilePath%, %configFolder%\presets, 1
-	} Else {
-		msgbox, 0x1010, %prjName%, Файл не найден или операция прервана пользователем!, 3
-	}
-	Sleep 25
-	showSettings()
-}
-
 editPreset(presetName){
 	Gui, Settings:Destroy
 	If InStr(presetName, "Изменить ")=1
@@ -510,7 +491,6 @@ cfgPresetMenuShow(){
 	Menu, delPresetMenu, Add
 	Menu, delPresetMenu, DeleteAll
 	Menu, delPresetMenu, Add, Создать, editPreset
-	Menu, delPresetMenu, Add, Добавить из файла, copyPreset
 	Menu, delPresetMenu, Add
 	Loop, %configFolder%\presets\*.preset, 1
 		Menu, delPresetMenu, Add, Изменить %A_LoopFileName%, editPreset
@@ -613,8 +593,7 @@ showSettings(){
 	posH:=splitOverlayPosition[4]
 	
 	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
-	IniRead, preset1, %configFile%, settings, preset1, default
-	IniRead, preset2, %configFile%, settings, preset2, %A_Space%
+	IniRead, preset, %configFile%, settings, preset, default
 	IniRead, mouseDistance, %configFile%, settings, mouseDistance, 500
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
@@ -625,7 +604,6 @@ showSettings(){
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	IniRead, lr, %configFile%, curl, limit-rate, 1000
 	IniRead, ct, %configFile%, curl, connect-timeout, 3
-	IniRead, autoUpdate, %configFile%, settings, autoUpdate, 1
 	IniRead, updateResources, %configFile%, settings, updateResources, 0
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	
@@ -664,15 +642,12 @@ showSettings(){
 	Loop, %configFolder%\presets\*.preset, 1
 		presetList.="|" A_LoopFileName
 	
-	Gui, Settings:Add, Text, x12 yp+24 w390, Наборы:
+	Gui, Settings:Add, Text, x12 yp+24 w490, Набор:
 	;Gui, Settings:Add, Button, x+1 yp-4 w23 h23 gcopyPreset, 📄
 	;Gui, Settings:Add, Button, x+0 w23 h23 geditPreset, ✏
-	Gui, Settings:Add, Button, x+1 yp-4 w23 h23 gcfgPresetMenuShow, ☰
-	Gui, Settings:Add, DropDownList, vpreset1 x+1 yp+1 w100, %presetList%
-	GuiControl,Settings:ChooseString, preset1, %preset1%
-	
-	Gui, Settings:Add, DropDownList, vpreset2 x+2 w100, %presetList%
-	GuiControl,Settings:ChooseString, preset2, %preset2%
+	Gui, Settings:Add, Button, x+3 yp-4 w23 h23 gcfgPresetMenuShow, ☰
+	Gui, Settings:Add, DropDownList, vpreset x+1 yp+1 w100, %presetList%
+	GuiControl,Settings:ChooseString, preset, %preset%
 	
 	Gui, Settings:Add, Text, x12 yp+26 w515, Смещение указателя(пиксели):
 	Gui, Settings:Add, Edit, vmouseDistance x+2 yp-2 w100 h18 Number, %mouseDistance%
@@ -710,9 +685,7 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x10 y+5 w620 h1 0x12
 	
-	Gui, Settings:Add, Checkbox, vautoUpdate x12 y+6 w525 Checked%autoUpdate%, Автоматическая проверка обновлений при запуске
-	
-	Gui, Settings:Add, Checkbox, vupdateResources x12 yp+21 w525 Checked%updateResources%, Разрешить обновление данных при запуске
+	Gui, Settings:Add, Checkbox, vupdateResources x12 yp+6 w525 Checked%updateResources%, Разрешить обновление данных при запуске
 	
 	Gui, Settings:Add, Checkbox, vloadLab x12 yp+21 w515 Checked%loadLab%, Скачивать раскладку лабиринта при запуске('Мои файлы'>Labyrinth.jpg)
 	Gui, Settings:Add, Link, x+2 yp+0 w100 +Right, <a href="https://www.poelab.com/">POELab.com</a>
@@ -781,8 +754,7 @@ saveSettings(){
 	IniWrite, %posX%/%posY%/%posW%/%posH%, %configFile%, settings, overlayPosition
 	
 	IniWrite, %expandMyImages%, %configFile%, settings, expandMyImages
-	IniWrite, %preset1%, %configFile%, settings, preset1
-	IniWrite, %preset2%, %configFile%, settings, preset2
+	IniWrite, %preset%, %configFile%, settings, preset
 	IniWrite, %mouseDistance%, %configFile%, settings, mouseDistance
 	IniWrite, %hotkeyLastImg%, %configFile%, hotkeys, hotkeyLastImg
 	IniWrite, %hotkeyMainMenu%, %configFile%, hotkeys, hotkeyMainMenu
@@ -793,7 +765,6 @@ saveSettings(){
 	IniWrite, %UserAgent%, %configFile%, curl, user-agent
 	IniWrite, %lr%, %configFile%, curl, limit-rate
 	IniWrite, %ct%, %configFile%, curl, connect-timeout
-	IniWrite, %autoUpdate%, %configFile%, settings, autoUpdate
 	IniWrite, %updateResources%, %configFile%, settings, updateResources
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
 	
@@ -853,14 +824,11 @@ menuCreate(){
 	Menu, Tray, Add, Поддержать %githubUser%, showDonateUI
 	Menu, Tray, Add, История изменений, showUpdateHistory
 	Menu, Tray, Add
-	Menu, Tray, Add, Выполнить обновление, CheckUpdateFromMenu
 	Menu, Tray, Add, Настройки, showSettings
 	Menu, Tray, Default, Настройки
-	;Menu, Tray, Add, Изменить 'Меню команд', customCmdsEdit
-	Menu, Tray, Add
-	Menu, Tray, Add, Очистить кэш PoE, clearPoECache
 	pkgsMgr_packagesMenu()
 	Menu, Tray, Add, Дополнения, :packagesMenu
+	Menu, Tray, Add, Очистить кэш PoE, clearPoECache
 	Menu, Tray, Add, Меню разработчика, :devMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить, ReStart
@@ -869,9 +837,13 @@ menuCreate(){
 }
 
 shMainMenu(Gamepad=false){
+	removeToolTip()
 	destroyOverlay()
 	Menu, mainMenu, Add
 	Menu, mainMenu, DeleteAll
+	
+	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
+	myImagesMenuCreate((expandMyImages || Gamepad)?true:false)
 	
 	FormatTime, CurrentDate, %A_Now%, MMdd
 	If (CurrentDate==0401) {
@@ -882,8 +854,6 @@ shMainMenu(Gamepad=false){
 	}
 	
 	presetInMenu()
-	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
-	myImagesMenuCreate((expandMyImages || Gamepad)?true:false)
 	
 	fastMenu(configFolder "\cmds.preset")
 	Menu, fastMenu, Add
@@ -990,7 +960,7 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 	If FileExist(A_WinDir "\System32\curl.exe") {
 		IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 		If (UserAgent="")
-			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.60 Safari/537.36"
+			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36"
 		IniRead, lr, %configFile%, curl, limit-rate, 1000
 		IniRead, ct, %configFile%, curl, connect-timeout, 10
 		

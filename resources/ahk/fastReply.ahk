@@ -92,7 +92,7 @@ fastCmd20(){
 }
 
 customCmdsEdit() {
-	textFileWindow("", configFolder "\cmds.preset", false, ">https://pathofexile.gamepedia.com/Chat_console`n---`n@<last> sure`n/global 820`n/whois <last>`n/deaths`n/passives`n/dance")
+	textFileWindow("", configFolder "\cmds.preset", false, "Список команд>>|>https://pathofexile.fandom.com/wiki/Chat_console#Commands`n---`n@<last> sure`n/global 820`n/whois <last>`n/deaths`n/passives`n/remaining`n/kills`n/dance")
 }
 
 commandFastReply(Line:="/dance"){
