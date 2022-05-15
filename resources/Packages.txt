@@ -1,4 +1,4 @@
-﻿ArchnemesisEn.png|https://i.redd.it/r2kam23z52g81.png
+﻿;ArchnemesisEn.png|https://i.redd.it/r2kam23z52g81.png
 ruPrediction.zip|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/ruPrediction.zip|08F1BEFBE49D5A9B7CA5119E8AB4DCC6
 LutTools.ahk|http://lutbot.com/ahk/macro.ahk
 ;Labyrinth.preset|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Labyrinth.preset
