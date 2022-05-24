@@ -368,6 +368,7 @@ myImagesMenuCreate(expandMenu=true){
 		Loop, %configFolder%\MyFiles\*.*, 1
 			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt|preset)$")
 				Menu, mainMenu, Add, %A_LoopFileName%, shMyImage
+		Menu, mainMenu, Add
 	} Else {
 		Menu, myImagesMenu, Add
 		Menu, myImagesMenu, DeleteAll
@@ -379,7 +380,6 @@ myImagesMenuCreate(expandMenu=true){
 		Menu, myImagesMenu, Add, Открыть папку, openMyImagesFolder
 		Menu, mainMenu, Add, Мои файлы, :myImagesMenu
 	}
-	Menu, mainMenu, Add
 }
 
 textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
@@ -842,9 +842,6 @@ shMainMenu(Gamepad=false){
 	Menu, mainMenu, Add
 	Menu, mainMenu, DeleteAll
 	
-	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
-	myImagesMenuCreate((expandMyImages || Gamepad)?true:false)
-	
 	FormatTime, CurrentDate, %A_Now%, MMdd
 	If (CurrentDate==0401) {
 		listJoke:=["Криллсон - Самоучитель по рыбалке", "Навали - Пророчества", "Зана - Прогрессия карт", "Мастер испытаний - Ультиматум"]
@@ -855,8 +852,12 @@ shMainMenu(Gamepad=false){
 	
 	presetInMenu()
 	
-	fastMenu(configFolder "\cmds.preset")
 	Menu, fastMenu, Add
+	
+	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
+	myImagesMenuCreate((expandMyImages || Gamepad)?true:false)
+	
+	fastMenu(configFolder "\cmds.preset")
 	Menu, fastMenu, Add, Редактировать 'Меню команд', customCmdsEdit
 	Menu, mainMenu, Add, Меню команд, :fastMenu
 	
