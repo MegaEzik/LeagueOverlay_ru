@@ -79,7 +79,8 @@ showStartUI()
 devInit()
 
 ;Проверка обновлений
-If !RegExMatch(args, "i)/NoUpdate")
+IniRead, update, %configFile%, settings, update, 1
+If update
 	CheckUpdateFromMenu("onStart")
 
 ;Проверка версии и перенос настроек
@@ -114,7 +115,7 @@ checkRequirementsAndArgs() {
 	If !A_IsAdmin
 		ReStart()
 	If RegExMatch(args, "i)/Help") {
-		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/Debug - режим отладки`n/ShowCurl - отображать окно cURL`n/NoUpdate - не проверять наличие обновлений`n/LoadTimer - использовать таймер загрузок`n/NoAddons - пропуск загрузки дополнений`n/BypassSystemCheck - пропуск проверки системы
+		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/Debug - режим отладки`n/ShowCurl - отображать окно cURL`n/LoadTimer - использовать таймер загрузок`n/NoAddons - пропуск загрузки дополнений`n/BypassSystemCheck - пропуск проверки системы
 		ExitApp
 	}
 	If !RegExMatch(args, "i)/BypassSystemCheck") {
@@ -451,6 +452,8 @@ showLicense(){
 }
 
 clearPoECache(){
+	FileRemoveDir, %A_AppData%\Path of Exile\Minimap, 1
+	
 	msgbox, 0x1044, %prjName%, Во время очистки кэша рекомендуется закрыть игру.`n`nХотите продолжить?
 	IfMsgBox No
 		return
@@ -468,6 +471,11 @@ clearPoECache(){
 	
 	SplashTextOff
 	trayMsg("Очистка кэша завершена)")
+}
+
+copyPreset(){
+	Gui, Settings:Destroy
+	pkgsMgr_fromFile()
 }
 
 editPreset(presetName){
@@ -490,7 +498,8 @@ editPreset(presetName){
 cfgPresetMenuShow(){
 	Menu, delPresetMenu, Add
 	Menu, delPresetMenu, DeleteAll
-	Menu, delPresetMenu, Add, Создать, editPreset
+	Menu, delPresetMenu, Add, Создать новый, editPreset
+	Menu, delPresetMenu, Add, Добавить из файла, copyPreset
 	Menu, delPresetMenu, Add
 	Loop, %configFolder%\presets\*.preset, 1
 		Menu, delPresetMenu, Add, Изменить %A_LoopFileName%, editPreset
@@ -604,6 +613,7 @@ showSettings(){
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	IniRead, lr, %configFile%, curl, limit-rate, 1000
 	IniRead, ct, %configFile%, curl, connect-timeout, 3
+	IniRead, update, %configFile%, settings, update, 1
 	IniRead, updateResources, %configFile%, settings, updateResources, 0
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	
@@ -685,7 +695,9 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x10 y+5 w620 h1 0x12
 	
-	Gui, Settings:Add, Checkbox, vupdateResources x12 yp+6 w525 Checked%updateResources%, Разрешить обновление данных при запуске
+	Gui, Settings:Add, Checkbox, vupdate x12 y+6 w525 Checked%update%, Проверять наличие обновлений при запуске
+	
+	Gui, Settings:Add, Checkbox, vupdateResources x12 yp+21 w525 Checked%updateResources%, Разрешить обновление данных при запуске
 	
 	Gui, Settings:Add, Checkbox, vloadLab x12 yp+21 w515 Checked%loadLab%, Скачивать раскладку лабиринта при запуске('Мои файлы'>Labyrinth.jpg)
 	Gui, Settings:Add, Link, x+2 yp+0 w100 +Right, <a href="https://www.poelab.com/">POELab.com</a>
@@ -765,6 +777,7 @@ saveSettings(){
 	IniWrite, %UserAgent%, %configFile%, curl, user-agent
 	IniWrite, %lr%, %configFile%, curl, limit-rate
 	IniWrite, %ct%, %configFile%, curl, connect-timeout
+	IniWrite, %update%, %configFile%, settings, update
 	IniWrite, %updateResources%, %configFile%, settings, updateResources
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
 	
@@ -824,11 +837,12 @@ menuCreate(){
 	Menu, Tray, Add, Поддержать %githubUser%, showDonateUI
 	Menu, Tray, Add, История изменений, showUpdateHistory
 	Menu, Tray, Add
+	Menu, Tray, Add, Обновить, CheckUpdateFromMenu
 	Menu, Tray, Add, Настройки, showSettings
 	Menu, Tray, Default, Настройки
 	pkgsMgr_packagesMenu()
-	Menu, Tray, Add, Дополнения, :packagesMenu
 	Menu, Tray, Add, Очистить кэш PoE, clearPoECache
+	Menu, Tray, Add, Дополнения, :packagesMenu
 	Menu, Tray, Add, Меню разработчика, :devMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить, ReStart
