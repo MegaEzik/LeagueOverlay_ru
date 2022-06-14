@@ -115,7 +115,7 @@ checkRequirementsAndArgs() {
 	If !A_IsAdmin
 		ReStart()
 	If RegExMatch(args, "i)/Help") {
-		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/Debug - режим отладки`n/ShowCurl - отображать окно cURL`n/LoadTimer - использовать таймер загрузок`n/NoAddons - пропуск загрузки дополнений`n/BypassSystemCheck - пропуск проверки системы
+		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/Debug - режим отладки`n/ShowCurl - отображать окно cURL`n/NoAddons - пропуск загрузки дополнений`n/BypassSystemCheck - пропуск проверки системы
 		ExitApp
 	}
 	If !RegExMatch(args, "i)/BypassSystemCheck") {
@@ -153,6 +153,7 @@ checkRequirementsAndArgs() {
 migrateConfig() {
 	IniRead, verConfig, %configFile%, info, verConfig, 0
 	If (verConfig!=verScript) {
+		;FileCopy, %configFile%, %configFolder%\%verConfig%.ini, 1
 		If (verConfig>0) {
 			If (verConfig<210823.1) {
 				FileRemoveDir, %A_MyDocuments%\LeagueOverlay_ru, 1
@@ -211,8 +212,9 @@ downloadData(OnStart=false){
 	ItemMenu_IDCLInit(OnStart)
 	downloadLabLayout(,OnStart)
 	
-	If OnStart && RegExMatch(args, "i)/LoadTimer")
-		SetTimer, downloadData, 7200000
+	IniRead, useLoadTimers, %configFile%, settings, useLoadTimers, 0
+	If OnStart && useLoadTimers
+		SetTimer, downloadData, 3600000
 }
 
 shLastImage(){
@@ -615,6 +617,7 @@ showSettings(){
 	IniRead, ct, %configFile%, curl, connect-timeout, 3
 	IniRead, update, %configFile%, settings, update, 1
 	IniRead, updateResources, %configFile%, settings, updateResources, 0
+	IniRead, useLoadTimers, %configFile%, settings, useLoadTimers, 0
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	
 	;Настройки третьей вкладки
@@ -697,9 +700,11 @@ showSettings(){
 	
 	Gui, Settings:Add, Checkbox, vupdate x12 y+6 w525 Checked%update%, Проверять наличие обновлений при запуске
 	
-	Gui, Settings:Add, Checkbox, vupdateResources x12 yp+21 w525 Checked%updateResources%, Разрешить обновление данных при запуске
+	Gui, Settings:Add, Checkbox, vupdateResources x12 yp+21 w525 Checked%updateResources%, Разрешить обновление данных, в том числе при запуске
 	
-	Gui, Settings:Add, Checkbox, vloadLab x12 yp+21 w515 Checked%loadLab%, Скачивать раскладку лабиринта при запуске('Мои файлы'>Labyrinth.jpg)
+	Gui, Settings:Add, Checkbox, vuseLoadTimers xp+16 yp+21 w500 Checked%useLoadTimers%, Дополнительно использовать таймер для обновления данных
+	
+	Gui, Settings:Add, Checkbox, vloadLab x12 yp+21 w515 Checked%loadLab%, Скачивать раскладку лабиринта('Мои файлы'>Labyrinth.jpg)
 	Gui, Settings:Add, Link, x+2 yp+0 w100 +Right, <a href="https://www.poelab.com/">POELab.com</a>
 	
 	Gui, Settings:Tab, 3 ; Третья вкладка
@@ -779,6 +784,7 @@ saveSettings(){
 	IniWrite, %ct%, %configFile%, curl, connect-timeout
 	IniWrite, %update%, %configFile%, settings, update
 	IniWrite, %updateResources%, %configFile%, settings, updateResources
+	IniWrite, %useLoadTimers%, %configFile%, settings, useLoadTimers
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
 	
 	;Настройки третьей вкладки
@@ -837,7 +843,7 @@ menuCreate(){
 	Menu, Tray, Add, Поддержать %githubUser%, showDonateUI
 	Menu, Tray, Add, История изменений, showUpdateHistory
 	Menu, Tray, Add
-	Menu, Tray, Add, Обновить, CheckUpdateFromMenu
+	Menu, Tray, Add, Выполнить обновление, CheckUpdateFromMenu
 	Menu, Tray, Add, Настройки, showSettings
 	Menu, Tray, Default, Настройки
 	pkgsMgr_packagesMenu()
@@ -975,7 +981,7 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 	If FileExist(A_WinDir "\System32\curl.exe") {
 		IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 		If (UserAgent="")
-			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36"
+			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36"
 		IniRead, lr, %configFile%, curl, limit-rate, 1000
 		IniRead, ct, %configFile%, curl, connect-timeout, 10
 		
