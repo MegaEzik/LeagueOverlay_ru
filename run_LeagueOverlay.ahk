@@ -80,8 +80,10 @@ devInit()
 
 ;Проверка обновлений
 IniRead, update, %configFile%, settings, update, 1
-If update
+If update {
 	CheckUpdateFromMenu("onStart")
+	SetTimer, CheckUpdate, 7200000
+}
 
 ;Проверка версии и перенос настроек
 migrateConfig()
@@ -170,9 +172,6 @@ migrateConfig() {
 			If (verConfig<211112.5) {
 				FileMoveDir, %configFolder%\images, %configFolder%\MyFiles, 2
 			}
-			If (verConvig<211217.6) {
-				FileDelete, %configFolder%\pkgsMgr.ini
-			}
 			If (verConfig<220312) {
 				IniWrite, 3, %configFile%, curl, connect-timeout
 				IniWrite, 0, %configFile%, settings, loadLab
@@ -214,7 +213,7 @@ downloadData(OnStart=false){
 	
 	IniRead, useLoadTimers, %configFile%, settings, useLoadTimers, 0
 	If OnStart && useLoadTimers
-		SetTimer, downloadData, 3600000
+		SetTimer, downloadData, 7200000
 }
 
 shLastImage(){
@@ -369,7 +368,7 @@ openMyImagesFolder(){
 myImagesMenuCreate(expandMenu=true){
 	If expandMenu {
 		Loop, %configFolder%\MyFiles\*.*, 1
-			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt|preset)$")
+			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt)$")
 				Menu, mainMenu, Add, %A_LoopFileName%, shMyImage
 		Menu, mainMenu, Add
 	} Else {
@@ -377,7 +376,7 @@ myImagesMenuCreate(expandMenu=true){
 		Menu, myImagesMenu, DeleteAll
 		
 		Loop, %configFolder%\MyFiles\*.*, 1
-			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt|preset)$")
+			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt)$")
 				Menu, myImagesMenu, Add, %A_LoopFileName%, shMyImage
 		Menu, myImagesMenu, Add
 		Menu, myImagesMenu, Add, Открыть папку, openMyImagesFolder
@@ -453,6 +452,10 @@ showLicense(){
 	textFileWindow("Лицензия", "LICENSE.md")
 }
 
+setWindowsList(){
+	textFileWindow("", configFolder "\windows.list", false, "ahk_exe notepad++.exe")
+}
+
 clearPoECache(){
 	FileRemoveDir, %A_AppData%\Path of Exile\Minimap, 1
 	
@@ -478,6 +481,7 @@ clearPoECache(){
 copyPreset(){
 	Gui, Settings:Destroy
 	pkgsMgr_fromFile()
+	showSettings()
 }
 
 editPreset(presetName){
@@ -634,7 +638,11 @@ showSettings(){
 	Gui, Settings:Add, Tab, x0 y0 w640 h385, Основные|Загрузки|Команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
-	Gui, Settings:Add, Text, x12 y30 w325, Позиция области изображений(пиксели):
+	Gui, Settings:Add, Text, x12 y30 w515, Список отслеживаемых окон:
+	Gui, Settings:Add, Button, x+1 yp-3 w102 h23 gsetWindowsList, Изменить
+	
+	
+	Gui, Settings:Add, Text, x12 yp+26 w325, Позиция области изображений(пиксели):
 	Gui, Settings:Add, Text, x+7 w12 +Right, X
 	Gui, Settings:Add, Text, x+60 w12 +Right, Y
 	Gui, Settings:Add, Text, x+60 w12 +Right, W
@@ -698,7 +706,7 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x10 y+5 w620 h1 0x12
 	
-	Gui, Settings:Add, Checkbox, vupdate x12 y+6 w525 Checked%update%, Проверять наличие обновлений при запуске
+	Gui, Settings:Add, Checkbox, vupdate x12 y+6 w525 Checked%update%, Автоматически проверять наличие обновлений
 	
 	Gui, Settings:Add, Checkbox, vupdateResources x12 yp+21 w525 Checked%updateResources%, Разрешить обновление данных, в том числе при запуске
 	
@@ -763,10 +771,7 @@ saveSettings(){
 	DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", 0x50, "UInt", 0x4090409, "UInt", 0x4090409)
 	sleep 100
 	Gui, Settings:Submit
-	
-	If (preset1=preset2)
-		preset2:=""
-		
+			
 	;Настройки первой вкладки
 	IniWrite, %posX%/%posY%/%posW%/%posH%, %configFile%, settings, overlayPosition
 	

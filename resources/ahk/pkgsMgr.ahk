@@ -71,7 +71,7 @@ pkgsMgr_installPackage(FilePath){
 	If RegExMatch(FilePath, "i).zip$") {
 		unZipArchive(FilePath, configFolder)
 		NameAHK:=RegExReplace(Name, "i).zip$", ".ahk")
-		If FileExist(configFolder "\" NameAHK)
+		If FileExist(configFolder "\" NameAHK) || FileExist(configFolder "\update.zip")
 			ReStart()
 	}
 	TrayTip, %prjName%, Дополнение '%Name%' установлено!
@@ -89,17 +89,20 @@ pkgsMgr_delPackage(Name){
 }
 
 pkgsMgr_startCustomScripts(){
+	Loop, %configFolder%\*.ahk, 1
+		pkgMgr_checkScript(configFolder "\" A_LoopFileName)
+}
+
+pkgMgr_checkScript(ScriptPath){
 	If RegExMatch(args, "i)/NoAddons")
 		return
-	Loop, %configFolder%\*.ahk, 1
-	{
-		IniRead, MD5, %configFile%, pkgsMgr, %A_LoopFileName%, %A_Space%
-		MD5File:=MD5_File(configFolder "\" A_LoopFileName)
-		If (MD5!=MD5File)
-			msgbox, 0x1024, %prjName%, Разрешить выполнять '%A_LoopFileName%'?
-			IfMsgBox No
-				Continue
-		IniWrite, %MD5File%, %configFile%, pkgsMgr, %A_LoopFileName%
-		RunWait *RunAs "%A_AhkPath%" "%configFolder%\%A_LoopFileName%" "%A_ScriptDir%"
-	}
+	SplitPath, ScriptPath, ScriptName
+	IniRead, MD5, %configFile%, pkgsMgr, %ScriptName%, %A_Space%
+	MD5File:=MD5_File(ScriptPath)
+	If (MD5!=MD5File)
+		msgbox, 0x1024, %prjName%, Разрешить выполнять '%ScriptName%'?
+		IfMsgBox No
+			return
+	IniWrite, %MD5File%, %configFile%, pkgsMgr, %ScriptName%
+	RunWait *RunAs "%A_AhkPath%" "%ScriptPath%" "%A_ScriptDir%"
 }
