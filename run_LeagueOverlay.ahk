@@ -98,7 +98,7 @@ Globals.Set("mouseDistance", mouseDistance)
 pkgsMgr_startCustomScripts()
 
 ;Загрузка и установка данных
-downloadData(true)
+downloadData()
 
 ;Назначим управление и создадим меню
 menuCreate()
@@ -206,14 +206,14 @@ migrateConfig() {
 	}
 }
 
-downloadData(OnStart=false){
-	loadPresetData(OnStart)
-	ItemMenu_IDCLInit(OnStart)
-	downloadLabLayout(,OnStart)
-	
-	IniRead, useLoadTimers, %configFile%, settings, useLoadTimers, 0
-	If OnStart && useLoadTimers
-		SetTimer, downloadData, 7200000
+downloadData(){
+	loadPresetData()
+	ItemMenu_IDCLInit()
+	IniRead, loadLab, %configFile%, settings, loadLab, 0
+	If loadLab {
+		downloadLabLayout(,true)
+		SetTimer, downloadLabLayout, 1800000
+	}
 }
 
 shLastImage(){
@@ -247,11 +247,11 @@ loadPreset(presetName){
 	return StrReplace(presetData, "`r", "")
 }
 
-loadPresetData(onStart=false){
+loadPresetData(){
 	presetsData:=""
 	
 	;Подгружаем набор события
-	presetDataEvent:=loadEvent(onStart)
+	presetDataEvent:=loadEvent()
 	
 	;Подгружаем первичный набор
 	IniRead, preset, %configFile%, settings, preset, %A_Space%
@@ -265,24 +265,19 @@ loadPresetData(onStart=false){
 	
 	Globals.Set("presetsData", presetsData)
 	
-	;Применим настройки наборов
-	If onStart { 
-		presetsDataSplit:=strSplit(Globals.Get("presetsData"), "`n")
-		For k, val in presetsDataSplit {
-			If (RegExMatch(presetsDataSplit[k], ";")=1)
-				Continue
-			If (RegExMatch(presetsDataSplit[k], "ahk_(exe|class)")=1) {
-				WindowLine:=presetsDataSplit[k]
-				GroupAdd, WindowGrp, %WindowLine%
-			}
+	;Применим настройки наборов 
+	presetsDataSplit:=strSplit(Globals.Get("presetsData"), "`n")
+	For k, val in presetsDataSplit {
+		If (RegExMatch(presetsDataSplit[k], ";")=1)
+			Continue
+		If (RegExMatch(presetsDataSplit[k], "ahk_(exe|class)")=1) {
+			WindowLine:=presetsDataSplit[k]
+			GroupAdd, WindowGrp, %WindowLine%
 		}
 	}
 }
 
-loadEvent(onStart=false){
-	IniRead, updateResources, %configFile%, settings, updateResources, 0
-	If !updateResources
-		return
+loadEvent(){
 	Path:="resources\data\Event.txt"
 	LoadFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/data/Event.txt", Path, true)
 	FormatTime, CurrentDate, %A_Now%, yyyyMMdd
@@ -292,7 +287,7 @@ loadEvent(onStart=false){
 	For k, val in eventDataSplit {
 		If RegExMatch(eventDataSplit[k], ";;")=1
 			Continue
-		If (onStart && RegExMatch(eventDataSplit[k], ";StartUIMsg=(.*)$", StartUIMsg))
+		If RegExMatch(eventDataSplit[k], ";StartUIMsg=(.*)$", StartUIMsg)
 			rStartUIMsg:=StartUIMsg1
 		If RegExMatch(eventDataSplit[k], ";EventName=(.*)$", EventName)
 			rEventName:=EventName1
@@ -312,7 +307,7 @@ loadEvent(onStart=false){
 	If (rStartUIMsg!="")
 		showStartUI(rStartUIMsg)
 	
-	If (onStart && rEventName!="")
+	If (rEventName!="")
 		trayMsg(rStartDate " - " rEndDate, rEventName)
 	
 	return eventData
@@ -620,8 +615,6 @@ showSettings(){
 	IniRead, lr, %configFile%, curl, limit-rate, 1000
 	IniRead, ct, %configFile%, curl, connect-timeout, 3
 	IniRead, update, %configFile%, settings, update, 1
-	IniRead, updateResources, %configFile%, settings, updateResources, 0
-	IniRead, useLoadTimers, %configFile%, settings, useLoadTimers, 0
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	
 	;Настройки третьей вкладки
@@ -708,10 +701,6 @@ showSettings(){
 	
 	Gui, Settings:Add, Checkbox, vupdate x12 y+6 w525 Checked%update%, Автоматически проверять наличие обновлений
 	
-	Gui, Settings:Add, Checkbox, vupdateResources x12 yp+21 w525 Checked%updateResources%, Разрешить обновление данных, в том числе при запуске
-	
-	Gui, Settings:Add, Checkbox, vuseLoadTimers xp+16 yp+21 w500 Checked%useLoadTimers%, Дополнительно использовать таймер для обновления данных
-	
 	Gui, Settings:Add, Checkbox, vloadLab x12 yp+21 w515 Checked%loadLab%, Скачивать раскладку лабиринта('Мои файлы'>Labyrinth.jpg)
 	Gui, Settings:Add, Link, x+2 yp+0 w100 +Right, <a href="https://www.poelab.com/">POELab.com</a>
 	
@@ -757,7 +746,7 @@ showSettings(){
 		Gui, Settings:Add, Hotkey, vhotkeyCmd%TwoColumn% x+2 w100 h17, %tempVar%
 	}
 	
-	helptext:="/dance - простая команда чата`n/whois <last> - команда в отношении последнего игрока`n@<last> ty, gl) - сообщение последнему игроку`n_ty, gl) - сообщение в чат области`n%ty, gl) - сообщение в групповой чат`n>calc.exe - открытие программы или веб страницы`n<configFolder>\my.jpg - изображение или текстовый файл`n!текст - всплывающая подсказка"
+	helptext:="/dance - простая команда чата`n/whois <last> - команда в отношении последнего игрока`n@<last> ty, gl) - сообщение последнему игроку`n_ty, gl) - сообщение в чат области`n%ty, gl) - сообщение в групповой чат`n>calc.exe - открытие программы или веб страницы`nmy.jpg - изображение, набор или текстовый файл`n!текст - всплывающая подсказка"
 	helptext2:="--- - разделитель(только в 'Меню команд')`n;/dance - комментарий(команда будет проигнорирована)`n<configFolder> - указывает папку настроек(переменная)`n<time> - время UTC(переменная)`n<inputbox> - позволяет ввести текст(переменная)"
 	Gui, Settings:Add, Text, x12 y+2 w307 cTeal, %helptext%
 	Gui, Settings:Add, Text, x+2 w307 cTeal, %helptext2%
@@ -788,8 +777,6 @@ saveSettings(){
 	IniWrite, %lr%, %configFile%, curl, limit-rate
 	IniWrite, %ct%, %configFile%, curl, connect-timeout
 	IniWrite, %update%, %configFile%, settings, update
-	IniWrite, %updateResources%, %configFile%, settings, updateResources
-	IniWrite, %useLoadTimers%, %configFile%, settings, useLoadTimers
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
 	
 	;Настройки третьей вкладки
@@ -883,6 +870,7 @@ shMainMenu(Gamepad=false){
 	myImagesMenuCreate((expandMyImages || Gamepad)?true:false)
 	
 	fastMenu(configFolder "\cmds.preset")
+	Menu, fastMenu, Add
 	Menu, fastMenu, Add, Редактировать 'Меню команд', customCmdsEdit
 	Menu, mainMenu, Add, Меню команд, :fastMenu
 	

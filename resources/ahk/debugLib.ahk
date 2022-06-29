@@ -7,10 +7,10 @@ devInit(){
 	Menu, devMenu, Add, Папка макроса, openScriptFolder	
 	Menu, devMenu, Add, Папка настроек, openConfigFolder
 	Menu, devMenu, Add
+	Menu, devMenu, Add, Контрольная сумма(MD5), devMD5FileCheck
+	Menu, devMenu, Add
+	Menu, devMenu, Add, Перезагрузить данные, devClSD
 	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
-	IniRead, updateResources, %configFile%, settings, updateResources, 0
-	If updateResources
-		Menu, devMenu, Add, Перезагрузить данные, devClSD
 	Menu, devMenu, Add
 	Menu, devMenu, Add, https://poelab.com/gtgax, reloadLab
 	Menu, devMenu, Add, https://poelab.com/r8aws, reloadLab
@@ -27,6 +27,14 @@ localUpdate(){
 			unZipArchive(configFolder "\update.zip", A_ScriptDir)
 		FileDelete, %configFolder%\update.zip
 		ReStart()
+	}
+}
+
+devMD5FileCheck(){
+	FileSelectFile, FilePath
+	If FileExist(FilePath){
+		Clipboard:=MD5_File(FilePath)
+		TrayTip, %prjName% - Контрольная сумма, Скопировано в буфер обмена:`n%Clipboard%
 	}
 }
 

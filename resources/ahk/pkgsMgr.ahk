@@ -4,9 +4,7 @@ pkgsMgr_packagesMenu(){
 	Menu, packagesMenu, Add
 	
 	FilePath:="resources\Packages.txt"
-	IniRead, updateResources, %configFile%, settings, updateResources, 0
-	If updateResources
-		LoadFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/Packages.txt", FilePath, true)
+	LoadFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/Packages.txt", FilePath, true)
 	
 	FileRead, Data, %FilePath%
 	DataSplit:=strSplit(StrReplace(Data, "`r", ""), "`n")
@@ -36,7 +34,7 @@ pkgsMgr_loadPackage(Name){
 			PackInfo:=StrSplit(DataSplit[k], "|")
 			If (PackInfo[1]=Name && PackInfo[2]!="") {
 				If !LoadFile(PackInfo[2], A_Temp "\" PackInfo[1],, PackInfo[3]) {
-					msgbox, 0x1010, %prjName%, Ошибка загрузки '%Name%'!, 3
+					TrayTip, %prjName%, Ошибка загрузки '%Name%'!
 					return
 				}
 				pkgsMgr_installPackage(A_Temp "\" PackInfo[1])

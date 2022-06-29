@@ -161,12 +161,11 @@ ItemMenu_customHightlight() {
 	textFileWindow("Редактирование подсветки", configFolder "\highlight.list", false, "к максимуму здоровья`nк сопротивлению`nповышение скорости передвижения`nВосприятие|Контрмагия|Маскировка")
 }
 
-ItemMenu_IDCLInit(setHotkey=false){
+ItemMenu_IDCLInit(){
 	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, %A_Space%
 	If (hotkeyItemMenu="")
 		return
-	If setHotkey
-		Hotkey, % hotkeyItemMenu, ItemMenu_Show, On
+	Hotkey, % hotkeyItemMenu, ItemMenu_Show, On
 	
 	FileCreateDir, resources\data
 	ResultNames:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/data/names.json", "resources\data\names.json")
@@ -189,10 +188,6 @@ ItemMenu_IDCLInit(setHotkey=false){
 }
 
 ItemMenu_LoadDataFile(URL, Path){
-	IniRead, updateResources, %configFile%, settings, updateResources, 0
-	If !updateResources
-		return false
-	
 	FormatTime, CurrentDate, %A_Now%, yyyyMMdd
 	FileGetTime, LoadDate, %Path%, M
 	FormatTime, LoadDate, %LoadDate%, yyyyMMdd
