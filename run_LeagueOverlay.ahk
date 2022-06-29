@@ -299,7 +299,7 @@ loadEvent(){
 			rMinVersion:=MinVersion1
 	}
 	
-	If (rStartDate="" || rEndDate="" || CurrentDate<rStartDate || CurrentDate>rEndDate)
+	If (rMinVersion>verScript || rStartDate="" || rEndDate="" || CurrentDate<rStartDate || CurrentDate>rEndDate)
 		return
 		
 	For k, val in eventDataSplit
