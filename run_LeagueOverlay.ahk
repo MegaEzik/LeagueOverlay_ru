@@ -287,6 +287,9 @@ loadEvent(){
 	For k, val in eventDataSplit {
 		If RegExMatch(eventDataSplit[k], ";;")=1
 			Continue
+		If RegExMatch(eventDataSplit[k], ";MinVersion=(.*)$", MinVersion)
+			If (MinVersion1>verScript)
+				return
 		If RegExMatch(eventDataSplit[k], ";StartUIMsg=(.*)$", StartUIMsg)
 			rStartUIMsg:=StartUIMsg1
 		If RegExMatch(eventDataSplit[k], ";EventName=(.*)$", EventName)
@@ -295,13 +298,11 @@ loadEvent(){
 			rStartDate:=StartDate1
 		If RegExMatch(eventDataSplit[k], ";EndDate=(.*)$", EndDate)
 			rEndDate:=EndDate1
-		If RegExMatch(eventDataSplit[k], ";MinVersion=(.*)$", MinVersion)
-			rMinVersion:=MinVersion1
 		If RegExMatch(eventDataSplit[k], ";ResourceFile=(.*)$", rURL)
 			loadEventResourceFile(rURL1)
 	}
 	
-	If (rMinVersion>verScript || rStartDate="" || rEndDate="" || CurrentDate<rStartDate || CurrentDate>rEndDate)
+	If (rStartDate="" || rEndDate="" || CurrentDate<rStartDate || CurrentDate>rEndDate)
 		return
 	
 	If (rStartUIMsg!="")
