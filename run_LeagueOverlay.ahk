@@ -278,6 +278,10 @@ loadPresetData(){
 }
 
 loadEvent(){
+	IniRead, noEvent, %configFile%, settings, noEvent, 0
+	If noEvent
+		return
+	
 	Path:="resources\data\Event.txt"
 	LoadFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/data/Event.txt", Path, true)
 	FormatTime, CurrentDate, %A_Now%, yyyyMMdd
@@ -618,6 +622,7 @@ showSettings(){
 	IniRead, ct, %configFile%, curl, connect-timeout, 3
 	IniRead, update, %configFile%, settings, update, 1
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
+	IniRead, noEvent, %configFile%, settings, noEvent, 0
 	
 	;Настройки третьей вкладки
 	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
@@ -706,6 +711,8 @@ showSettings(){
 	Gui, Settings:Add, Checkbox, vloadLab x12 yp+21 w515 Checked%loadLab%, Скачивать раскладку лабиринта('Мои файлы'>Labyrinth.jpg)
 	Gui, Settings:Add, Link, x+2 yp+0 w100 +Right, <a href="https://www.poelab.com/">POELab.com</a>
 	
+	Gui, Settings:Add, Checkbox, vnoEvent x12 yp+21 w515 Checked%noEvent%, Не использовать 'Набор события'
+	
 	Gui, Settings:Tab, 3 ; Третья вкладка
 	
 	Gui, Settings:Add, Text, x12 y30 w205, /exit(к персонажам):
@@ -780,6 +787,7 @@ saveSettings(){
 	IniWrite, %ct%, %configFile%, curl, connect-timeout
 	IniWrite, %update%, %configFile%, settings, update
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
+	IniWrite, %noEvent%, %configFile%, settings, noEvent
 	
 	;Настройки третьей вкладки
 	IniWrite, %hotkeyForceSync%, %configFile%, hotkeys, hotkeyForceSync
@@ -976,7 +984,7 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 	If FileExist(A_WinDir "\System32\curl.exe") {
 		IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 		If (UserAgent="")
-			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36"
+			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36"
 		IniRead, lr, %configFile%, curl, limit-rate, 1000
 		IniRead, ct, %configFile%, curl, connect-timeout, 10
 		

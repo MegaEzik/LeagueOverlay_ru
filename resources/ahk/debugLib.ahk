@@ -55,7 +55,7 @@ devClSD(){
 
 ;Запись отладочной информации
 devLog(msg){
-	If RegExMatch(args, "i)/Debug") {
+	If FileExist(configFolder "\dev.log") {
 		FormatTime, Time, dddd MMMM, dd.MM HH:mm:ss
 		FileAppend, %Time% v%verScript% - %msg%`n, %configFolder%\dev.log, UTF-8
 	}
