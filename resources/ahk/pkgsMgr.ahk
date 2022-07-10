@@ -1,10 +1,12 @@
 ﻿
 pkgsMgr_packagesMenu(){
+	FilePath:="resources\Packages.txt"
+	LoadFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/Packages.txt", FilePath)
+	
+	Menu, packagesMenu, Add
+	Menu, packagesMenu, DeleteAll
 	Menu, packagesMenu, Add, Добавить из файла, pkgsMgr_fromFile
 	Menu, packagesMenu, Add
-	
-	FilePath:="resources\Packages.txt"
-	LoadFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/Packages.txt", FilePath, true)
 	
 	FileRead, Data, %FilePath%
 	DataSplit:=strSplit(StrReplace(Data, "`r", ""), "`n")
@@ -22,6 +24,8 @@ pkgsMgr_packagesMenu(){
 		PackName:=RegExReplace(A_LoopFileName, ".ahk$", "")
 		Menu, packagesMenu, Add, × %PackName%, pkgsMgr_delPackage
 	}
+	
+	Menu, packagesMenu, Show
 }
 
 pkgsMgr_loadPackage(Name){

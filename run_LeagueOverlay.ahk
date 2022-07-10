@@ -237,7 +237,7 @@ firstAprilJoke(){
 loadPreset(presetName){
 	presetPath:=A_ScriptDir "\resources\presets\" presetName ".preset"
 	If (presetName="Event")
-		presetPath:=A_ScriptDir "\resources\data\Event.txt"
+		presetPath:=A_ScriptDir "\resources\data\event.preset"
 	If RegExMatch(presetName, ".preset$")
 		presetPath:=configFolder "\presets\" presetName
 	If FileExist(presetName)
@@ -278,12 +278,12 @@ loadPresetData(){
 }
 
 loadEvent(){
-	IniRead, noEvent, %configFile%, settings, noEvent, 0
-	If noEvent
+	IniRead, eventURL, %configFile%, settings, eventURL, %A_Space%
+	If (eventURL="")
 		return
 	
-	Path:="resources\data\Event.txt"
-	LoadFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/data/Event.txt", Path, true)
+	Path:="resources\data\event.preset"
+	LoadFile(eventURL, Path, true)
 	FormatTime, CurrentDate, %A_Now%, yyyyMMdd
 	
 	eventData:=loadPreset("Event")
@@ -622,7 +622,7 @@ showSettings(){
 	IniRead, ct, %configFile%, curl, connect-timeout, 3
 	IniRead, update, %configFile%, settings, update, 1
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
-	IniRead, noEvent, %configFile%, settings, noEvent, 0
+	IniRead, eventURL, %configFile%, settings, eventURL, https://raw.githubusercontent.com/%githubUser%/%prjName%/master/resources/data/event.preset
 	
 	;Настройки третьей вкладки
 	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
@@ -693,8 +693,8 @@ showSettings(){
 	
 	Gui, Settings:Tab, 2 ;Вторая вкладка
 	
-	Gui, Settings:Add, Text, x12 y30 w150, cURL | User-Agent:
-	Gui, Settings:Add, Edit, vUserAgent x+2 yp-2 w465 h17, %UserAgent%
+	Gui, Settings:Add, Text, x12 y30 w120, cURL | User-Agent:
+	Gui, Settings:Add, Edit, vUserAgent x+2 yp-2 w495 h17, %UserAgent%
 	
 	Gui, Settings:Add, Text, x12 yp+21 w515, cURL | Ограничение загрузки(Кб/с, 0 - без лимита):
 	Gui, Settings:Add, Edit, vlr x+2 yp-2 w100 h18 Number, %lr%
@@ -711,7 +711,8 @@ showSettings(){
 	Gui, Settings:Add, Checkbox, vloadLab x12 yp+21 w515 Checked%loadLab%, Скачивать раскладку лабиринта('Мои файлы'>Labyrinth.jpg)
 	Gui, Settings:Add, Link, x+2 yp+0 w100 +Right, <a href="https://www.poelab.com/">POELab.com</a>
 	
-	Gui, Settings:Add, Checkbox, vnoEvent x12 yp+21 w515 Checked%noEvent%, Не использовать 'Набор события'
+	Gui, Settings:Add, Text, x12 yp+21 w120, Набор события:
+	Gui, Settings:Add, Edit, veventURL x+2 yp-2 w495 h17, %eventURL%
 	
 	Gui, Settings:Tab, 3 ; Третья вкладка
 	
@@ -787,7 +788,7 @@ saveSettings(){
 	IniWrite, %ct%, %configFile%, curl, connect-timeout
 	IniWrite, %update%, %configFile%, settings, update
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
-	IniWrite, %noEvent%, %configFile%, settings, noEvent
+	IniWrite, %eventURL%, %configFile%, settings, eventURL
 	
 	;Настройки третьей вкладки
 	IniWrite, %hotkeyForceSync%, %configFile%, hotkeys, hotkeyForceSync
@@ -848,9 +849,8 @@ menuCreate(){
 	Menu, Tray, Add, Выполнить обновление, CheckUpdateFromMenu
 	Menu, Tray, Add, Настройки, showSettings
 	Menu, Tray, Default, Настройки
-	pkgsMgr_packagesMenu()
 	Menu, Tray, Add, Очистить кэш PoE, clearPoECache
-	Menu, Tray, Add, Дополнения, :packagesMenu
+	Menu, Tray, Add, Дополнения, pkgsMgr_packagesMenu
 	Menu, Tray, Add, Меню разработчика, :devMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить, ReStart
@@ -863,6 +863,7 @@ shMainMenu(Gamepad=false){
 	destroyOverlay()
 	Menu, mainMenu, Add
 	Menu, mainMenu, DeleteAll
+	;Menu, mainMenu, Color, 808080
 	
 	FormatTime, CurrentDate, %A_Now%, MMdd
 	If (CurrentDate==0401) {

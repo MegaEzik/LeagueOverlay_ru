@@ -169,5 +169,6 @@ commandFastReply(Line:="/dance"){
 			return
 		}
 	}
-	msgbox, 0x1010, %prjName%, %Line%`nНеизвестная команда!, 3
+	TrayTip, %prjName% - Неизвестная команда!, %Line%
+	;msgbox, 0x1010, %prjName%, %Line%`nНеизвестная команда!, 3
 }
