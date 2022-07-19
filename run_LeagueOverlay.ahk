@@ -76,8 +76,8 @@ If FileExist(configFolder "\windows.list") {
 checkRequirementsAndArgs()
 	
 ;Установка иконки и описания в области уведомлений
-If FileExist("resources\icons\icon.png")
-	Menu, Tray, Icon, resources\icons\icon.png
+If FileExist("resources\imgs\icon.png")
+	Menu, Tray, Icon, resources\imgs\icon.png
 Menu, Tray, Tip, %prjName% %verScript% | AHK %A_AhkVersion%
 
 ;UI загрузки и загрузка инструментов разработчика
@@ -514,14 +514,15 @@ showStartUI(SpecialText="", LogoPath=""){
 	Random, randomNum, 1, dNames.MaxIndex()
 	dName:="@" dNames[randomNum] " ty) "
 	
-	Gui, StartUI:Color, FEC076
+	If (LogoPath="") && FileExist("resources\imgs\bg.jpg")
+		LogoPath:="resources\imgs\bg.jpg"
 	
 	If FileExist(LogoPath)
 		Gui, StartUI:Add, Picture, x0 y0 w500 h70, %LogoPath%
 	
 	BGTitle:="7F3208"
 	If RegExMatch(verScript, "i)(Beta|Experimental)")
-		BGTitle:="707070"
+		BGTitle:="505050"
 	;Gui, StartUI:Add, Progress, w500 h26 x0 y0 Background%BGTitle%
 
 	Gui, StartUI:Font, s12 c%BGTitle% bold
@@ -536,7 +537,7 @@ showStartUI(SpecialText="", LogoPath=""){
 	Gui, StartUI:Add, Text, x0 y+10 h18 w500 +Center BackgroundTrans, %initMsg%
 	
 	Gui, StartUI:Font, s8 norm
-	Gui, StartUI:Font, c707070
+	Gui, StartUI:Font, c505050
 	Gui, StartUI:Add, Text, x4 y+2 w340 BackgroundTrans, %args%
 	
 	Gui, StartUI:Font, s8 norm italic

@@ -52,8 +52,8 @@ ItemMenu_Show(){
 		;Пункт меню для конвертирования описания
 		Menu, itemMenu, Add
 		Menu, itemMenu, Add, Конвертировать Ru>En, ItemMenu_ConvertFromGame
-		If FileExist("resources\icons\copy.png")
-			Menu, itemMenu, Icon, Конвертировать Ru>En, resources\icons\copy.png
+		If FileExist("resources\imgs\copy.png")
+			Menu, itemMenu, Icon, Конвертировать Ru>En, resources\imgs\copy.png
 		Menu, itemMenu, Add	
 		
 		;Создадим меню для подсветки
@@ -119,21 +119,21 @@ ItemMenu_Show(){
 
 ItemMenu_AddPoEDB(Line) {
 	Menu, itemMenu, Add, PoEDB>%Line%, ItemMenu_OpenOnPoEDB
-	If FileExist("resources\icons\web.png")
-		Menu, itemMenu, Icon, PoEDB>%Line%, resources\icons\web.png
+	If FileExist("resources\imgs\web.png")
+		Menu, itemMenu, Icon, PoEDB>%Line%, resources\imgs\web.png
 }
 
 
 ItemMenu_AddCopyInBuffer(Line){
 	Menu, itemMenu, Add, %Line%, ItemMenu_CopyInBuffer
-	If FileExist("resources\icons\copy.png")
-		Menu, itemMenu, Icon, %Line%, resources\icons\copy.png
+	If FileExist("resources\imgs\copy.png")
+		Menu, itemMenu, Icon, %Line%, resources\imgs\copy.png
 }
 
 ItemMenu_AddHightlight(Line){
 	Menu, itemMenu, Add, *%Line%, ItemMenu_Hightlight
-	If FileExist("resources\icons\highlight.png")
-		Menu, itemMenu, Icon, *%Line%, resources\icons\highlight.png
+	If FileExist("resources\imgs\highlight.png")
+		Menu, itemMenu, Icon, *%Line%, resources\imgs\highlight.png
 }
 
 ItemMenu_OpenOnPoEDB(Line){
