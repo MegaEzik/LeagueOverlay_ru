@@ -2,7 +2,7 @@
 LutTools.ahk|http://lutbot.com/ahk/macro.ahk
 Bow+3.png|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Bow+3.png
 Catalysts.jpg|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Catalysts.jpg
-Beta.zip|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Beta.zip|0BEB5625818D68DA916783F6FBF902B4
+Beta.zip|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Beta.zip|9F5423DDC3C5FC2551C2BCED89F1D542
 ;Archnemesis.jpg|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Archnemesis.jpg
 ;Prophecy.png|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Prophecy.png
 ;Isaac.zip|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Isaac.zip|1CD6B671911B1D33906949253374A16E

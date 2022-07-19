@@ -41,7 +41,7 @@ SetWorkingDir %A_ScriptDir%
 #Include, %A_ScriptDir%\resources\ahk\Gamepad.ahk
 #Include, %A_ScriptDir%\resources\ahk\pkgsMgr.ahk
 
-;Объявление и загрузка основных переменных
+;Объявление и загрузка переменных
 global prjName="LeagueOverlay_ru", githubUser="MegaEzik"
 global configFolder:=A_MyDocuments "\AutoHotKey\" prjName
 If InStr(FileExist(A_ScriptDir "\..\Profile"), "D")
@@ -49,9 +49,15 @@ If InStr(FileExist(A_ScriptDir "\..\Profile"), "D")
 global configFile:=configFolder "\settings.ini"
 global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, textCmd11, textCmd12, textCmd13, textCmd14, textCmd15, textCmd16, textCmd17, textCmd18, textCmd19, textCmd20, cmdNum=20
 global verScript, args, LastImg, globalOverlayPosition, OverlayStatus=0
+
 Loop, %0%
 	args.=" " %A_Index%
 FileReadLine, verScript, resources\Updates.txt, 1
+
+IniRead, LastImg, %configFile%, info, lastImg, %A_Space%
+IniRead, globalOverlayPosition, %configFile%, settings, overlayPosition, %A_Space%
+IniRead, mouseDistance, %configFile%, settings, mouseDistance, 500
+Globals.Set("mouseDistance", mouseDistance)
 
 ;Список окон Path of Exile
 GroupAdd, WindowGrp, Path of Exile ahk_class POEWindowClass
@@ -88,17 +94,13 @@ If update {
 ;Проверка версии и перенос настроек
 migrateConfig()
 
-;Подгрузим некоторые значения
-IniRead, LastImg, %configFile%, info, lastImg, %A_Space%
-IniRead, globalOverlayPosition, %configFile%, settings, overlayPosition, %A_Space%
-IniRead, mouseDistance, %configFile%, settings, mouseDistance, 500
-Globals.Set("mouseDistance", mouseDistance)
-
 ;Выполним все файлы с окончанием .ahk, передав им папку расположения скрипта
 pkgsMgr_startCustomScripts()
 
 ;Загрузка и установка данных
-downloadData()
+loadPresetData()
+initLab()
+ItemMenu_IDCLInit()
 
 ;Назначим управление и создадим меню
 menuCreate()
@@ -206,32 +208,9 @@ migrateConfig() {
 	}
 }
 
-downloadData(){
-	loadPresetData()
-	ItemMenu_IDCLInit()
-	IniRead, loadLab, %configFile%, settings, loadLab, 0
-	If loadLab {
-		downloadLabLayout(,true)
-		SetTimer, downloadLabLayout, 1800000
-	}
-}
-
 shLastImage(){
 	SplitLastImg:=StrSplit(LastImg, "|")
 	shOverlay(SplitLastImg[1], SplitLastImg[2], SplitLastImg[3])
-}
-
-firstAprilJoke(){
-	presetsDataSplit:=strSplit(Globals.Get("presetsData"), "`n")
-	For k, val in presetsDataSplit {
-		ImgSplit:=strSplit(presetsDataSplit[k], "|")
-		If FileExist(StrReplace(ImgSplit[2], "<configFolder>", configFolder))
-			tmpPresetData.=StrReplace(ImgSplit[2], "<configFolder>", configFolder) "`n"
-	}
-	presetsDataSplit:=strSplit(tmpPresetData, "`n")
-	Random, randomNum, 1, presetsDataSplit.MaxIndex()-1
-	shOverlay(presetsDataSplit[randomNum])
-	return
 }
 
 loadPreset(presetName){
@@ -295,6 +274,8 @@ loadEvent(){
 			rStartUIMsg:=StartUIMsg1
 		If RegExMatch(eventDataSplit[k], ";EventName=(.*)$", EventName)
 			rEventName:=EventName1
+		If RegExMatch(eventDataSplit[k], ";EventLogo=(.*)$", EventLogo)
+			rEventLogo:=EventLogo1
 		If RegExMatch(eventDataSplit[k], ";StartDate=(.*)$", StartDate)
 			rStartDate:=StartDate1
 		If RegExMatch(eventDataSplit[k], ";EndDate=(.*)$", EndDate)
@@ -305,16 +286,19 @@ loadEvent(){
 	
 	If (rMinVersion>verScript || rStartDate="" || rEndDate="" || CurrentDate<rStartDate || CurrentDate>rEndDate)
 		return
+	
+	If (rEventLogo!="")
+		LoadFile(rEventLogo, "resources\data\logo.jpg", true)
+		
+	If (rStartUIMsg!="")
+		showStartUI(rStartUIMsg, (rEventLogo!="")?"resources\data\logo.jpg":"")
+	
+	If (rEventName!="")
+		trayMsg(rStartDate " - " rEndDate, rEventName)
 		
 	For k, val in eventDataSplit
 		If RegExMatch(eventDataSplit[k], ";ResourceFile=(.*)$", rURL)
 			loadEventResourceFile(rURL1)
-	
-	If (rStartUIMsg!="")
-		showStartUI(rStartUIMsg)
-	
-	If (rEventName!="")
-		trayMsg(rStartDate " - " rEndDate, rEventName)
 	
 	return eventData
 }
@@ -369,7 +353,7 @@ openMyImagesFolder(){
 myImagesMenuCreate(expandMenu=true){
 	If expandMenu {
 		Loop, %configFolder%\MyFiles\*.*, 1
-			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt)$")
+			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt|preset)$")
 				Menu, mainMenu, Add, %A_LoopFileName%, shMyImage
 		Menu, mainMenu, Add
 	} Else {
@@ -454,7 +438,7 @@ showLicense(){
 }
 
 setWindowsList(){
-	textFileWindow("", configFolder "\windows.list", false, "ahk_exe notepad++.exe")
+	textFileWindow("Отслеживаемые окна", configFolder "\windows.list", false, "ahk_exe notepad++.exe")
 }
 
 clearPoECache(){
@@ -479,12 +463,6 @@ clearPoECache(){
 	trayMsg("Очистка кэша завершена)")
 }
 
-copyPreset(){
-	Gui, Settings:Destroy
-	pkgsMgr_fromFile()
-	showSettings()
-}
-
 editPreset(presetName){
 	Gui, Settings:Destroy
 	If InStr(presetName, "Изменить ")=1
@@ -506,14 +484,13 @@ cfgPresetMenuShow(){
 	Menu, delPresetMenu, Add
 	Menu, delPresetMenu, DeleteAll
 	Menu, delPresetMenu, Add, Создать новый, editPreset
-	Menu, delPresetMenu, Add, Добавить из файла, copyPreset
 	Menu, delPresetMenu, Add
 	Loop, %configFolder%\presets\*.preset, 1
 		Menu, delPresetMenu, Add, Изменить %A_LoopFileName%, editPreset
 	Menu, delPresetMenu, Show
 }
 
-showStartUI(SpecialText=""){
+showStartUI(SpecialText="", LogoPath=""){
 	Gui, StartUI:Destroy
 	
 	initMsgs := ["Подготовка макроса к работе"
@@ -526,15 +503,6 @@ showStartUI(SpecialText=""){
 				,"Предсказываем... огонь, насилие, СМЕРТЬ"
 				,"Входим в 820ый для поиска лаб ... а ну да"
 				,"Удаляем Зеркало Каландры из вашего фильтра предметов"]
-				
-	FormatTime, CurrentDate, %A_Now%, MMdd
-	
-	If (CurrentDate==1231 || CurrentDate==0101)
-		initMsgs:=["Мммм, Ледники"]
-	If (CurrentDate==0223)
-		initMsgs:=["Все мужики любят носки", "Есть один подарок лучше, чем носки. Это пена для бритья"]
-	If (CurrentDate==0308)
-		initMsgs:=["Не забывайте - это праздник всех женщин. Всех на свете!", "@>->--"]
 	
 	Random, randomNum, 1, initMsgs.MaxIndex()
 	initMsg:=initMsgs[randomNum] "..."
@@ -542,24 +510,25 @@ showStartUI(SpecialText=""){
 	If (SpecialText!="")
 		initMsg:=SpecialText
 	
-	If (CurrentDate==0401) {
-		Loop % Len := StrLen(initMsg)
-			NewInitMsg.= SubStr(initMsg, Len--, 1)
-		initMsg:=NewInitMsg
-	}
-	
 	dNames:=["AbyssSPIRIT", "milcart", "Pip4ik", "ДанилАР", "MONI9K", "ИванАК", "РоманВК"]
 	Random, randomNum, 1, dNames.MaxIndex()
 	dName:="@" dNames[randomNum] " ty) "
 	
-	BGTitle:="481D05"
-	If RegExMatch(verScript, "i)Beta")
-		BGTitle:="505256"
-	Gui, StartUI:Add, Progress, w500 h26 x0 y0 Background%BGTitle%
-
-	Gui, StartUI:Font, s12 cFEC076 bold
+	Gui, StartUI:Color, FEC076
 	
-	Gui, StartUI:Add, Text, x5 y3 h20 w490 +Center BackgroundTrans, %prjName% %verScript% | AHK %A_AhkVersion%
+	If FileExist(LogoPath)
+		Gui, StartUI:Add, Picture, x0 y0 w500 h70, %LogoPath%
+	
+	BGTitle:="7F3208"
+	If RegExMatch(verScript, "i)(Beta|Experimental)")
+		BGTitle:="707070"
+	;Gui, StartUI:Add, Progress, w500 h26 x0 y0 Background%BGTitle%
+
+	Gui, StartUI:Font, s12 c%BGTitle% bold
+	
+	Gui, StartUI:Add, Text, x5 y2 h20 w490 +Center BackgroundTrans, %prjName% %verScript% | AHK %A_AhkVersion%
+	
+	Gui, StartUI:Add, Text, x-5 y+2 w510 h1 0x12
 	
 	Gui, StartUI:Font, c000000
 	
@@ -567,8 +536,8 @@ showStartUI(SpecialText=""){
 	Gui, StartUI:Add, Text, x0 y+10 h18 w500 +Center BackgroundTrans, %initMsg%
 	
 	Gui, StartUI:Font, s8 norm
-	Gui, StartUI:Font, c505256
-	Gui, StartUI:Add, Text, x4 y+3 w340 BackgroundTrans, %args%
+	Gui, StartUI:Font, c707070
+	Gui, StartUI:Add, Text, x4 y+2 w340 BackgroundTrans, %args%
 	
 	Gui, StartUI:Font, s8 norm italic
 	Gui, StartUI:Font, c000000
@@ -588,12 +557,6 @@ closeStartUI(){
 		IniWrite, 0, %configFile%, info, showHistory
 	}
 	showDonateUIOnStart()
-	If FileExist("readme.txt") {
-		FileRead, MsgText, readme.txt
-		If (MsgText!="")
-			Msgbox, 0x1030, %prjName% - Важное уведомление!, %MsgText%
-		FileDelete, readme.txt
-	}
 }
 
 showSettings(){
@@ -610,7 +573,7 @@ showSettings(){
 	
 	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
 	IniRead, preset, %configFile%, settings, preset, default
-	IniRead, mouseDistance, %configFile%, settings, mouseDistance, 500
+	IniRead, mouseDistance, %configFile%, settings, mouseDistance, 700
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
 	IniRead, hotkeyGamepad, %configFile%, hotkeys, hotkeyGamepad, %A_Space%
@@ -638,7 +601,7 @@ showSettings(){
 	Gui, Settings:Add, Tab, x0 y0 w640 h385, Основные|Загрузки|Команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
-	Gui, Settings:Add, Text, x12 y30 w515, Список отслеживаемых окон:
+	Gui, Settings:Add, Text, x12 y30 w515, Отслеживаемые окна:
 	Gui, Settings:Add, Button, x+1 yp-3 w102 h23 gsetWindowsList, Изменить
 	
 	
@@ -773,7 +736,6 @@ saveSettings(){
 			
 	;Настройки первой вкладки
 	IniWrite, %posX%/%posY%/%posW%/%posH%, %configFile%, settings, overlayPosition
-	
 	IniWrite, %expandMyImages%, %configFile%, settings, expandMyImages
 	IniWrite, %preset%, %configFile%, settings, preset
 	IniWrite, %mouseDistance%, %configFile%, settings, mouseDistance
@@ -846,12 +808,12 @@ menuCreate(){
 	Menu, Tray, Add, Поддержать %githubUser%, showDonateUI
 	Menu, Tray, Add, История изменений, showUpdateHistory
 	Menu, Tray, Add
-	Menu, Tray, Add, Выполнить обновление, CheckUpdateFromMenu
+	Menu, Tray, Add, Обновление, CheckUpdateFromMenu
 	Menu, Tray, Add, Настройки, showSettings
 	Menu, Tray, Default, Настройки
 	Menu, Tray, Add, Очистить кэш PoE, clearPoECache
 	Menu, Tray, Add, Дополнения, pkgsMgr_packagesMenu
-	Menu, Tray, Add, Меню разработчика, :devMenu
+	Menu, Tray, Add, Меню отладки, :devMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить, ReStart
 	Menu, Tray, Add, Выход, Exit
@@ -863,15 +825,6 @@ shMainMenu(Gamepad=false){
 	destroyOverlay()
 	Menu, mainMenu, Add
 	Menu, mainMenu, DeleteAll
-	;Menu, mainMenu, Color, 808080
-	
-	FormatTime, CurrentDate, %A_Now%, MMdd
-	If (CurrentDate==0401) {
-		listJoke:=["Криллсон - Самоучитель по рыбалке", "Навали - Пророчества", "Зана - Прогрессия карт", "Мастер испытаний - Ультиматум"]
-		Random, randomNum, 1, listJoke.MaxIndex()
-		nameJoke:=listJoke[randomNum]
-		Menu, mainMenu, Add, %nameJoke%, firstAprilJoke
-	}
 	
 	presetInMenu()
 	

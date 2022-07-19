@@ -2,8 +2,6 @@
 ;Инициализация и создание меню разработчика
 devInit(){
 	localUpdate()
-	Menu, devMenu, Add, /Debug, createShortcut
-	Menu, devMenu, Add
 	Menu, devMenu, Add, Папка макроса, openScriptFolder	
 	Menu, devMenu, Add, Папка настроек, openConfigFolder
 	Menu, devMenu, Add

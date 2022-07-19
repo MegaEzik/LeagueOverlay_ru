@@ -82,6 +82,14 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false) {
 	sleep 100
 }
 
+initLab(){
+	IniRead, loadLab, %configFile%, settings, loadLab, 0
+	If loadLab {
+		downloadLabLayout(,true)
+		SetTimer, downloadLabLayout, 1800000
+	}
+}
+
 reloadLab(LabURL){
 	SplashTextOn, 400, 20, %prjName%, Загрузка лабиринта, пожалуйста подождите...
 	FileDelete, %configFolder%\MyFiles\Labyrinth.jpg

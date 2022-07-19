@@ -1,8 +1,9 @@
 ﻿;EventName=Лига Возмездие
+;;EventLogo=https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/TestLogoEvent.jpg
 ;;StartUIMsg=Удачного Возмездия...
 ;StartDate=20220204
 ;EndDate=20220730
-;MinVersion=220614.3
+;MinVersion=220614.6
 ;ResourceFile=https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Archnemesis.jpg
 Возмездие|resources\data\Archnemesis.jpg
 ;---

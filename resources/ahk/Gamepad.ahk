@@ -6,11 +6,18 @@ shGamepadMenu(){
 		GetKeyState, MyJoy, %hotkeyGamepad%
 		If (MyJoy!="D")
 			return
-		Sleep 50
+		Sleep 25
+	}
+	shLastImage()
+	Loop 20 {
+		GetKeyState, MyJoy, %hotkeyGamepad%
+		If (MyJoy!="D")
+			return
+		Sleep 25
 	}
 	
 	WinGetPos,,,PosW,,A
-	MouseMove, round(PosW*0.4), 0, 0
+	MouseMove, round(PosW*0.40), 0, 0
 	
 	Run *RunAs "%A_AhkPath%" resources\PseudoMouse.ahk %hotkeyGamepad%,,, PseudoMousePID
 	shMainMenu(true)
