@@ -1,7 +1,7 @@
 ﻿
 pkgsMgr_packagesMenu(){
 	FilePath:="resources\Packages.txt"
-	LoadFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/Packages.txt", FilePath)
+	LoadFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/Packages.txt", FilePath, true)
 	
 	Menu, packagesMenu, Add
 	Menu, packagesMenu, DeleteAll

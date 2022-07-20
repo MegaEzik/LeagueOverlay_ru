@@ -288,10 +288,10 @@ loadEvent(){
 		return
 	
 	If (rEventLogo!="")
-		LoadFile(rEventLogo, "resources\data\logo.jpg", true)
+		LoadFile(rEventLogo, "resources\data\bg.jpg", true)
 		
 	If (rStartUIMsg!="")
-		showStartUI(rStartUIMsg, (rEventLogo!="")?"resources\data\logo.jpg":"")
+		showStartUI(rStartUIMsg, (rEventLogo!="")?"resources\data\bg.jpg":"")
 	
 	If (rEventName!="")
 		trayMsg(rStartDate " - " rEndDate, rEventName)
@@ -299,6 +299,8 @@ loadEvent(){
 	For k, val in eventDataSplit
 		If RegExMatch(eventDataSplit[k], ";ResourceFile=(.*)$", rURL)
 			loadEventResourceFile(rURL1)
+			
+	Sleep 1500
 	
 	return eventData
 }
@@ -510,6 +512,9 @@ showStartUI(SpecialText="", LogoPath=""){
 	If (SpecialText!="")
 		initMsg:=SpecialText
 	
+	initMsg:=StrReplace(initMsg, "/n", "`n")
+	initMsg:=StrReplace(initMsg, "/t", "`t")
+	
 	dNames:=["AbyssSPIRIT", "milcart", "Pip4ik", "ДанилАР", "MONI9K", "ИванАК", "РоманВК"]
 	Random, randomNum, 1, dNames.MaxIndex()
 	dName:="@" dNames[randomNum] " ty) "
@@ -521,7 +526,7 @@ showStartUI(SpecialText="", LogoPath=""){
 		Gui, StartUI:Add, Picture, x0 y0 w500 h70, %LogoPath%
 	
 	BGTitle:="7F3208"
-	If RegExMatch(verScript, "i)(Beta|Experimental)")
+	If RegExMatch(verScript, "i)(Experimental|Alpha|Beta|RC)")
 		BGTitle:="505050"
 	;Gui, StartUI:Add, Progress, w500 h26 x0 y0 Background%BGTitle%
 
@@ -534,11 +539,11 @@ showStartUI(SpecialText="", LogoPath=""){
 	Gui, StartUI:Font, c000000
 	
 	Gui, StartUI:Font, s10 bold italic
-	Gui, StartUI:Add, Text, x0 y+10 h18 w500 +Center BackgroundTrans, %initMsg%
+	Gui, StartUI:Add, Text, x0 y+5 h30 w500 +Center BackgroundTrans, %initMsg%
 	
 	Gui, StartUI:Font, s8 norm
 	Gui, StartUI:Font, c505050
-	Gui, StartUI:Add, Text, x4 y+2 w340 BackgroundTrans, %args%
+	Gui, StartUI:Add, Text, x4 y55 w340 BackgroundTrans, %args%
 	
 	Gui, StartUI:Font, s8 norm italic
 	Gui, StartUI:Font, c000000
