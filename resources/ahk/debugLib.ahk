@@ -2,8 +2,6 @@
 ;Инициализация и создание меню разработчика
 devInit(){
 	localUpdate()
-	Menu, devMenu, Add, devStartUI
-	Menu, devMenu, Add
 	Menu, devMenu, Add, Папка макроса, openScriptFolder	
 	Menu, devMenu, Add, Папка настроек, openConfigFolder
 	Menu, devMenu, Add
@@ -18,10 +16,6 @@ devInit(){
 	Menu, devMenu, Add, https://poelab.com/wfbra, reloadLab
 	Menu, devMenu, Add
 	Menu, devMenu, Standard
-}
-
-devStartUI(){
-	ShowStartUI("Очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень длинный тестовый текст!")
 }
 
 localUpdate(){

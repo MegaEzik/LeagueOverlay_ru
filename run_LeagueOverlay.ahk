@@ -185,8 +185,6 @@ migrateConfig() {
 			}
 			If (verConfig<220417.2) {
 				FileMove, %configFolder%\highlight.txt, %configFolder%\highlight.list, 1
-				IniRead, preset, %configFile%, settings, preset1, default
-				IniWrite, %preset%, %configFile%, settings, preset
 			}
 		}
 		
@@ -479,7 +477,8 @@ editPreset(presetName){
 	}
 	If (presetName="" || ErrorLevel)
 		return
-	textFileWindow("Изменение " presetName, configFolder "\presets\" presetName, false, loadPreset("Default"))
+	IniRead, preset, %configFile%, settings, preset, %A_Space%
+	textFileWindow("Изменение " presetName, configFolder "\presets\" presetName, false, loadPreset(preset))
 }
 
 cfgPresetMenuShow(){
@@ -539,7 +538,7 @@ showStartUI(SpecialText="", LogoPath=""){
 	Gui, StartUI:Font, c000000
 	
 	Gui, StartUI:Font, s10 bold italic
-	Gui, StartUI:Add, Text, x0 y+5 h30 w500 +Center BackgroundTrans, %initMsg%
+	Gui, StartUI:Add, Text, x0 y+2 h30 w500 +Center BackgroundTrans, %initMsg%
 	
 	Gui, StartUI:Font, s8 norm
 	Gui, StartUI:Font, c505050
