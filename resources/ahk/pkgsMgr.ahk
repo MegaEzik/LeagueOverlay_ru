@@ -70,6 +70,10 @@ pkgsMgr_installPackage(FilePath){
 		FileCopy, %FilePath%, %configFolder%\%Name%, 1
 		ReStart()
 	}
+	If RegExMatch(FilePath, "i).upd.zip$") {
+		unZipArchive(FilePath, A_ScriptDir)
+		ReStart()
+	}
 	If RegExMatch(FilePath, "i).zip$") {
 		unZipArchive(FilePath, configFolder)
 		NameAHK:=RegExReplace(Name, "i).zip$", ".ahk")

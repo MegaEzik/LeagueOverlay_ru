@@ -1,7 +1,6 @@
 ﻿
 ;Инициализация и создание меню разработчика
 devInit(){
-	localUpdate()
 	Menu, devMenu, Add, Папка макроса, openScriptFolder	
 	Menu, devMenu, Add, Папка настроек, openConfigFolder
 	Menu, devMenu, Add
@@ -16,16 +15,6 @@ devInit(){
 	Menu, devMenu, Add, https://poelab.com/wfbra, reloadLab
 	Menu, devMenu, Add
 	Menu, devMenu, Standard
-}
-
-localUpdate(){
-	If FileExist(configFolder "\update.zip"){
-		msgbox, 0x1024, %prjName%, Установить локальное обновление?`nВ случае отказа пакет обновления будет удален!
-		IfMsgBox Yes
-			unZipArchive(configFolder "\update.zip", A_ScriptDir)
-		FileDelete, %configFolder%\update.zip
-		ReStart()
-	}
 }
 
 devMD5FileCheck(){
