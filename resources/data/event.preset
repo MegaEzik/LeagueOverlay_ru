@@ -1,9 +1,9 @@
 ﻿;EventName=Experimental
-;EventLogo=https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/testbg.jpg
+;;EventLogo=https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/testbg.jpg
 ;StartUIMsg=Это тестовый вариант нового стартового UI/nпри активном наборе события!
 ;StartDate=20220715
-;EndDate=20220810
-;MinVersion=220614.8
+;EndDate=20220724
+;MinVersion=220615
 ;ResourceFile=https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Archnemesis.jpg
 Возмездие|resources\data\Archnemesis.jpg
 ;---
