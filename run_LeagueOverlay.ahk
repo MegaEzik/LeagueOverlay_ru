@@ -295,10 +295,10 @@ loadEvent(){
 		trayMsg(rStartDate " - " rEndDate, rEventName)
 		
 	For k, val in eventDataSplit
-		If RegExMatch(eventDataSplit[k], ";ResourceFile=(.*)$", rURL)
+		If RegExMatch(eventDataSplit[k], ";ResourceFile=(.*)$", rURL)=1
 			loadEventResourceFile(rURL1)
 			
-	Sleep 1500
+	Sleep 1000
 	
 	return eventData
 }
