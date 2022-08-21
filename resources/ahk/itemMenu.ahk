@@ -58,6 +58,8 @@ ItemMenu_Show(){
 		
 		;Создадим меню для подсветки
 		ItemMenu_AddHightlight(ItemName)
+		If (ItemName_En!="" && !RegExMatch(ItemName_En, "Undefined Name"))
+			ItemMenu_AddHightlight(ItemName_En)
 		ItemMenu_AddHightlight(ItemClass1)
 		ItemMenu_AddHightlight(Rarity1)
 		
