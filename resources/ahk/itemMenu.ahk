@@ -152,10 +152,13 @@ ItemMenu_CopyInBuffer(Line){
 
 ItemMenu_Hightlight(Line){
 	Line:=SubStr(Line, 2)
-	DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", 0x50, "UInt", 0x4090409, "UInt", 0x4090409)
-	sleep 25
+	;DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", 0x50, "UInt", 0x4090409, "UInt", 0x4090409)
+	;sleep 25
+	clipboard:=Line
+	sleep 3
 	BlockInput On
-	SendInput, ^{f}%Line%
+	;SendInput, ^{f}%Line%
+	SendInput, ^{f}^{v}
 	BlockInput Off
 }
 

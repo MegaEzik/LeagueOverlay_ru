@@ -1,14 +1,20 @@
 ﻿
 fastCmdForceSync(){
+	commandFastReply("/oos")
+	/*
 	BlockInput On
 	SendInput, {Enter}^a{Backspace}{/}oos{Enter}
 	BlockInput Off
+	*/
 }
 
 fastCmdExit(){
+	commandFastReply("/exit")
+	/*
 	BlockInput On
 	SendInput, {Enter}^a{Backspace}{/}exit{Enter}
 	BlockInput Off
+	*/
 }
 
 fastCmd1(){
@@ -96,8 +102,8 @@ customCmdsEdit() {
 }
 
 commandFastReply(Line:="/dance"){
-	DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", 0x50, "UInt", 0x4090409, "UInt", 0x4090409)
-	sleep 25
+	;DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", 0x50, "UInt", 0x4090409, "UInt", 0x4090409)
+	;sleep 25
 	
 	;Замена переменных
 	If InStr(Line, "<configFolder>")
@@ -113,6 +119,27 @@ commandFastReply(Line:="/dance"){
 	}
 	
 	;Чат
+	If (InStr(Line, "/")=1) || (InStr(Line, "%")=1) || (InStr(Line, "_")=1) {
+		If (InStr(Line, "/")=1) && RegExMatch(Line, " <last>$") {
+			Line:=StrReplace(Line, " <last>", " ")
+			Clipboard:=Line
+			Sleep 3
+			BlockInput On
+			SendInput, ^{Enter}{Home}{Delete}^{v}{Enter}
+			BlockInput Off
+			return
+		}
+		If (InStr(Line, "_")=1)
+			Line:=SubStr(Line, 2)
+		Clipboard:=Line
+		Sleep 3
+		BlockInput On
+		SendInput, {Enter}^{a}^{v}{Enter}
+		BlockInput Off
+		return
+	}
+	
+	/*
 	If (InStr(Line, "/")=1) || (InStr(Line, "%")=1) {
 		If (!InStr(Line, "%")=1 && RegExMatch(Line, " <last>$")) {
 			Line:=StrReplace(Line, " <last>", "")
@@ -133,10 +160,15 @@ commandFastReply(Line:="/dance"){
 		BlockInput Off
 		return
 	}
+	*/
+	
 	If (InStr(Line, "@<last> ")=1) {
 		Line:=SubStr(Line, 9)
+		Clipboard:=Line
+		Sleep 3
 		BlockInput On
-		SendInput, ^{Enter}%Line%{Enter}
+		;SendInput, ^{Enter}%Line%{Enter}
+		SendInput, ^{Enter}^{v}{Enter}
 		BlockInput Off
 		return
 	}
