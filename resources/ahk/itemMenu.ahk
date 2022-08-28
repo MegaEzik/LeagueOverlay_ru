@@ -157,7 +157,7 @@ ItemMenu_Hightlight(Line){
 	;DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", 0x50, "UInt", 0x4090409, "UInt", 0x4090409)
 	;sleep 25
 	clipboard:=Line
-	sleep 3
+	sleep 5
 	BlockInput On
 	;SendInput, ^{f}%Line%
 	SendInput, ^{f}^{v}
@@ -165,7 +165,7 @@ ItemMenu_Hightlight(Line){
 }
 
 ItemMenu_customHightlight() {
-	textFileWindow("Редактирование подсветки", configFolder "\highlight.list", false, "к максимуму здоровья`nк сопротивлению`nповышение скорости передвижения`nВосприятие|Контрмагия|Маскировка")
+	textFileWindow("Редактирование подсветки", configFolder "\highlight.list", false, "к максимуму здоровья`nк сопротивлению`nповышение скорости передвижения`nВосприятие|Маскировка`n""nt ro|fien|r be|vy b|amp|ian""")
 }
 
 ItemMenu_IDCLInit(){
