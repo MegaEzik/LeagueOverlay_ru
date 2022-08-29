@@ -5,6 +5,6 @@ Catalysts.jpg|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211
 Oils.jpg|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Oils.jpg
 
 ;EnglishPreset.zip|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/ENPreset.zip|6EAFCD1604AA5E81E4108FC51BE4B56E
-;Archnemesis.jpg|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Archnemesis.jpg
+Archnemesis.jpg|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Archnemesis.jpg
 ;Prophecy.png|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Prophecy.png
 ;Isaac.zip|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Isaac.zip|1CD6B671911B1D33906949253374A16E
