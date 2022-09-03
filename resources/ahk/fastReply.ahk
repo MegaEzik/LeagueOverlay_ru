@@ -123,7 +123,7 @@ commandFastReply(Line:="/dance"){
 		If (InStr(Line, "/")=1) && RegExMatch(Line, " <last>$") {
 			Line:=StrReplace(Line, " <last>", " ")
 			Clipboard:=Line
-			Sleep 5
+			Sleep 10
 			BlockInput On
 			SendInput, ^{Enter}{Home}{Delete}^{v}{Enter}
 			BlockInput Off
@@ -132,7 +132,7 @@ commandFastReply(Line:="/dance"){
 		If (InStr(Line, "_")=1)
 			Line:=SubStr(Line, 2)
 		Clipboard:=Line
-		Sleep 5
+		Sleep 10
 		BlockInput On
 		SendInput, {Enter}^{a}^{v}{Enter}
 		BlockInput Off
@@ -165,7 +165,7 @@ commandFastReply(Line:="/dance"){
 	If (InStr(Line, "@<last> ")=1) {
 		Line:=SubStr(Line, 9)
 		Clipboard:=Line
-		Sleep 5
+		Sleep 10
 		BlockInput On
 		;SendInput, ^{Enter}%Line%{Enter}
 		SendInput, ^{Enter}^{v}{Enter}

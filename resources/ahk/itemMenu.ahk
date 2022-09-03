@@ -20,14 +20,18 @@ ItemMenu_Show(){
 	
 	;Определим имя предмета
 	ItemName:=ItemDataSplit[3]
-	If (((ItemDataSplit[2]="Редкость: Редкий") || (ItemDataSplit[2]="Rarity: Rare")) && (!RegExMatch(ItemData, "Неопознано") && !RegExMatch(ItemData, "Undefined")))
+	If ((ItemDataSplit[2]="Редкость: Редкий") && !RegExMatch(ItemData, "Неопознано"))
 		ItemName:=ItemDataSplit[4]
 	
 	If (RegExMatch(ItemDataSplit[1], "Класс предмета: (.*)", ItemClass) && RegExMatch(ItemDataSplit[2], "Редкость: (.*)", Rarity)) {
 		devAddInList(ItemClass1) ;Временная функция разработчика для сбора классов предметов
 		;Пункт для открытия на PoEDB
 		If (Rarity1!="Волшебный") {
-			ItemMenu_AddPoEDB(ItemName)
+			If RegExMatch(ItemClass1, "(Камни умений|Камни поддержки)") {
+				ItemMenu_AddPoEDB(RegExReplace(ItemName, "(Аномальный|Искривлённый|Фантомный): ", ""))
+			} else {
+				ItemMenu_AddPoEDB(ItemName)
+			}
 			Menu, itemMenu, Add
 		}
 		;Пункт для копирования имени предмета
@@ -97,6 +101,8 @@ ItemMenu_Show(){
 				ItemMenu_AddHightlight("tier:" findtext1)
 			If ((ItemClass1="Чертежи" || ItemClass1="Контракты") && RegExMatch(ItemDataSplit[k], "Требуется (.*) \(\d+", findtext))
 				ItemMenu_AddHightlight(findtext1)
+			If (ItemClass1="Журналы экспедиции" && RegExMatch(ItemDataSplit[k], "(Друиды Разомкнутого круга|Наёмники Чёрной косы|Рыцари Солнца|Орден Чаши)", findtext)=1)
+				ItemMenu_AddHightlight(findtext1)
 			If (ItemName="Зеркальная табличка" && RegExMatch(ItemDataSplit[k], "Отражение (.*) \(\d+", findtext))
 				ItemMenu_AddHightlight("Отражение " findtext1)
 			;If (ItemName="Хроники Ацоатля" && RegExMatch(ItemDataSplit[k], "(.*) \(Уровень \d+\)", findtext))
@@ -157,7 +163,7 @@ ItemMenu_Hightlight(Line){
 	;DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", 0x50, "UInt", 0x4090409, "UInt", 0x4090409)
 	;sleep 25
 	clipboard:=Line
-	sleep 5
+	sleep 10
 	BlockInput On
 	;SendInput, ^{f}%Line%
 	SendInput, ^{f}^{v}
