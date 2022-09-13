@@ -1,10 +1,14 @@
 ﻿
 ;Инициализация и создание меню разработчика
 devInit(){
+	Menu, devMenu, Add, Добавить заметку, newNote
+	Menu, devMenu, Add
 	Menu, devMenu, Add, Папка макроса, openScriptFolder	
 	Menu, devMenu, Add, Папка настроек, openConfigFolder
 	Menu, devMenu, Add
 	Menu, devMenu, Add, Контрольная сумма(MD5), devMD5FileCheck
+	Menu, devMenu, Add
+	Menu, devMenu, Add, /Debug, createShortcut
 	Menu, devMenu, Add
 	Menu, devMenu, Add, Перезагрузить данные, devClSD
 	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
@@ -102,4 +106,14 @@ fastMenuCmd(cmdName){
 		}
 	}
 	commandFastReply(cmdName)
+}
+
+newNote(){
+	InputBox, fileName, Введите название для заметки,,, 300, 100,,,,, NewNote
+	filePath:= configFolder "\MyFiles\" fileName ".txt"
+	If (FileExist(filePath) || fileName="" || ErrorLevel) {
+		traytip, %prjName% - Добавление заметки, Что-то пошло не так(
+		return
+	}
+	textFileWindow("", filePath, false)
 }

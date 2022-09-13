@@ -1,10 +1,11 @@
-﻿;;EventName=Experimental
-;EventLogo=https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/KLake.jpg
-;StartUIMsg=Зеркального вам старта)
+﻿;EventName=Озеро Каландры
+;;EventLogo=https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/KLake.jpg
+;;StartUIMsg=Зеркального вам старта)
 ;StartDate=20220819
-;EndDate=20220822
+;EndDate=20221102
 ;MinVersion=220615
 ;;ResourceFile=https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Archnemesis.jpg
+Зеркальная табличка|!Информация по разблокировке Зеркальной таблички/n-------------------------------------------------------------/nОбновление предложенных вариантов:/n/t*Любое 3/n/t*Сущности 5/n/t*Разлом 8/nПропустить текущий выбор:/n/t*Любое 5/n/t*Предвестники 6/n/t*Алтари 8/nЗаблокировать любой из вариантов:/n/t*Любое 8/n/t*Легион 8/n/t*Иномирье 10
 ;Возмездие|resources\data\Archnemesis.jpg
 ;---
 ;Нико - Азуритовая шахта|resources\presets\russian\Delve.jpg
