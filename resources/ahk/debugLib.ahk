@@ -2,6 +2,7 @@
 ;Инициализация и создание меню разработчика
 devInit(){
 	Menu, devMenu, Add, Добавить заметку, newNote
+	Menu, devMenu, Add, Редактировать 'MyMenu.preset', editMyMenu
 	Menu, devMenu, Add
 	Menu, devMenu, Add, Папка макроса, openScriptFolder	
 	Menu, devMenu, Add, Папка настроек, openConfigFolder
@@ -77,6 +78,7 @@ shFastMenu(presetPath) {
 
 fastMenu(presetPath){
 	destroyOverlay()
+	Sleep 50
 	Globals.Set("fastPreset", loadPreset(presetPath))
 	Menu, fastMenu, Add
 	Menu, fastMenu, DeleteAll
@@ -96,6 +98,7 @@ fastMenu(presetPath){
 }
 
 fastMenuCmd(cmdName){
+	Sleep 50
 	presetsDataSplit:=StrSplit(Globals.Get("fastPreset"), "`n")
 	For k, val in presetsDataSplit {
 		cmdInfo:=StrSplit(presetsDataSplit[k], "|")
@@ -116,4 +119,8 @@ newNote(){
 		return
 	}
 	textFileWindow("", filePath, false)
+}
+
+editMyMenu(){
+	textFileWindow("", configFolder "\MyFiles\MyMenu.preset", false, "Список команд>>|>https://pathofexile.fandom.com/wiki/Chat_console#Commands`n---`n@<last> sure`n/global 820`n/whois <last>`n/deaths`n/passives`n/atlaspassives`n/remaining`n/kills`n/dance")
 }

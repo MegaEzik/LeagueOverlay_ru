@@ -44,8 +44,10 @@ SetWorkingDir %A_ScriptDir%
 ;Объявление и загрузка переменных
 global prjName="LeagueOverlay_ru", githubUser="MegaEzik"
 global configFolder:=A_MyDocuments "\AutoHotKey\" prjName
-If InStr(FileExist(A_ScriptDir "\..\Profile"), "D")
-	configFolder:=A_ScriptDir "\..\Profile"
+If InStr(FileExist(A_ScriptDir "\..\Profile"), "D") {
+	SplitPath, A_ScriptDir,, configFolder
+	configFolder.="\Profile"
+}
 global configFile:=configFolder "\settings.ini"
 global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, textCmd11, textCmd12, textCmd13, textCmd14, textCmd15, textCmd16, textCmd17, textCmd18, textCmd19, textCmd20, cmdNum=20
 global verScript, args, LastImg, globalOverlayPosition, OverlayStatus=0
@@ -185,6 +187,9 @@ migrateConfig() {
 			}
 			If (verConfig<220417.2) {
 				FileMove, %configFolder%\highlight.txt, %configFolder%\highlight.list, 1
+			}
+			If (verConfig<221010) {
+				FileMove, %configFolder%\cmds.preset, %configFolder%\MyFiles\MyMenu.preset, 1
 			}
 		}
 		
@@ -725,7 +730,7 @@ showSettings(){
 	}
 	
 	helptext:="/dance - простая команда чата`n/whois <last> - команда в отношении последнего игрока`n@<last> ty, gl) - сообщение последнему игроку`n_ty, gl) - сообщение в чат области`n%ty, gl) - сообщение в групповой чат`n>calc.exe - открытие программы или веб страницы`nmy.jpg - изображение, набор или текстовый файл`n!текст - всплывающая подсказка"
-	helptext2:="--- - разделитель(только в 'Меню команд')`n;/dance - комментарий(команда будет проигнорирована)`n<configFolder> - указывает папку настроек(переменная)`n<time> - время UTC(переменная)`n<inputbox> - позволяет ввести текст(переменная)"
+	helptext2:="--- - разделитель`n;/dance - комментарий(команда будет проигнорирована)`n<configFolder> - указывает папку настроек(переменная)`n<time> - время UTC(переменная)`n<inputbox> - позволяет ввести текст(переменная)"
 	Gui, Settings:Add, Text, x12 y+2 w307 cTeal, %helptext%
 	Gui, Settings:Add, Text, x+2 w307 cTeal, %helptext2%
 	
@@ -838,10 +843,20 @@ shMainMenu(Gamepad=false){
 	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
 	myImagesMenuCreate((expandMyImages || Gamepad)?true:false)
 	
+	/*
 	fastMenu(configFolder "\cmds.preset")
 	Menu, fastMenu, Add
 	Menu, fastMenu, Add, Редактировать 'Меню команд', customCmdsEdit
 	Menu, mainMenu, Add, Меню команд, :fastMenu
+	*/
+	
+	If expandMyImages && FileExist(configFolder "\MyFiles\MyMenu.preset"){
+		fastMenu(configFolder "\MyFiles\MyMenu.preset")
+		Menu, fastMenu, Add
+		Menu, fastMenu, Add, Редактировать 'MyMenu.preset', editMyMenu
+		Menu, mainMenu, Add, MyMenu.preset, :fastMenu
+		Menu, mainMenu, Rename, MyMenu.preset, Мои команды
+	}
 	
 	Menu, mainMenu, Add, Область уведомлений, :Tray
 	sleep 5
@@ -943,7 +958,7 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 	If FileExist(A_WinDir "\System32\curl.exe") {
 		IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 		If (UserAgent="")
-			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36"
+			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
 		IniRead, lr, %configFile%, curl, limit-rate, 1000
 		IniRead, ct, %configFile%, curl, connect-timeout, 10
 		
