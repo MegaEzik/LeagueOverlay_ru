@@ -25,6 +25,10 @@ pkgsMgr_packagesMenu(){
 		Menu, packagesMenu, Add, × %PackName%, pkgsMgr_delPackage
 	}
 	
+	Loop, %configFolder%\Presets\*, 2
+		Menu, packagesMenu, Add, × *%A_LoopFileName%, pkgsMgr_delPackage
+		
+	
 	Menu, packagesMenu, Show
 }
 
@@ -64,7 +68,7 @@ pkgsMgr_installPackage(FilePath){
 		FileCopy, %FilePath%, %configFolder%\MyFiles\%Name%, 1
 	}
 	If RegExMatch(FilePath, "i).preset$") {
-		FileCopy, %FilePath%, %configFolder%\presets\%Name%, 1
+		FileCopy, %FilePath%, %configFolder%\MyFiles\%Name%, 1
 	}
 	If RegExMatch(FilePath, "i).ahk$") {
 		FileCopy, %FilePath%, %configFolder%\%Name%, 1
@@ -84,12 +88,15 @@ pkgsMgr_installPackage(FilePath){
 }
 
 pkgsMgr_delPackage(Name){
+	If inStr(Name, "*")=3 {
+		Name:=SubStr(Name, 4)
+		FileRemoveDir, %configFolder%\Presets\%Name%, 1
+		return
+	}
 	Name:=SubStr(Name, 3)
 	IniWrite, %A_Space%, %configFile%, pkgsMgr, %Name%.ahk
 	FileDelete, %configFolder%\%Name%.ahk
-	FileDelete, %configFolder%\presets\%Name%.preset
 	FileRemoveDir, %configFolder%\%Name%, 1
-	FileRemoveDir, %configFolder%\presets\%Name%, 1
 	Sleep 1000
 	ReStart()
 }

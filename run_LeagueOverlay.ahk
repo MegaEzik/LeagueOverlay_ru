@@ -42,19 +42,22 @@ SetWorkingDir %A_ScriptDir%
 #Include, %A_ScriptDir%\resources\ahk\pkgsMgr.ahk
 
 ;Объявление и загрузка переменных
-global prjName="LeagueOverlay_ru", githubUser="MegaEzik"
+global githubUser, prjName="LeagueOverlay_ru"
 global configFolder:=A_MyDocuments "\AutoHotKey\" prjName
 If InStr(FileExist(A_ScriptDir "\..\Profile"), "D") {
 	SplitPath, A_ScriptDir,, configFolder
 	configFolder.="\Profile"
 }
 global configFile:=configFolder "\settings.ini"
+global buildConfig:=A_ScriptDir "\resources\Build.ini"
 global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, textCmd11, textCmd12, textCmd13, textCmd14, textCmd15, textCmd16, textCmd17, textCmd18, textCmd19, textCmd20, cmdNum=20
 global verScript, args, LastImg, globalOverlayPosition, OverlayStatus=0
 
 Loop, %0%
 	args.=" " %A_Index%
 FileReadLine, verScript, resources\Updates.txt, 1
+
+IniRead, githubUser, %buildConfig%, Settings, Author, MegaEzik
 
 IniRead, LastImg, %configFile%, info, lastImg, %A_Space%
 IniRead, globalOverlayPosition, %configFile%, settings, overlayPosition, %A_Space%
@@ -88,10 +91,8 @@ devInit()
 
 ;Проверка обновлений
 IniRead, update, %configFile%, settings, update, 1
-If update {
-	CheckUpdateFromMenu("onStart")
-	SetTimer, CheckUpdate, 7200000
-}
+If update
+	CheckUpdate()
 
 ;Проверка версии и перенос настроек
 migrateConfig()
@@ -100,13 +101,15 @@ migrateConfig()
 pkgsMgr_startCustomScripts()
 
 ;Загрузка и установка данных
-loadPresetData()
+loadEvent()
 initLab()
 ItemMenu_IDCLInit()
 
 ;Назначим управление и создадим меню
 menuCreate()
 setHotkeys()
+
+systemTheme()
 
 ;Завершение загрузки
 closeStartUI()
@@ -117,6 +120,7 @@ Return
 
 #IfWinActive ahk_group WindowGrp
 
+;Проверка требований
 checkRequirementsAndArgs() {
 	If !A_IsAdmin
 		ReStart()
@@ -156,7 +160,13 @@ checkRequirementsAndArgs() {
 	OnExit, Exit
 }
 
+;Перенос настроек
 migrateConfig() {
+	If !FileExist(configFolder "\MyFiles")
+		FileCreateDir, %configFolder%\MyFiles
+	If !FileExist(configFolder "\Presets")
+		FileCreateDir, %configFolder%\Presets
+	
 	IniRead, verConfig, %configFile%, info, verConfig, 0
 	If (verConfig!=verScript) {
 		;FileCopy, %configFile%, %configFolder%\%verConfig%.ini, 1
@@ -167,20 +177,10 @@ migrateConfig() {
 				FileDelete, %configFolder%\Lab.jpg
 				FileDelete, %configFolder%\notes.txt
 				FileDelete, %configFolder%\trials.ini
-			}
-			If (verConfig<211022.1) {
-				IniRead, lr, %configFile%, curl, limit-rate, 1000
-				If (lr=0)
-					IniWrite, 1000, %configFile%, curl, limit-rate
-			}
-			If (verConfig<211112.5) {
 				FileMoveDir, %configFolder%\images, %configFolder%\MyFiles, 2
-			}
-			If (verConfig<220312) {
+				IniWrite, 1000, %configFile%, curl, limit-rate
 				IniWrite, 3, %configFile%, curl, connect-timeout
 				IniWrite, 0, %configFile%, settings, loadLab
-			}
-			If (verConfig<220319.5) {
 				FileMove, %configFolder%\commands.txt, %configFolder%\cmds.preset, 1
 				FileDelete, %configFolder%\curl.exe
 				FileDelete, %configFolder%\curl-ca-bundle.crt
@@ -191,6 +191,21 @@ migrateConfig() {
 			If (verConfig<221010) {
 				FileMove, %configFolder%\cmds.preset, %configFolder%\MyFiles\MyMenu.preset, 1
 			}
+			If (verConfig<221010.7) {
+				FileMove, %configFolder%\Presets\*.preset, %configFolder%\MyFiles\*.fmenu, 1
+				FileMove, %configFolder%\MyFiles\*.preset, %configFolder%\MyFiles\*.fmenu, 1
+				
+				IniRead, hotkeyToCharacterSelection, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
+				If (hotkeyToCharacterSelection!="") {
+					IniWrite, %hotkeyToCharacterSelection%, %configFile%, fastReply, hotkeyCmd9
+					IniWrite, /exit, %configFile%, fastReply, textCmd9
+				}
+				IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
+				If (hotkeyForceSync!="") {
+					IniWrite, %hotkeyForceSync%, %configFile%, fastReply, hotkeyCmd10
+					IniWrite, /oos, %configFile%, fastReply, textCmd10
+				}
+			}
 		}
 		
 		showSettings()
@@ -200,7 +215,6 @@ migrateConfig() {
 		
 		FileDelete, %configFile%
 		sleep 25
-		FileCreateDir, %configFolder%\MyFiles
 		
 		IniWrite, %verScript%, %configFile%, info, verConfig
 		IniWrite, %lastImg%, %configFile%, info, lastImg
@@ -211,64 +225,23 @@ migrateConfig() {
 	}
 }
 
+;Открыть последнее изображение
 shLastImage(){
 	SplitLastImg:=StrSplit(LastImg, "|")
 	shOverlay(SplitLastImg[1], SplitLastImg[2], SplitLastImg[3])
 }
 
-loadPreset(presetName){
-	presetPath:=A_ScriptDir "\resources\presets\" presetName ".preset"
-	If (presetName="Event")
-		presetPath:=A_ScriptDir "\resources\data\event.preset"
-	If RegExMatch(presetName, ".preset$")
-		presetPath:=configFolder "\presets\" presetName
-	If FileExist(presetName)
-		presetPath:=presetName
-	If FileExist(presetPath)
-		FileRead, presetData, %presetPath%
-	return StrReplace(presetData, "`r", "")
-}
-
-loadPresetData(){
-	presetsData:=""
-	
-	;Подгружаем набор события
-	presetDataEvent:=loadEvent()
-	
-	;Подгружаем первичный набор
-	IniRead, preset, %configFile%, settings, preset, %A_Space%
-	presetData1:=loadPreset(preset)
-	
-	;Склейка и установка набора
-	If (presetDataEvent!="")
-		presetsData.=presetDataEvent "`n---`n"
-	If (presetData1!="")
-		presetsData.=presetData1 "`n---`n"
-	
-	Globals.Set("presetsData", presetsData)
-	
-	;Применим настройки наборов 
-	presetsDataSplit:=strSplit(Globals.Get("presetsData"), "`n")
-	For k, val in presetsDataSplit {
-		If (RegExMatch(presetsDataSplit[k], ";")=1)
-			Continue
-		If (RegExMatch(presetsDataSplit[k], "ahk_(exe|class)")=1) {
-			WindowLine:=presetsDataSplit[k]
-			GroupAdd, WindowGrp, %WindowLine%
-		}
-	}
-}
-
+;Загрузить событие
 loadEvent(){
-	IniRead, eventURL, %configFile%, settings, eventURL, %A_Space%
-	If (eventURL="")
+	IniRead, EventURL, %buildConfig%, settings, EventURL, %A_Space%
+	If (EventURL="")
 		return
 	
-	Path:="resources\data\event.preset"
+	Path:="resources\data\event.txt"
 	LoadFile(eventURL, Path, true)
 	FormatTime, CurrentDate, %A_Now%, yyyyMMdd
 	
-	eventData:=loadPreset("Event")
+	eventData:=loadFastFile(Path)
 	eventDataSplit:=StrSplit(eventData, "`n")
 	For k, val in eventDataSplit {
 		If RegExMatch(eventDataSplit[k], ";;")=1
@@ -302,63 +275,42 @@ loadEvent(){
 	For k, val in eventDataSplit
 		If RegExMatch(eventDataSplit[k], ";ResourceFile=(.*)$", rURL)=1
 			loadEventResourceFile(rURL1)
-			
+	
+	Globals.Set("eventName", rEventName)
 	Sleep 1000
 	
-	return eventData
+	return
 }
 
+;Загрузить файл для события
 loadEventResourceFile(URL){
 	eventFileSplit:=strSplit(URL, "/")
 	filePath:="resources\data\" eventFileSplit[eventFileSplit.MaxIndex()]
 	LoadFile(URL, filePath, true)
 }
 
-presetInMenu(){
-	If (Globals.Get("presetsData")!="") {
-		presetsDataSplit:=StrSplit(Globals.Get("presetsData"), "`n")
-		For k, val in presetsDataSplit {
-			If InStr(presetsDataSplit[k], ";")=1
-				Continue
-			imageInfo:=StrSplit(presetsDataSplit[k], "|")
-			ImgName:=imageInfo[1]
-			
-			If (imageInfo[1]="---")
-				Menu, mainMenu, Add
-			If (RegExMatch(imageInfo[2], ".(png|jpg|jpeg|bmp)$") && FileExist(StrReplace(imageInfo[2],"<configFolder>", configFolder)) || (RegExMatch(imageInfo[2], ">")=1) || (RegExMatch(imageInfo[2], "!")=1))
-					Menu, mainMenu, Add, %ImgName%, presetCmdInMenu
-		}
-	}
+;Меню события
+eventMenu(){
+	shFastMenu("resources\data\event.txt", false)
 }
 
-presetCmdInMenu(CmdName){
-	presetsDataSplit:=StrSplit(Globals.Get("presetsData"), "`n")
-	For k, val in presetsDataSplit {
-		imageInfo:=StrSplit(presetsDataSplit[k], "|")
-		If (CmdName=imageInfo[1]) {
-			presetCmd:=SubStr(presetsDataSplit[k], StrLen(imageInfo[1])+2)
-			commandFastReply(presetCmd)
-			return
-		}
-	}
-}
-
+;Открыть мой файл
 shMyImage(imagename){
 	commandFastReply(configFolder "\MyFiles\" imagename)
 }
 
+;Открыть папку с моими файлами
 openMyImagesFolder(){
 	Gui, Settings:Destroy
-	If !FileExist(configFolder "\MyFiles")
-		FileCreateDir, %configFolder%\MyFiles
 	sleep 15
 	Run, explorer "%configFolder%\MyFiles"
 }
 
+;Создать меню с моими файлами
 myImagesMenuCreate(expandMenu=true){
 	If expandMenu {
 		Loop, %configFolder%\MyFiles\*.*, 1
-			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt|preset)$")
+			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt|fmenu)$")
 				Menu, mainMenu, Add, %A_LoopFileName%, shMyImage
 		Menu, mainMenu, Add
 	} Else {
@@ -366,7 +318,7 @@ myImagesMenuCreate(expandMenu=true){
 		Menu, myImagesMenu, DeleteAll
 		
 		Loop, %configFolder%\MyFiles\*.*, 1
-			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt)$")
+			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt|fmenu)$")
 				Menu, myImagesMenu, Add, %A_LoopFileName%, shMyImage
 		Menu, myImagesMenu, Add
 		Menu, myImagesMenu, Add, Открыть папку, openMyImagesFolder
@@ -374,6 +326,7 @@ myImagesMenuCreate(expandMenu=true){
 	}
 }
 
+;Окно с текстом
 textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 	global
 	tfwFilePath:=FilePath
@@ -411,10 +364,34 @@ textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 	BlockInput Off
 }
 
+;Создание заметки
+createNewNote(){
+	InputBox, fileName, Введите название для заметки,,, 300, 100,,,,, NewNote
+	filePath:=configFolder "\MyFiles\" fileName ".txt"
+	If (FileExist(filePath) || fileName="" || ErrorLevel) {
+		traytip, %prjName%, Что-то пошло не так(
+		return
+	}
+	textFileWindow("", filePath, false)
+}
+
+;Создание нового меню
+createNewMenu(){
+	InputBox, fileName, Введите название для файла меню,,, 300, 100,,,,, MyMenu
+	filePath:=configFolder "\MyFiles\" fileName ".fmenu"
+	If (FileExist(filePath) || fileName="" || ErrorLevel) {
+		traytip, %prjName%, Что-то пошло не так(
+		return
+	}
+	textFileWindow("", filePath, false, "Список команд>>|>https://pathofexile.fandom.com/wiki/Chat_console#Commands`n---`n@<last> sure`n/global 820`n/whois <last>`n/deaths`n/passives`n/atlaspassives`n/remaining`n/kills`n/dance")
+}
+
+;Закрытие окна с текстом
 tfwClose(){
 	Gui, tfwGui:Destroy
 }
 
+;Удаление файла
 tfwDelFile(){
 	global
 	Gui, tfwGui:Submit
@@ -425,6 +402,7 @@ tfwDelFile(){
 	Gui, tfwGui:Destroy
 }
 
+;Сохранение файла
 tfwSave(){
 	global
 	Gui, tfwGui:Submit
@@ -434,18 +412,22 @@ tfwSave(){
 	Gui, tfwGui:Destroy
 }
 
+;История изменений
 showUpdateHistory(){
 	textFileWindow("История изменений", "resources\Updates.txt")
 }
 
+;Лицензия
 showLicense(){
 	textFileWindow("Лицензия", "LICENSE.md")
 }
 
+;Отслеживаемые окна
 setWindowsList(){
 	textFileWindow("Отслеживаемые окна", configFolder "\windows.list", false, "ahk_exe notepad++.exe")
 }
 
+;Очистка кэша PoE
 clearPoECache(){
 	FileRemoveDir, %A_AppData%\Path of Exile\Minimap, 1
 	
@@ -468,34 +450,7 @@ clearPoECache(){
 	trayMsg("Очистка кэша завершена)")
 }
 
-editPreset(presetName){
-	Gui, Settings:Destroy
-	If InStr(presetName, "Изменить ")=1
-		presetName:=SubStr(presetName, 10)
-	FileCreateDir, %configFolder%\presets
-	If !FileExist(configFolder "\presets\" presetName) {
-		InputBox, presetName, Укажите имя набора,,, 300, 100,,,,, My.preset
-		If (presetName="")
-			presetName:="My.preset"
-		If !RegExMatch(presetName, ".preset$")
-			presetName.=".preset"
-	}
-	If (presetName="" || ErrorLevel)
-		return
-	IniRead, preset, %configFile%, settings, preset, %A_Space%
-	textFileWindow("Изменение " presetName, configFolder "\presets\" presetName, false, loadPreset(preset))
-}
-
-cfgPresetMenuShow(){
-	Menu, delPresetMenu, Add
-	Menu, delPresetMenu, DeleteAll
-	Menu, delPresetMenu, Add, Создать новый, editPreset
-	Menu, delPresetMenu, Add
-	Loop, %configFolder%\presets\*.preset, 1
-		Menu, delPresetMenu, Add, Изменить %A_LoopFileName%, editPreset
-	Menu, delPresetMenu, Show
-}
-
+;Окно запуска
 showStartUI(SpecialText="", LogoPath=""){
 	Gui, StartUI:Destroy
 	
@@ -519,7 +474,10 @@ showStartUI(SpecialText="", LogoPath=""){
 	initMsg:=StrReplace(initMsg, "/n", "`n")
 	initMsg:=StrReplace(initMsg, "/t", "`t")
 	
-	dNames:=["AbyssSPIRIT", "milcart", "Pip4ik", "ДанилАР", "MONI9K", "ИванАК", "РоманВК"]
+	IniRead, Supporters, %buildConfig%, Donation, Supporters, %githubUser%
+	
+	;dNames:=["AbyssSPIRIT", "milcart", "Pip4ik", "ДанилАР", "MONI9K", "ИванАК", "РоманВК", "Sapen"]
+	dNames:=strSplit(Supporters, "|")
 	Random, randomNum, 1, dNames.MaxIndex()
 	dName:="@" dNames[randomNum] " ty) "
 	
@@ -530,8 +488,8 @@ showStartUI(SpecialText="", LogoPath=""){
 		Gui, StartUI:Add, Picture, x0 y0 w500 h70, %LogoPath%
 	
 	BGTitle:="7F3208"
-	If RegExMatch(verScript, "i)(Experimental|Alpha|Beta|RC)")
-		BGTitle:="505050"
+	;If RegExMatch(verScript, "i)(Experimental|Alpha|Beta|RC)")
+		;BGTitle:="505050"
 	;Gui, StartUI:Add, Progress, w500 h26 x0 y0 Background%BGTitle%
 
 	Gui, StartUI:Font, s12 c%BGTitle% bold
@@ -558,6 +516,7 @@ showStartUI(SpecialText="", LogoPath=""){
 	Gui, StartUI:Show, w500 h70, %prjName% %VerScript% | AHK %A_AhkVersion%
 }
 
+;Закрыть окно запуска
 closeStartUI(){
 	sleep 200
 	Gui, StartUI:Destroy
@@ -569,9 +528,13 @@ closeStartUI(){
 	showDonateUIOnStart()
 }
 
+;Настройки
 showSettings(){
 	global
 	Gui, Settings:Destroy
+	
+	IniRead, dCard, %buildConfig%, Donation, Card, %A_Space%
+	IniRead, dNumber, %buildConfig%, Donation, Number, %A_Space%
 	
 	;Настройки первой вкладки
 	IniRead, OverlayPosition, %configFile%, settings, overlayPosition, %A_Space%
@@ -581,8 +544,9 @@ showSettings(){
 	posW:=splitOverlayPosition[3]
 	posH:=splitOverlayPosition[4]
 	
+	IniRead, windowLine, %configFile%, settings, windowLine, %A_Space%
 	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
-	IniRead, preset, %configFile%, settings, preset, default
+	IniRead, preset, %configFile%, settings, preset, %A_Space%
 	IniRead, mouseDistance, %configFile%, settings, mouseDistance, 700
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
@@ -595,27 +559,31 @@ showSettings(){
 	IniRead, ct, %configFile%, curl, connect-timeout, 3
 	IniRead, update, %configFile%, settings, update, 1
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
-	IniRead, eventURL, %configFile%, settings, eventURL, https://raw.githubusercontent.com/%githubUser%/%prjName%/master/resources/data/event.preset
 	
-	;Настройки третьей вкладки
-	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
-	IniRead, hotkeyToCharacterSelection, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
+	If FileExist("resources\imgs\bg.jpg")
+		Gui, Settings:Add, Picture, x0 y0 w500 h70, resources\imgs\bg.jpg
 	
-	Gui, Settings:Font, s12
-	Gui, Settings:Add, Button, x0 y385 w640 h30 gsaveSettings, Применить и перезапустить ;💾 465
+	Gui, Settings:Add, Text, x320 y2 w170 +Right BackgroundTrans, Перевод на карту(внутри РФ): 
+	Gui, Settings:Add, Edit, x320 y+1 w170 h18 +ReadOnly +Right, %dCard%
+	Gui, Settings:Add, Text, x320 y+2 w170 +Right BackgroundTrans, Перевод по номеру телефона: 
+	Gui, Settings:Add, Edit, x320 y+1 w170 h18 +ReadOnly +Right, %dNumber%
 	
+	dMode:=RegExMatch(args, "i)/Debug")?"Активен":"Отключен"
+	sMsg:=prjName ": " verScript "`nAutoHotKey:" A_AhkVersion "`nПараметры запуска:" args "`nРежим отладки: "  dMode
+	Gui, Settings:Add, Text, x12 y8 w250 BackgroundTrans, %sMsg%
+	
+	Gui, Settings:Font, s11
+	Gui, Settings:Add, Button, x290 y392 w210 h23 gsaveSettings, Применить и перезапустить ;💾 465
+	
+	Gui, Settings:Add, Tab, x0 y70 w500 h345 Bottom, Основные|Загрузки|Команды ;Вкладки
+	;Gui, Settings:Add, Tab, x0 y75 w640 h385 Bottom +Theme, Основные|Загрузки|Команды ;Вкладки
 	Gui, Settings:Font, s8 normal
-	
-	Gui, Settings:Add, Link, x230 y4 w405 +Right, <a href="https://www.autohotkey.com/download/">AutoHotKey</a> | <a href="https://ru.pathofexile.com/forum/view-thread/2694683">Тема на Форуме</a> | <a href="https://github.com/MegaEzik/LeagueOverlay_ru/releases">Страница на GitHub</a>
-	
-	Gui, Settings:Add, Tab, x0 y0 w640 h385, Основные|Загрузки|Команды ;Вкладки
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
-	Gui, Settings:Add, Text, x12 y30 w515, Отслеживаемые окна:
-	Gui, Settings:Add, Button, x+1 yp-3 w102 h23 gsetWindowsList, Изменить
+	Gui, Settings:Add, Text, x12 y80 w385, Отслеживаемые окна:
+	Gui, Settings:Add, Button, x+1 yp-3 w92 h23 gsetWindowsList, Изменить
 	
-	
-	Gui, Settings:Add, Text, x12 yp+26 w325, Позиция области изображений(пиксели):
+	Gui, Settings:Add, Text, x12 yp+26 w185, Позиция изображений(пиксели):
 	Gui, Settings:Add, Text, x+7 w12 +Right, X
 	Gui, Settings:Add, Text, x+60 w12 +Right, Y
 	Gui, Settings:Add, Text, x+60 w12 +Right, W
@@ -631,69 +599,59 @@ showSettings(){
 	Gui, Settings:Add, UpDown, Range0-99999 0x80, %posH%
 	
 	presetList:=""
-	Loop, resources\presets\*.preset, 1
-		presetList.="|" RegExReplace(A_LoopFileName, ".preset$", "")
-	Loop, %configFolder%\presets\*.preset, 1
+	Loop, resources\presets\*, 2
 		presetList.="|" A_LoopFileName
+	Loop, %configFolder%\Presets\*, 2
+		presetList.="|*" A_LoopFileName
 	
-	Gui, Settings:Add, Text, x12 yp+24 w490, Набор:
-	;Gui, Settings:Add, Button, x+1 yp-4 w23 h23 gcopyPreset, 📄
-	;Gui, Settings:Add, Button, x+0 w23 h23 geditPreset, ✏
-	Gui, Settings:Add, Button, x+3 yp-4 w23 h23 gcfgPresetMenuShow, ☰
-	Gui, Settings:Add, DropDownList, vpreset x+1 yp+1 w100, %presetList%
+	Gui, Settings:Add, Text, x12 yp+24 w360, Набор:
+	Gui, Settings:Add, DropDownList, vpreset x+27 yp-4 w90, %presetList%
 	GuiControl,Settings:ChooseString, preset, %preset%
 	
-	Gui, Settings:Add, Text, x12 yp+26 w515, Смещение указателя(пиксели):
-	Gui, Settings:Add, Edit, vmouseDistance x+2 yp-2 w100 h18 Number, %mouseDistance%
+	Gui, Settings:Add, Text, x12 yp+26 w385, Смещение указателя(пиксели):
+	Gui, Settings:Add, Edit, vmouseDistance x+2 yp-2 w90 h18 Number, %mouseDistance%
 	Gui, Settings:Add, UpDown, Range5-99999 0x80, %mouseDistance%
 	
-	Gui, Settings:Add, Checkbox, vexpandMyImages x12 yp+24 w515 Checked%expandMyImages%, Развернуть 'Мои файлы'
-	Gui, Settings:Add, Button, x+1 yp-4 w102 h23 gopenMyImagesFolder, Открыть папку
+	Gui, Settings:Add, Checkbox, vexpandMyImages x12 yp+24 w385 Checked%expandMyImages%, Развернуть 'Мои файлы'
+	Gui, Settings:Add, Button, x+1 yp-4 w92 h23 gopenMyImagesFolder, Открыть папку
 	
-	Gui, Settings:Add, Text, x10 y+3 w620 h1 0x12
+	Gui, Settings:Add, Text, x10 y+3 w480 h1 0x12
 	
-	Gui, Settings:Add, Text, x12 yp+6 w515, Последнее изображение:
-	Gui, Settings:Add, Hotkey, vhotkeyLastImg x+2 yp-2 w100 h17, %hotkeyLastImg%
+	Gui, Settings:Add, Text, x12 yp+6 w385, Последнее изображение:
+	Gui, Settings:Add, Hotkey, vhotkeyLastImg x+2 yp-2 w90 h17, %hotkeyLastImg%
 	
-	Gui, Settings:Add, Text, x12 yp+21 w515, Меню быстрого доступа:
-	Gui, Settings:Add, Hotkey, vhotkeyMainMenu x+2 yp-2 w100 h17, %hotkeyMainMenu%
+	Gui, Settings:Add, Text, x12 yp+21 w385, Меню быстрого доступа:
+	Gui, Settings:Add, Hotkey, vhotkeyMainMenu x+2 yp-2 w90 h17, %hotkeyMainMenu%
 	
-	Gui, Settings:Add, Text, x12 yp+21 w515, Меню предмета:
-	Gui, Settings:Add, Hotkey, vhotkeyItemMenu x+2 yp-2 w100 h17, %hotkeyItemMenu%
+	Gui, Settings:Add, Text, x12 yp+21 w385, Меню предмета:
+	Gui, Settings:Add, Hotkey, vhotkeyItemMenu x+2 yp-2 w90 h17, %hotkeyItemMenu%
 	
-	Gui, Settings:Add, Text, x12 yp+21 w515, Игровой контроллер(Beta) - Удерживайте [%hotkeyGamepad%] для вызова "Меню быстрого доступа"
-	Gui, Settings:Add, Button, x+1 yp-3 w102 h23 gcfgGamepad, Изменить
+	Gui, Settings:Add, Text, x12 yp+21 w385, Игровой контроллер(Beta) - Удерживайте [%hotkeyGamepad%] для использования
+	Gui, Settings:Add, Button, x+1 yp-3 w92 h23 gcfgGamepad, Изменить
 	
 	Gui, Settings:Tab, 2 ;Вторая вкладка
 	
-	Gui, Settings:Add, Text, x12 y30 w120, cURL | User-Agent:
-	Gui, Settings:Add, Edit, vUserAgent x+2 yp-2 w495 h17, %UserAgent%
+	Gui, Settings:Add, Text, x12 y80 w120, cURL | User-Agent:
+	Gui, Settings:Add, Edit, vUserAgent x+2 yp-2 w355 h17, %UserAgent%
 	
-	Gui, Settings:Add, Text, x12 yp+21 w515, cURL | Ограничение загрузки(Кб/с, 0 - без лимита):
-	Gui, Settings:Add, Edit, vlr x+2 yp-2 w100 h18 Number, %lr%
+	Gui, Settings:Add, Text, x12 yp+21 w385, cURL | Ограничение загрузки(Кб/с, 0 - без лимита):
+	Gui, Settings:Add, Edit, vlr x+2 yp-2 w90 h18 Number, %lr%
 	Gui, Settings:Add, UpDown, Range0-99999 0x80, %lr%
 	
-	Gui, Settings:Add, Text, x12 yp+22 w515, cURL | Время соединения(сек.):
-	Gui, Settings:Add, Edit, vct x+2 yp-2 w100 h18 Number, %ct%
+	Gui, Settings:Add, Text, x12 yp+22 w385, cURL | Время соединения(сек.):
+	Gui, Settings:Add, Edit, vct x+2 yp-2 w90 h18 Number, %ct%
 	Gui, Settings:Add, UpDown, Range1-99999 0x80, %ct%
 	
-	Gui, Settings:Add, Text, x10 y+5 w620 h1 0x12
+	Gui, Settings:Add, Text, x10 y+5 w480 h1 0x12
 	
-	Gui, Settings:Add, Checkbox, vupdate x12 y+6 w525 Checked%update%, Автоматически проверять наличие обновлений
+	Gui, Settings:Add, Checkbox, vupdate x12 y+6 w480 Checked%update% , Автоматическая установка обновлений
 	
-	Gui, Settings:Add, Checkbox, vloadLab x12 yp+21 w515 Checked%loadLab%, Скачивать раскладку лабиринта('Мои файлы'>Labyrinth.jpg)
-	Gui, Settings:Add, Link, x+2 yp+0 w100 +Right, <a href="https://www.poelab.com/">POELab.com</a>
-	
-	Gui, Settings:Add, Text, x12 yp+21 w120, Набор события:
-	Gui, Settings:Add, Edit, veventURL x+2 yp-2 w495 h17, %eventURL%
+	Gui, Settings:Add, Checkbox, vloadLab x12 yp+21 w385 Checked%loadLab%, Скачивать раскладку лабиринта('Мои файлы'>Labyrinth.jpg)
+	Gui, Settings:Add, Link, x+2 yp+0 w90 +Right, <a href="https://www.poelab.com/">POELab.com</a>
 	
 	Gui, Settings:Tab, 3 ; Третья вкладка
 	
-	Gui, Settings:Add, Text, x12 y30 w205, /exit(к персонажам):
-	Gui, Settings:Add, Hotkey, vhotkeyToCharacterSelection x+2 yp-2 w100 h17, %hotkeyToCharacterSelection%
-	
-	Gui, Settings:Add, Text, x+4 yp+2 w205, /oos(синхронизация):
-	Gui, Settings:Add, Hotkey, vhotkeyForceSync x+2 yp-2 w100 h17, %hotkeyForceSync%
+	Gui, Settings:Add, Text, x12 y80 w0 h0
 	
 	;Настраиваемые команды fastReply
 	LoopVar:=cmdNum/2
@@ -716,28 +674,34 @@ showSettings(){
 				tempVar:="@<last> 2 minutes"
 			If A_Index=8
 				tempVar:="_ty & gl, exile)"
+			If A_Index=9
+				tempVar:="/exit"
+			If A_Index=10
+				tempVar:="/oos"
 		}
-		Gui, Settings:Add, Edit, vtextCmd%A_Index% x12 yp+19 w205 h17, %tempVar%
+		Gui, Settings:Add, Edit, vtextCmd%A_Index% x12 y+1 w145 h17, %tempVar%
 		
 		IniRead, tempVar, %configFile%, fastReply, hotkeyCmd%A_Index%, %A_Space%
-		Gui, Settings:Add, Hotkey, vhotkeyCmd%A_Index% x+2 w100 h17, %tempVar%
+		Gui, Settings:Add, Hotkey, vhotkeyCmd%A_Index% x+2 w90 h17, %tempVar%
 		
 		TwoColumn:=Round(LoopVar+A_Index)
 		IniRead, tempVar, %configFile%, fastReply, textCmd%TwoColumn%, %A_Space%
-		Gui, Settings:Add, Edit, vtextCmd%TwoColumn% x+4 w205 h17, %tempVar%
+		Gui, Settings:Add, Edit, vtextCmd%TwoColumn% x+4 w145 h17, %tempVar%
 		IniRead, tempVar, %configFile%, fastReply, hotkeyCmd%TwoColumn%, %A_Space%
-		Gui, Settings:Add, Hotkey, vhotkeyCmd%TwoColumn% x+2 w100 h17, %tempVar%
+		Gui, Settings:Add, Hotkey, vhotkeyCmd%TwoColumn% x+2 w90 h17, %tempVar%
 	}
 	
-	helptext:="/dance - простая команда чата`n/whois <last> - команда в отношении последнего игрока`n@<last> ty, gl) - сообщение последнему игроку`n_ty, gl) - сообщение в чат области`n%ty, gl) - сообщение в групповой чат`n>calc.exe - открытие программы или веб страницы`nmy.jpg - изображение, набор или текстовый файл`n!текст - всплывающая подсказка"
-	helptext2:="--- - разделитель`n;/dance - комментарий(команда будет проигнорирована)`n<configFolder> - указывает папку настроек(переменная)`n<time> - время UTC(переменная)`n<inputbox> - позволяет ввести текст(переменная)"
-	Gui, Settings:Add, Text, x12 y+2 w307 cTeal, %helptext%
-	Gui, Settings:Add, Text, x+2 w307 cTeal, %helptext2%
+	helptext:="/dance - простая команда`n/whois <last> - команда к последнему игроку`n@<last> ty, gl) - сообщение последнему игроку`n_ty, gl) - сообщение в чат области`n%ty, gl) - сообщение в групповой чат`n>calc.exe - выполнить`nmy.jpg - изображение/набор/текст`n!текст - всплывающая подсказка"
+	helptext2:="--- - разделитель`n;/dance - комментарий`n<configFolder> - папка настроек`n<time> - время UTC`n<inputbox> - поле ввода"
+	;Gui, Settings:Add, Text, x12 y+2 w237 cTeal, %helptext%
+	Gui, Settings:Add, Text, x12 y+2 w237 c7F3208, %helptext%
+	Gui, Settings:Add, Text, x+2 w237 c7F3208, %helptext2%
 	
 	Gui, Settings:+AlwaysOnTop -MinimizeBox -MaximizeBox
-	Gui, Settings:Show, w640 h415, %prjName% %VerScript% | AHK %A_AhkVersion% - Настройки ;Отобразить окно настроек
+	Gui, Settings:Show, w500 h415, %prjName% - Информация и настройки ;Отобразить окно настроек
 }
 
+;Сохранить Настройки
 saveSettings(){
 	global
 	DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", 0x50, "UInt", 0x4090409, "UInt", 0x4090409)
@@ -745,6 +709,7 @@ saveSettings(){
 	Gui, Settings:Submit
 			
 	;Настройки первой вкладки
+	IniWrite, %windowLine%, %configFile%, settings, windowLine
 	IniWrite, %posX%/%posY%/%posW%/%posH%, %configFile%, settings, overlayPosition
 	IniWrite, %expandMyImages%, %configFile%, settings, expandMyImages
 	IniWrite, %preset%, %configFile%, settings, preset
@@ -760,11 +725,6 @@ saveSettings(){
 	IniWrite, %ct%, %configFile%, curl, connect-timeout
 	IniWrite, %update%, %configFile%, settings, update
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
-	IniWrite, %eventURL%, %configFile%, settings, eventURL
-	
-	;Настройки третьей вкладки
-	IniWrite, %hotkeyForceSync%, %configFile%, hotkeys, hotkeyForceSync
-	IniWrite, %hotkeyToCharacterSelection%, %configFile%, hotkeys, hotkeyToCharacterSelection
 	
 	;Настраиваемые команды fastReply
 	Loop %cmdNum% {
@@ -778,6 +738,7 @@ saveSettings(){
 	ReStart()
 }
 
+;Назначение клавиш
 setHotkeys(){
 	DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", 0x50, "UInt", 0x4090409, "UInt", 0x4090409)
 	sleep 100
@@ -788,14 +749,6 @@ setHotkeys(){
 		Hotkey, % hotkeyLastImg, shLastImage, On
 	If (hotkeyMainMenu!="")
 		Hotkey, % hotkeyMainMenu, shMainMenu, On
-	
-	;Инициализация встроенных команд fastReply
-	IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
-	IniRead, hotkeyToCharacterSelection, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
-	If (hotkeyForceSync!="")
-		Hotkey, % hotkeyForceSync, fastCmdForceSync, On
-	If (hotkeyToCharacterSelection!="")
-		Hotkey, % hotkeyToCharacterSelection, fastCmdExit, On
 	
 	;Инициализация настраиваемых команд fastReply
 	Loop %cmdNum% {
@@ -812,17 +765,25 @@ setHotkeys(){
 		Hotkey, % hotkeyGamepad, shGamepadMenu, On
 }
 
+;Меню области уведомлений
 menuCreate(){
 	If FileExist("LICENSE.md")
 		Menu, Tray, Add, Лицензия, showLicense
-	Menu, Tray, Add, Поддержать %githubUser%, showDonateUI
 	Menu, Tray, Add, История изменений, showUpdateHistory
 	Menu, Tray, Add
-	Menu, Tray, Add, Обновление, CheckUpdateFromMenu
 	Menu, Tray, Add, Настройки, showSettings
 	Menu, Tray, Default, Настройки
-	Menu, Tray, Add, Очистить кэш PoE, clearPoECache
 	Menu, Tray, Add, Дополнения, pkgsMgr_packagesMenu
+	Menu, Actions, Add, Создать заметку, createNewNote
+	Menu, Actions, Add, Создать меню, createNewMenu
+	Menu, Actions, Add
+	Menu, Actions, Add, https://poelab.com/gtgax, reloadLab
+	Menu, Actions, Add, https://poelab.com/r8aws, reloadLab
+	Menu, Actions, Add, https://poelab.com/riikv, reloadLab
+	Menu, Actions, Add, https://poelab.com/wfbra, reloadLab
+	Menu, Actions, Add
+	Menu, Actions, Add, Очистить кэш PoE, clearPoECache
+	Menu, Tray, Add, Действия, :Actions
 	Menu, Tray, Add, Меню отладки, :devMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить, ReStart
@@ -830,32 +791,50 @@ menuCreate(){
 	Menu, Tray, NoStandard
 }
 
+;Загрузить Набор
+loadPreset(){
+	IniRead, preset, %configFile%, settings, preset, %A_Space%
+	If (preset="")
+		return
+	Path:=(InStr(preset, "*")=1?configFolder "\Presets\" SubStr(preset, 2):"resources\presets\" preset)
+	
+	Loop, %Path%\*, 0
+		If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt)$")
+			Menu, mainMenu, Add, %A_LoopFileName%, shPreset
+	Menu, mainMenu, Add
+}
+
+;Открыть файл набора
+shPreset(FileName){
+	IniRead, preset, %configFile%, settings, preset, %A_Space%
+	FilePath:=(InStr(preset, "*")=1?configFolder "\Presets\" SubStr(preset, 2):"resources\presets\" preset) "\" FileName
+	
+	commandFastReply(FilePath)
+}
+
+;Сформировать и открыть основное меню
 shMainMenu(Gamepad=false){
 	removeToolTip()
 	destroyOverlay()
 	Menu, mainMenu, Add
 	Menu, mainMenu, DeleteAll
 	
-	presetInMenu()
+	eventName:=Globals.Get("eventName")
+	If (eventName!="") {
+		Menu, mainMenu, Add, %eventName%, eventMenu
+		Menu, mainMenu, Add
+	}
 	
-	Menu, fastMenu, Add
+	loadPreset()
 	
 	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
 	myImagesMenuCreate((expandMyImages || Gamepad)?true:false)
 	
-	/*
-	fastMenu(configFolder "\cmds.preset")
-	Menu, fastMenu, Add
-	Menu, fastMenu, Add, Редактировать 'Меню команд', customCmdsEdit
-	Menu, mainMenu, Add, Меню команд, :fastMenu
-	*/
-	
-	If expandMyImages && FileExist(configFolder "\MyFiles\MyMenu.preset"){
-		fastMenu(configFolder "\MyFiles\MyMenu.preset")
-		Menu, fastMenu, Add
-		Menu, fastMenu, Add, Редактировать 'MyMenu.preset', editMyMenu
-		Menu, mainMenu, Add, MyMenu.preset, :fastMenu
-		Menu, mainMenu, Rename, MyMenu.preset, Мои команды
+	IniRead, sMenu, %buildConfig%, settings, sMenu, MyMenu.fmenu
+	If (expandMyImages || Gamepad) && (sMenu!="") && FileExist(configFolder "\MyFiles\" sMenu){
+		fastMenu(configFolder "\MyFiles\" sMenu)
+		Menu, mainMenu, Add, %sMenu%, :fastMenu
+		;Menu, mainMenu, Rename, MyMenu.fmenu, Мои команды
 	}
 	
 	Menu, mainMenu, Add, Область уведомлений, :Tray
@@ -863,14 +842,17 @@ shMainMenu(Gamepad=false){
 	Menu, mainMenu, Show
 }
 
+;Открыть папку настроек
 openConfigFolder(){
 	Run, explorer "%configFolder%"
 }
 
+;Открыть папку скрипта
 openScriptFolder(){
 	Run, explorer "%A_ScriptDir%"
 }
 
+;Перезапуск
 ReStart(){
 	Gdip_Shutdown(pToken)
 	sleep 250
@@ -879,32 +861,14 @@ ReStart(){
 	ExitApp
 }
 
+;Иногда после запуска будем предлагать поддержать проект
 showDonateUIOnStart() {
-	;Иногда после запуска будем предлагать поддержать проект
-	Random, randomNum, 1, 15
-	If (randomNum=1 && !RegExMatch(args, "i)/Debug")) {
-		showDonateUI()
-		Sleep 10000
-		Gui, DonateUI:Minimize
-	}
+	Random, randomNum, 1, 5
+	If (randomNum=1)
+		traytip, %prjName%, Поддержи %prjName%)
 }
 
-
-showDonateUI() {
-	Gui, DonateUI:Destroy
-	Gui, DonateUI:Add, Edit, x0 y0 w0 h0
-	Gui, DonateUI:Add, Text, x10 y7 w300 +Center, Перевод на карту Visa(только внутри РФ): 
-	Gui, DonateUI:Add, Edit, x10 y+3 w300 h18 +ReadOnly, 4274 3200 7505 4976
-	Gui, DonateUI:Add, Text, x10 y+7 w300 +Center, Перевод по номеру телефона для клиентов Сбербанка: 
-	Gui, DonateUI:Add, Edit, x10 y+3 w300 h18 +ReadOnly, +7 900 917 25 92
-	Gui, DonateUI:Add, Text, x0 y+10 w400 h2 0x10
-	Gui, DonateUI:Add, Text, x30 y+7 w260 +Center, Спасибо за вашу поддержку) 
-	Gui, DonateUI:Add, Text, x0 y+10 w400 h2 0x10
-	Gui, DonateUI:Add, Link, x30 yp+7 w260 +Center, Если хотите попасть на экран загрузки, то после совершения пожертвования напишите <a href="https://ru.pathofexile.com/private-messages/compose/to/MegaEzik@pc">мне в ЛС</a>)
-	Gui, DonateUI:+AlwaysOnTop -MinimizeBox -MaximizeBox
-	Gui, DonateUI:Show, w320 h165, Поддержать/Задонатить %githubUser%
-}
-
+;Всплывающая подсказка
 showToolTip(msg, t=0, umd=true) {
 	msg:=StrReplace(msg, "/n", "`n")
 	msg:=StrReplace(msg, "/t", "`t")
@@ -921,6 +885,7 @@ showToolTip(msg, t=0, umd=true) {
 	}
 }
 
+;Уведомление
 trayMsg(MsgText, Title:=""){
 	FullTitle:=prjName
 	If (Title!="")
@@ -928,18 +893,21 @@ trayMsg(MsgText, Title:=""){
 	TrayTip, %FullTitle%, %MsgText%
 }
 
+;Удаление всплывающей подсказки
 removeToolTip() {
 	ToolTip
 	SetTimer, removeToolTip, Delete
 	SetTimer, timerToolTip, Delete
 }
 
+;Таймер для всплывающей подсказки
 timerToolTip() {
 	MouseGetPos, CurrX, CurrY
 	If (CurrX - Globals.Get("ttCurrStartPosX"))** 2 + (CurrY - Globals.Get("ttCurrStartPosY")) ** 2 > Globals.Get("mouseDistance") ** 2
 		removeToolTip()
 }
 
+;Скачивание файла из сети
 LoadFile(URL, FilePath, CheckDate=false, MD5="") {	
 	;Сверим дату
 	If CheckDate {
@@ -983,6 +951,18 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 		return false
 	}
 	return true	
+}
+
+;Использование системной темы
+systemTheme(){
+	IniRead, UseSystemTheme, %buildConfig%, Settings, UseSystemTheme, 1
+	If !UseSystemTheme
+		return
+	uxtheme:=DllCall("GetModuleHandle", "str", "uxtheme", "ptr")
+	SetPreferredAppMode:=DllCall("GetProcAddress", "ptr", uxtheme, "ptr", 135, "ptr")
+	FlushMenuThemes:=DllCall("GetProcAddress", "ptr", uxtheme, "ptr", 136, "ptr")
+	DllCall(SetPreferredAppMode, "int", 1)
+	DllCall(FlushMenuThemes)
 }
 
 ;#################################################

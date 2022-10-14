@@ -1,27 +1,19 @@
 ﻿
 ;Инициализация и создание меню разработчика
 devInit(){
-	Menu, devMenu, Add, Добавить заметку, newNote
-	Menu, devMenu, Add, Редактировать 'MyMenu.preset', editMyMenu
-	Menu, devMenu, Add
+	;Menu, devMenu, Add, /Debug, createShortcut
 	Menu, devMenu, Add, Папка макроса, openScriptFolder	
 	Menu, devMenu, Add, Папка настроек, openConfigFolder
 	Menu, devMenu, Add
 	Menu, devMenu, Add, Контрольная сумма(MD5), devMD5FileCheck
 	Menu, devMenu, Add
-	Menu, devMenu, Add, /Debug, createShortcut
-	Menu, devMenu, Add
 	Menu, devMenu, Add, Перезагрузить данные, devClSD
 	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
-	Menu, devMenu, Add
-	Menu, devMenu, Add, https://poelab.com/gtgax, reloadLab
-	Menu, devMenu, Add, https://poelab.com/r8aws, reloadLab
-	Menu, devMenu, Add, https://poelab.com/riikv, reloadLab
-	Menu, devMenu, Add, https://poelab.com/wfbra, reloadLab
 	Menu, devMenu, Add
 	Menu, devMenu, Standard
 }
 
+;Подсчет MD5 файла
 devMD5FileCheck(){
 	FileSelectFile, FilePath
 	If FileExist(FilePath){
@@ -34,9 +26,10 @@ devMD5FileCheck(){
 devRestoreRelease() {
 	IniWrite, 0, %configFile%, info, verConfig
 	verScript:=0
-	CheckUpdateFromMenu()
+	CheckUpdate()
 }
 
+;Перезагрузка данных
 devClSD(){
 	FileDelete, resources\Packages.txt
 	FileDelete, %configFolder%\MyFiles\Labyrinth.jpg
@@ -66,61 +59,7 @@ devAddInList(Line){
 	FileAppend, %Line%`n, %FilePath%, UTF-8
 }
 
+;Создать ярлык
 createShortcut(Params){
 	FileCreateShortcut, %A_ScriptFullPath%, %A_Desktop%\LeagueOverlay_ru.lnk, %A_ScriptDir%, %Params%
-}
-
-shFastMenu(presetPath) {
-	destroyOverlay()
-	fastMenu(presetPath)
-	Menu, fastMenu, Show
-}
-
-fastMenu(presetPath){
-	destroyOverlay()
-	Sleep 50
-	Globals.Set("fastPreset", loadPreset(presetPath))
-	Menu, fastMenu, Add
-	Menu, fastMenu, DeleteAll
-	presetsDataSplit:=StrSplit(Globals.Get("fastPreset"), "`n")
-	For k, val in presetsDataSplit {
-		If InStr(presetsDataSplit[k], ";")=1
-			Continue
-		If (presetsDataSplit[k]="---") {
-			Menu, fastMenu, Add
-			Continue
-		}
-		cmdInfo:=StrSplit(presetsDataSplit[k], "|")
-		cmdName:=cmdInfo[1]
-		If (cmdInfo[1]!="")
-			Menu, fastMenu, Add, %cmdName%, fastMenuCmd
-	}
-}
-
-fastMenuCmd(cmdName){
-	Sleep 50
-	presetsDataSplit:=StrSplit(Globals.Get("fastPreset"), "`n")
-	For k, val in presetsDataSplit {
-		cmdInfo:=StrSplit(presetsDataSplit[k], "|")
-		If (cmdName=cmdInfo[1] && cmdInfo[2]!="") {
-			presetCmd:=SubStr(presetsDataSplit[k], StrLen(cmdInfo[1])+2)
-			commandFastReply(presetCmd)
-			return
-		}
-	}
-	commandFastReply(cmdName)
-}
-
-newNote(){
-	InputBox, fileName, Введите название для заметки,,, 300, 100,,,,, NewNote
-	filePath:= configFolder "\MyFiles\" fileName ".txt"
-	If (FileExist(filePath) || fileName="" || ErrorLevel) {
-		traytip, %prjName% - Добавление заметки, Что-то пошло не так(
-		return
-	}
-	textFileWindow("", filePath, false)
-}
-
-editMyMenu(){
-	textFileWindow("", configFolder "\MyFiles\MyMenu.preset", false, "Список команд>>|>https://pathofexile.fandom.com/wiki/Chat_console#Commands`n---`n@<last> sure`n/global 820`n/whois <last>`n/deaths`n/passives`n/atlaspassives`n/remaining`n/kills`n/dance")
 }

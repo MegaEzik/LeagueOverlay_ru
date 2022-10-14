@@ -4,14 +4,19 @@ CheckUpdate() {
 	releaseinfo:=DownloadToVar("https://api.github.com/repos/" githubUser "/" prjName "/releases/latest")
 	parsedJSON:=JSON.Load(releaseinfo)
 	verRelease:=parsedJSON.tag_name
+	if (verRelease!="" && verScript!="" && verRelease>verScript)
+		StartUpdate(verRelease)
+	/*
 	if (verRelease!="" && verScript!="" && verRelease>verScript) {
 		TrayTip, %prjName%, Доступна версия %verRelease%!
 		return verRelease
 	} else {
 		return "noupdate"
 	}
+	*/
 }
 
+/*
 ;Функция проверки из меню
 CheckUpdateFromMenu(PressedBtn=""){
 	statusUpdate:=CheckUpdate()
@@ -24,6 +29,7 @@ CheckUpdateFromMenu(PressedBtn=""){
 			StartUpdate(statusUpdate)
 	}
 }
+*/
 
 ;Запуск процесса обновления
 StartUpdate(verRelease) {
