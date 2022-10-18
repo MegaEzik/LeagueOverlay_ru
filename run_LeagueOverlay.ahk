@@ -64,18 +64,14 @@ IniRead, globalOverlayPosition, %configFile%, settings, overlayPosition, %A_Spac
 IniRead, mouseDistance, %configFile%, settings, mouseDistance, 500
 Globals.Set("mouseDistance", mouseDistance)
 
-;Список окон Path of Exile
-GroupAdd, WindowGrp, Path of Exile ahk_class POEWindowClass
+;Добавляем окна для отслеживания
 GroupAdd, WindowGrp, ahk_exe GeForceNOWStreamer.exe
-If FileExist(configFolder "\windows.list") {
-	FileRead, WinList, %configFolder%\windows.list
-	splitWinList:=strSplit(strReplace(WinList, "`r", ""), "`n")
-	For k, val in splitWinList
-		If (splitWinList[k]!="") {
-			WinName:=splitWinList[k]
-			GroupAdd, WindowGrp, %WinName%
-		}
-}
+splitWinList:=strSplit(strReplace(WinList(), "`r", ""), "`n")
+For k, val in splitWinList
+	If (splitWinList[k]!="") {
+		WinName:=splitWinList[k]
+		GroupAdd, WindowGrp, %WinName%
+	}
 
 ;Проверка требований и параметров запуска
 checkRequirementsAndArgs()
@@ -206,6 +202,8 @@ migrateConfig() {
 					IniWrite, /oos, %configFile%, fastReply, textCmd10
 				}
 			}
+			If (verConfig<221010.8)
+				IniWrite, PoE_Russian, %configFile%, settings, preset
 		}
 		
 		showSettings()
@@ -223,6 +221,24 @@ migrateConfig() {
 		
 		saveSettings()
 	}
+}
+
+;Формирует список окон для отслеживания
+WinList(){
+	MainWinList:=""
+	If FileExist(configFolder "\windows.list") {
+		FileRead, UserWinList, %configFolder%\windows.list
+		MainWinList.=UserWinList "`n"
+	}
+	IniRead, preset, %configFile%, settings, preset, %A_Space%
+	If (preset!="") {
+		Path:=(InStr(preset, "*")=1?configFolder "\Presets\" SubStr(preset, 2):"resources\presets\" preset) "\windows.list"
+		If FileExist(Path) {
+			FileRead, PresetWinList, %Path%
+			MainWinList.=PresetWinList "`n"
+		}
+	}
+	return MainWinList
 }
 
 ;Открыть последнее изображение
@@ -546,8 +562,8 @@ showSettings(){
 	
 	IniRead, windowLine, %configFile%, settings, windowLine, %A_Space%
 	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
-	IniRead, preset, %configFile%, settings, preset, %A_Space%
-	IniRead, mouseDistance, %configFile%, settings, mouseDistance, 700
+	IniRead, preset, %configFile%, settings, preset, PoE_Russian
+	IniRead, mouseDistance, %configFile%, settings, mouseDistance, 500
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
 	IniRead, hotkeyGamepad, %configFile%, hotkeys, hotkeyGamepad, %A_Space%
@@ -575,7 +591,7 @@ showSettings(){
 	Gui, Settings:Font, s11
 	Gui, Settings:Add, Button, x290 y392 w210 h23 gsaveSettings, Применить и перезапустить ;💾 465
 	
-	Gui, Settings:Add, Tab, x0 y70 w500 h345 Bottom, Основные|Загрузки|Команды ;Вкладки
+	Gui, Settings:Add, Tab3, x0 y70 w500 h345 Bottom, Основные|Загрузки|Команды ;Вкладки
 	;Gui, Settings:Add, Tab, x0 y75 w640 h385 Bottom +Theme, Основные|Загрузки|Команды ;Вкладки
 	Gui, Settings:Font, s8 normal
 	Gui, Settings:Tab, 1 ;Первая вкладка
@@ -698,7 +714,7 @@ showSettings(){
 	Gui, Settings:Add, Text, x+2 w237 c7F3208, %helptext2%
 	
 	Gui, Settings:+AlwaysOnTop -MinimizeBox -MaximizeBox
-	Gui, Settings:Show, w500 h415, %prjName% - Информация и настройки ;Отобразить окно настроек
+	Gui, Settings:Show, w500 h415, %prjName% %verScript% | AHK %A_AhkVersion% - Информация и настройки ;Отобразить окно настроек
 }
 
 ;Сохранить Настройки
