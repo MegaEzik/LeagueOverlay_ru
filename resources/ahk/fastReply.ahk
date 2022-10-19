@@ -209,6 +209,8 @@ fastMenu(fastPath, editBtn=true){
 	For k, val in dataSplit {
 		If InStr(dataSplit[k], ";")=1
 			Continue
+		If InStr(dataSplit[k], "=") && !InStr(dataSplit[k], "|") || InStr(dataSplit[k], "[")=1
+			Continue
 		If (dataSplit[k]="---") {
 			Menu, fastMenu, Add
 			Continue

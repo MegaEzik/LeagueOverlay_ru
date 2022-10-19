@@ -1,7 +1,12 @@
 ﻿
 ;Инициализация и создание меню разработчика
 devInit(){
-	;Menu, devMenu, Add, /Debug, createShortcut
+	IniRead, debugMode, %configFile%, settings, debugMode, 0
+	
+	Menu, devMenu, Add, Режим отладки, switchDebugMode
+	If debugMode
+		Menu, devMenu, Check, Режим отладки
+	Menu, devMenu, Add
 	Menu, devMenu, Add, Папка макроса, openScriptFolder	
 	Menu, devMenu, Add, Папка настроек, openConfigFolder
 	Menu, devMenu, Add
@@ -11,6 +16,14 @@ devInit(){
 	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
 	Menu, devMenu, Add
 	Menu, devMenu, Standard
+}
+
+;Переключить режим разработчика
+switchDebugMode(){
+	newDebugMode:=!debugMode
+	IniWrite, %newDebugMode%, %configFile%, settings, debugMode
+	Sleep 100
+	ReStart()
 }
 
 ;Подсчет MD5 файла
@@ -48,7 +61,7 @@ devLog(msg){
 
 ;Добавление в отслеживаемый список
 devAddInList(Line){
-	If !RegExMatch(args, "i)/Debug")
+	If !debugMode
 		return
 	FilePath:=configFolder "\devList.list"
 	FileRead, DataList, %FilePath%

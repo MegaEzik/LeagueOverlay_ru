@@ -51,7 +51,7 @@ If InStr(FileExist(A_ScriptDir "\..\Profile"), "D") {
 global configFile:=configFolder "\settings.ini"
 global buildConfig:=A_ScriptDir "\resources\Build.ini"
 global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, textCmd11, textCmd12, textCmd13, textCmd14, textCmd15, textCmd16, textCmd17, textCmd18, textCmd19, textCmd20, cmdNum=20
-global verScript, args, LastImg, globalOverlayPosition, OverlayStatus=0
+global verScript, args, LastImg, globalOverlayPosition, OverlayStatus=0, debugMode=0
 
 Loop, %0%
 	args.=" " %A_Index%
@@ -121,7 +121,7 @@ checkRequirementsAndArgs() {
 	If !A_IsAdmin
 		ReStart()
 	If RegExMatch(args, "i)/Help") {
-		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/Debug - режим отладки`n/ShowCurl - отображать окно cURL`n/NoAddons - пропуск загрузки дополнений`n/BypassSystemCheck - пропуск проверки системы
+		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/ShowCurl - отображать окно cURL`n/NoAddons - пропуск загрузки дополнений`n/BypassSystemCheck - пропуск проверки системы
 		ExitApp
 	}
 	If !RegExMatch(args, "i)/BypassSystemCheck") {
@@ -253,47 +253,45 @@ loadEvent(){
 	If (EventURL="")
 		return
 	
-	Path:="resources\data\event.txt"
-	LoadFile(eventURL, Path, true)
+	EventPath:="resources\data\event.txt"
+	LoadFile(eventURL, EventPath, true)
 	FormatTime, CurrentDate, %A_Now%, yyyyMMdd
 	
-	eventData:=loadFastFile(Path)
-	eventDataSplit:=StrSplit(eventData, "`n")
-	For k, val in eventDataSplit {
-		If RegExMatch(eventDataSplit[k], ";;")=1
-			Continue
-		If RegExMatch(eventDataSplit[k], ";StartUIMsg=(.*)$", StartUIMsg)
-			rStartUIMsg:=StartUIMsg1
-		If RegExMatch(eventDataSplit[k], ";EventName=(.*)$", EventName)
-			rEventName:=EventName1
-		If RegExMatch(eventDataSplit[k], ";EventLogo=(.*)$", EventLogo)
-			rEventLogo:=EventLogo1
-		If RegExMatch(eventDataSplit[k], ";StartDate=(.*)$", StartDate)
-			rStartDate:=StartDate1
-		If RegExMatch(eventDataSplit[k], ";EndDate=(.*)$", EndDate)
-			rEndDate:=EndDate1
-		If RegExMatch(eventDataSplit[k], ";MinVersion=(.*)$", MinVersion)
-			rMinVersion:=MinVersion1
-	}
+	IniRead, EventName, %EventPath%, Event, EventName, %A_Space%
+	IniRead, EventLogo, %EventPath%, Event, EventLogo, %A_Space%
+	IniRead, EventMsg, %EventPath%, Event, EventMsg, %A_Space%
+	IniRead, Require, %EventPath%, Event, Require, %A_Space%
 	
-	If (rMinVersion>verScript || rStartDate="" || rEndDate="" || CurrentDate<rStartDate || CurrentDate>rEndDate)
+	IniRead, StartDate, %EventPath%, Event, StartDate, %A_Space%
+	IniRead, EndDate, %EventPath%, Event, EndDate, %A_Space%
+	IniRead, MinVersion, %EventPath%, Event, MinVersion, %A_Space%
+	
+	If (EventName="" || MinVersion>verScript || StartDate="" || EndDate="" || CurrentDate<StartDate || CurrentDate>EndDate)
 		return
 	
-	If (rEventLogo!="")
-		LoadFile(rEventLogo, "resources\data\bg.jpg", true)
+	If (Require!="") {
+		IniRead, preset, %configFile%, settings, preset, %A_Space%
+		If !RegExMatch(preset, Require)
+			return
+	}
 		
-	If (rStartUIMsg!="")
-		showStartUI(rStartUIMsg, (rEventLogo!="")?"resources\data\bg.jpg":"")
+	If (EventLogo!="")
+		LoadFile(EventLogo, "resources\data\bg.jpg", true)
+		
+	If (EventMsg!="")
+		showStartUI(EventMsg, (EventLogo!="")?"resources\data\bg.jpg":"")
 	
-	If (rEventName!="")
-		trayMsg(rStartDate " - " rEndDate, rEventName)
-		
+	If (EventName!="")
+		trayMsg(StartDate " - " EndDate, EventName)
+	
+	eventDataSplit:=StrSplit(loadFastFile(EventPath), "`n")
 	For k, val in eventDataSplit
-		If RegExMatch(eventDataSplit[k], ";ResourceFile=(.*)$", rURL)=1
+		If RegExMatch(eventDataSplit[k], "ResourceFile=(.*)$", rURL)=1
 			loadEventResourceFile(rURL1)
+			
+	Globals.Set("eventName", EventName)
 	
-	Globals.Set("eventName", rEventName)
-	Sleep 1000
+	Sleep 1500
 	
 	return
 }
@@ -471,7 +469,6 @@ showStartUI(SpecialText="", LogoPath=""){
 	Gui, StartUI:Destroy
 	
 	initMsgs := ["Подготовка макроса к работе"
-				,"Поддержи " prjName
 				,"Опускаемся на 65535 глубину в 'Бесконечном спуске'"
 				,"Поиск NPC 'Борис Бритва'"
 				,"Призываем Создателя на Сумрачное взморье"
@@ -576,6 +573,10 @@ showSettings(){
 	IniRead, update, %configFile%, settings, update, 1
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	
+	;Скрытые настройки
+	IniRead, debugMode, %configFile%, settings, debugMode, 0
+	IniRead, sMenu, %configFile%, settings, sMenu, MyMenu.fmenu
+	
 	If FileExist("resources\imgs\bg.jpg")
 		Gui, Settings:Add, Picture, x0 y0 w500 h70, resources\imgs\bg.jpg
 	
@@ -584,9 +585,8 @@ showSettings(){
 	Gui, Settings:Add, Text, x320 y+2 w170 +Right BackgroundTrans, Перевод по номеру телефона: 
 	Gui, Settings:Add, Edit, x320 y+1 w170 h18 +ReadOnly +Right, %dNumber%
 	
-	dMode:=RegExMatch(args, "i)/Debug")?"Активен":"Отключен"
-	sMsg:=prjName ": " verScript "`nAutoHotKey:" A_AhkVersion "`nПараметры запуска:" args "`nРежим отладки: "  dMode
-	Gui, Settings:Add, Text, x12 y8 w250 BackgroundTrans, %sMsg%
+	sMsg:="Если хотите попасть на экран загрузки, то после доната напишите мне в Discord - MegaEzik#6857`n`nЯ буду рад любой копеечке <3"
+	Gui, Settings:Add, Text, x12 y8 w300 BackgroundTrans, %sMsg%
 	
 	Gui, Settings:Font, s11
 	Gui, Settings:Add, Button, x290 y392 w210 h23 gsaveSettings, Применить и перезапустить ;💾 465
@@ -742,6 +742,10 @@ saveSettings(){
 	IniWrite, %update%, %configFile%, settings, update
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
 	
+	;Скрытые настройки
+	IniWrite, %debugMode%, %configFile%, settings, debugMode
+	IniWrite, %sMenu%, %configFile%, settings, sMenu
+	
 	;Настраиваемые команды fastReply
 	Loop %cmdNum% {
 		tempVar:=hotkeyCmd%A_Index%
@@ -846,7 +850,7 @@ shMainMenu(Gamepad=false){
 	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
 	myImagesMenuCreate((expandMyImages || Gamepad)?true:false)
 	
-	IniRead, sMenu, %buildConfig%, settings, sMenu, MyMenu.fmenu
+	IniRead, sMenu, %configFile%, settings, sMenu, MyMenu.fmenu
 	If (expandMyImages || Gamepad) && (sMenu!="") && FileExist(configFolder "\MyFiles\" sMenu){
 		fastMenu(configFolder "\MyFiles\" sMenu)
 		Menu, mainMenu, Add, %sMenu%, :fastMenu
@@ -881,7 +885,7 @@ ReStart(){
 showDonateUIOnStart() {
 	Random, randomNum, 1, 5
 	If (randomNum=1)
-		traytip, %prjName%, Поддержи %prjName%)
+		traytip, %prjName%, Поддержи %githubUser% <3
 }
 
 ;Всплывающая подсказка
