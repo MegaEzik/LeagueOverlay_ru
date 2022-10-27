@@ -795,8 +795,8 @@ menuCreate(){
 	Menu, Tray, Add, Настройки, showSettings
 	Menu, Tray, Default, Настройки
 	Menu, Tray, Add, Очистить кэш PoE, clearPoECache
-	Menu, CreateMenu, Add, Создать заметку, createNewNote
-	Menu, CreateMenu, Add, Создать меню, createNewMenu
+	Menu, CreateMenu, Add, Заметку, createNewNote
+	Menu, CreateMenu, Add, Меню команд, createNewMenu
 	Menu, Tray, Add, Создать, :CreateMenu
 	Menu, Tray, Add, Дополнения, pkgsMgr_packagesMenu
 	Menu, Tray, Add, Меню отладки, :devMenu
@@ -849,7 +849,7 @@ shMainMenu(Gamepad=false){
 	If (expandMyImages || Gamepad) && (sMenu!="") && FileExist(configFolder "\MyFiles\" sMenu){
 		fastMenu(configFolder "\MyFiles\" sMenu)
 		Menu, mainMenu, Add, %sMenu%, :fastMenu
-		;Menu, mainMenu, Rename, MyMenu.fmenu, Мои команды
+		Menu, mainMenu, Rename, %sMenu%, Избранные команды
 	}
 	
 	Menu, mainMenu, Add, Область уведомлений, :Tray
