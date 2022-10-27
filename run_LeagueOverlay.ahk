@@ -548,6 +548,8 @@ showSettings(){
 	
 	IniRead, dCard, %buildConfig%, Donation, Card, %A_Space%
 	IniRead, dNumber, %buildConfig%, Donation, Number, %A_Space%
+	IniRead, dMsg, %buildConfig%, Donation, Msg, %A_Space%
+	dMsg:=StrReplace(dMsg, "/n", "`n")
 	
 	;Настройки первой вкладки
 	IniRead, OverlayPosition, %configFile%, settings, overlayPosition, %A_Space%
@@ -585,8 +587,7 @@ showSettings(){
 	Gui, Settings:Add, Text, x320 y+2 w170 +Right BackgroundTrans, Перевод по номеру телефона: 
 	Gui, Settings:Add, Edit, x320 y+1 w170 h18 +ReadOnly +Right, %dNumber%
 	
-	sMsg:="Если хотите попасть на экран загрузки, то после доната напишите мне в Discord - MegaEzik#6857`n`nЯ буду рад любой копеечке <3"
-	Gui, Settings:Add, Text, x12 y8 w300 BackgroundTrans, %sMsg%
+	Gui, Settings:Add, Text, x12 y8 w300 BackgroundTrans, %dMsg%
 	
 	Gui, Settings:Font, s11
 	Gui, Settings:Add, Button, x290 y392 w210 h23 gsaveSettings, Применить и перезапустить ;💾 465
@@ -793,17 +794,11 @@ menuCreate(){
 	Menu, Tray, Add
 	Menu, Tray, Add, Настройки, showSettings
 	Menu, Tray, Default, Настройки
+	Menu, Tray, Add, Очистить кэш PoE, clearPoECache
+	Menu, CreateMenu, Add, Создать заметку, createNewNote
+	Menu, CreateMenu, Add, Создать меню, createNewMenu
+	Menu, Tray, Add, Создать, :CreateMenu
 	Menu, Tray, Add, Дополнения, pkgsMgr_packagesMenu
-	Menu, Actions, Add, Создать заметку, createNewNote
-	Menu, Actions, Add, Создать меню, createNewMenu
-	Menu, Actions, Add
-	Menu, Actions, Add, https://poelab.com/gtgax, reloadLab
-	Menu, Actions, Add, https://poelab.com/r8aws, reloadLab
-	Menu, Actions, Add, https://poelab.com/riikv, reloadLab
-	Menu, Actions, Add, https://poelab.com/wfbra, reloadLab
-	Menu, Actions, Add
-	Menu, Actions, Add, Очистить кэш PoE, clearPoECache
-	Menu, Tray, Add, Действия, :Actions
 	Menu, Tray, Add, Меню отладки, :devMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить, ReStart

@@ -15,6 +15,11 @@ devInit(){
 	Menu, devMenu, Add, Перезагрузить данные, devClSD
 	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
 	Menu, devMenu, Add
+	Menu, devMenu, Add, https://poelab.com/gtgax, reloadLab
+	Menu, devMenu, Add, https://poelab.com/r8aws, reloadLab
+	Menu, devMenu, Add, https://poelab.com/riikv, reloadLab
+	Menu, devMenu, Add, https://poelab.com/wfbra, reloadLab
+	Menu, devMenu, Add
 	Menu, devMenu, Standard
 }
 
