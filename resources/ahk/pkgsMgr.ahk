@@ -53,7 +53,7 @@ pkgsMgr_loadPackage(Name){
 }
 
 pkgsMgr_fromFile(){
-	FileSelectFile, FilePath,,,Укажите файл с дополнением, (*.zip;*.ahk;*.txt;*.preset;*.jpg;*.png;*jpeg;*bmp)
+	FileSelectFile, FilePath,,,Укажите файл с дополнением, (*.zip;*.ahk;*.txt;*.fmenu;*.jpg;*.png;*jpeg;*bmp)
 	pkgsMgr_installPackage(FilePath)
 }
 
@@ -64,10 +64,7 @@ pkgsMgr_installPackage(FilePath){
 		return
 	}
 	SplitPath, FilePath, Name
-	If RegExMatch(FilePath, "i).(jpg|jpeg|bmp|png|txt)$") {
-		FileCopy, %FilePath%, %configFolder%\MyFiles\%Name%, 1
-	}
-	If RegExMatch(FilePath, "i).preset$") {
+	If RegExMatch(FilePath, "i).(jpg|jpeg|bmp|png|txt|fmenu)$") {
 		FileCopy, %FilePath%, %configFolder%\MyFiles\%Name%, 1
 	}
 	If RegExMatch(FilePath, "i).ahk$") {
