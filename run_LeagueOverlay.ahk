@@ -72,7 +72,7 @@ For k, val in splitWinList
 		WinName:=splitWinList[k]
 		GroupAdd, WindowGrp, %WinName%
 	}
-
+	
 ;Проверка требований и параметров запуска
 checkRequirementsAndArgs()
 	
@@ -878,7 +878,7 @@ ReStart(){
 
 ;Иногда после запуска будем предлагать поддержать проект
 showDonateUIOnStart() {
-	Random, randomNum, 1, 5
+	Random, randomNum, 1, 4
 	If (randomNum=1)
 		traytip, %prjName%, Поддержи %githubUser% <3
 }
@@ -941,7 +941,7 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 	If FileExist(A_WinDir "\System32\curl.exe") {
 		IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 		If (UserAgent="")
-			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
+			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"
 		IniRead, lr, %configFile%, curl, limit-rate, 1000
 		IniRead, ct, %configFile%, curl, connect-timeout, 10
 		
