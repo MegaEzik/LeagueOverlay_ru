@@ -197,7 +197,7 @@ ItemMenu_IDCLInit(){
 	;Globals.Set("item_samename", JSON.Load(samename_list))
 	
 	If (ResultNames || ResultStats)
-		trayMsg("Списки соответствий обновлены)")
+		TrayTip, %prjName%, Списки соответствий обновлены)
 }
 
 ItemMenu_LoadDataFile(URL, Path){
@@ -225,7 +225,7 @@ ItemMenu_LoadDataFile(URL, Path){
 		}
 		FileSetTime, , %Path%
 	} else {
-		trayMsg("Ошибка загрузки файла соответствий!`n" Path)
+		TrayTip, %prjName%, Ошибка загрузки файла соответствий!`n%Path%
 		devLog("IDCL Load Error - " Path)
 	}
 	return false

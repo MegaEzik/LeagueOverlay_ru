@@ -93,13 +93,13 @@ If update
 ;Проверка версии и перенос настроек
 migrateConfig()
 
-;Выполним все файлы с окончанием .ahk, передав им папку расположения скрипта
-pkgsMgr_startCustomScripts()
-
-;Загрузка и установка данных
+;Загрузка события, лабиринта, и данных для IDCL
 loadEvent()
 initLab()
 ItemMenu_IDCLInit()
+
+;Выполним все файлы с окончанием .ahk, передав им папку расположения скрипта
+pkgsMgr_startCustomScripts()
 
 ;Назначим управление и создадим меню
 menuCreate()
@@ -274,22 +274,23 @@ loadEvent(){
 		If !RegExMatch(preset, Require)
 			return
 	}
-		
+	
+	EventInfo:=EventName "(" SubStr(EndDate, 7, 2) "." SubStr(EndDate, 5, 2) ")"
+	StartUIMsg:=EventInfo
+	If (EventMsg!="")
+		StartUIMsg.="`n" EventMsg
+	
 	If (EventLogo!="")
 		LoadFile(EventLogo, "resources\data\bg.jpg", true)
-		
-	If (EventMsg!="")
-		showStartUI(EventMsg, (EventLogo!="")?"resources\data\bg.jpg":"")
 	
-	If (EventName!="")
-		trayMsg(StartDate " - " EndDate, EventName)
+	showStartUI(StartUIMsg, (EventLogo!="")?"resources\data\bg.jpg":"")
 	
 	eventDataSplit:=StrSplit(loadFastFile(EventPath), "`n")
 	For k, val in eventDataSplit
 		If RegExMatch(eventDataSplit[k], "ResourceFile=(.*)$", rURL)=1
 			loadEventResourceFile(rURL1)
 			
-	Globals.Set("eventName", EventName)
+	Globals.Set("eventName", EventInfo)
 	
 	Sleep 1500
 	
@@ -316,11 +317,10 @@ shMyImage(imagename){
 ;Открыть папку с моими файлами
 openMyImagesFolder(){
 	Gui, Settings:Destroy
-	sleep 15
 	Run, explorer "%configFolder%\MyFiles"
 }
 
-;Создать меню с моими файлами
+;Создать меню с Моими файлами
 myImagesMenuCreate(expandMenu=true){
 	If expandMenu {
 		Loop, %configFolder%\MyFiles\*.*, 1
@@ -335,9 +335,26 @@ myImagesMenuCreate(expandMenu=true){
 			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt|fmenu)$")
 				Menu, myImagesMenu, Add, %A_LoopFileName%, shMyImage
 		Menu, myImagesMenu, Add
-		Menu, myImagesMenu, Add, Открыть папку, openMyImagesFolder
+		myImagesActions()
+		;Menu, myImagesMenu, Add, Открыть папку, openMyImagesFolder
 		Menu, mainMenu, Add, Мои файлы, :myImagesMenu
 	}
+}
+
+;Меню действий для Моих файлов
+myImagesActions(){
+	Menu, myImagesSubMenu, Add, Заметку, createNewNote
+	Menu, myImagesSubMenu, Add, Меню команд, createNewMenu
+	Menu, myImagesMenu, Add, Создать, :myImagesSubMenu
+	Menu, myImagesMenu, Add, Открыть папку, openMyImagesFolder
+}
+
+;Открыть меню действий для моих файлов
+sMenuImagesActions(){
+	Menu, myImagesMenu, Add
+	Menu, myImagesMenu, DeleteAll
+	myImagesActions()
+	Menu, myImagesMenu, Show
 }
 
 ;Окно с текстом
@@ -380,6 +397,7 @@ textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 
 ;Создание заметки
 createNewNote(){
+	Gui, Settings:Destroy
 	InputBox, fileName, Введите название для заметки,,, 300, 100,,,,, NewNote
 	filePath:=configFolder "\MyFiles\" fileName ".txt"
 	If (FileExist(filePath) || fileName="" || ErrorLevel) {
@@ -391,6 +409,7 @@ createNewNote(){
 
 ;Создание нового меню
 createNewMenu(){
+	Gui, Settings:Destroy
 	InputBox, fileName, Введите название для файла меню,,, 300, 100,,,,, MyMenu
 	filePath:=configFolder "\MyFiles\" fileName ".fmenu"
 	If (FileExist(filePath) || fileName="" || ErrorLevel) {
@@ -461,7 +480,7 @@ clearPoECache(){
 	FileRemoveDir, %PoECacheFolder%, 1
 	
 	SplashTextOff
-	trayMsg("Очистка кэша завершена)")
+	TrayTip, %prjName%, Очистка кэша завершена)
 }
 
 ;Окно запуска
@@ -516,13 +535,10 @@ showStartUI(SpecialText="", LogoPath=""){
 	Gui, StartUI:Font, s10 bold italic
 	Gui, StartUI:Add, Text, x0 y+2 h30 w500 +Center BackgroundTrans, %initMsg%
 	
-	Gui, StartUI:Font, s8 norm
-	Gui, StartUI:Font, c505050
-	Gui, StartUI:Add, Text, x4 y55 w340 BackgroundTrans, %args%
-	
 	Gui, StartUI:Font, s8 norm italic
-	Gui, StartUI:Font, c000000
-	Gui, StartUI:Add, Text, x+2 w150 BackgroundTrans +Right, %dName%
+	Gui, StartUI:Add, Text, x4 y55 w150 BackgroundTrans, %dName%
+	
+	Gui, StartUI:Add, Text, x+2 w340 BackgroundTrans +Right, %args%
 	
 	;Gui, StartUI:+AlwaysOnTop -SysMenu
 	Gui, StartUI:+ToolWindow -Caption +Border +AlwaysOnTop
@@ -578,6 +594,7 @@ showSettings(){
 	;Скрытые настройки
 	IniRead, debugMode, %configFile%, settings, debugMode, 0
 	IniRead, sMenu, %configFile%, settings, sMenu, MyMenu.fmenu
+	IniRead, useSystemTheme, %configFile%, settings, useSystemTheme, 1
 	
 	If FileExist("resources\imgs\bg.jpg")
 		Gui, Settings:Add, Picture, x0 y0 w500 h70, resources\imgs\bg.jpg
@@ -630,7 +647,7 @@ showSettings(){
 	Gui, Settings:Add, UpDown, Range5-99999 0x80, %mouseDistance%
 	
 	Gui, Settings:Add, Checkbox, vexpandMyImages x12 yp+24 w385 Checked%expandMyImages%, Развернуть 'Мои файлы'
-	Gui, Settings:Add, Button, x+1 yp-4 w92 h23 gopenMyImagesFolder, Открыть папку
+	Gui, Settings:Add, Button, x+1 yp-4 w92 h23 gsMenuImagesActions, Действия
 	
 	Gui, Settings:Add, Text, x10 y+3 w480 h1 0x12
 	
@@ -746,7 +763,8 @@ saveSettings(){
 	;Скрытые настройки
 	IniWrite, %debugMode%, %configFile%, settings, debugMode
 	IniWrite, %sMenu%, %configFile%, settings, sMenu
-	
+	IniWrite, %useSystemTheme%, %configFile%, settings, useSystemTheme
+
 	;Настраиваемые команды fastReply
 	Loop %cmdNum% {
 		tempVar:=hotkeyCmd%A_Index%
@@ -795,9 +813,6 @@ menuCreate(){
 	Menu, Tray, Add, Настройки, showSettings
 	Menu, Tray, Default, Настройки
 	Menu, Tray, Add, Очистить кэш PoE, clearPoECache
-	Menu, CreateMenu, Add, Заметку, createNewNote
-	Menu, CreateMenu, Add, Меню команд, createNewMenu
-	Menu, Tray, Add, Создать, :CreateMenu
 	Menu, Tray, Add, Дополнения, pkgsMgr_packagesMenu
 	Menu, Tray, Add, Меню отладки, :devMenu
 	Menu, Tray, Add
@@ -900,14 +915,6 @@ showToolTip(msg, t=0, umd=true) {
 	}
 }
 
-;Уведомление
-trayMsg(MsgText, Title:=""){
-	FullTitle:=prjName
-	If (Title!="")
-		FullTitle.=" - " Title
-	TrayTip, %FullTitle%, %MsgText%
-}
-
 ;Удаление всплывающей подсказки
 removeToolTip() {
 	ToolTip
@@ -970,8 +977,8 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 
 ;Использование системной темы
 systemTheme(){
-	IniRead, UseSystemTheme, %buildConfig%, Settings, UseSystemTheme, 1
-	If !UseSystemTheme
+	IniRead, useSystemTheme, %configFile%, settings, useSystemTheme, 1
+	If !useSystemTheme
 		return
 	uxtheme:=DllCall("GetModuleHandle", "str", "uxtheme", "ptr")
 	SetPreferredAppMode:=DllCall("GetProcAddress", "ptr", uxtheme, "ptr", 135, "ptr")

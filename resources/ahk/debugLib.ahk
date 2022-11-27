@@ -10,17 +10,20 @@ devInit(){
 	Menu, devMenu, Add, Папка макроса, openScriptFolder	
 	Menu, devMenu, Add, Папка настроек, openConfigFolder
 	Menu, devMenu, Add
+	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
+	Menu, devMenu, Add, Перезагрузить данные, devClSD
+	Menu, devSubMenu1, Add, https://poelab.com/gtgax, reloadLab
+	Menu, devSubMenu1, Add, https://poelab.com/r8aws, reloadLab
+	Menu, devSubMenu1, Add, https://poelab.com/riikv, reloadLab
+	Menu, devSubMenu1, Add, https://poelab.com/wfbra, reloadLab
+	Menu, devMenu, Add, Лабиринт, :devSubMenu1
+	;Menu, devMenu, Add
+	;Menu, devMenu, Add, Избранные комманды, favoriteList
+	Menu, devMenu, Add
 	Menu, devMenu, Add, Контрольная сумма(MD5), devMD5FileCheck
 	Menu, devMenu, Add
-	Menu, devMenu, Add, Перезагрузить данные, devClSD
-	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
-	Menu, devMenu, Add
-	Menu, devMenu, Add, https://poelab.com/gtgax, reloadLab
-	Menu, devMenu, Add, https://poelab.com/r8aws, reloadLab
-	Menu, devMenu, Add, https://poelab.com/riikv, reloadLab
-	Menu, devMenu, Add, https://poelab.com/wfbra, reloadLab
-	Menu, devMenu, Add
-	Menu, devMenu, Standard
+	Menu, devSubMenu2, Standard
+	Menu, devMenu, Add, AutoHotkey, :devSubMenu2
 }
 
 ;Переключить режим разработчика
@@ -80,4 +83,16 @@ devAddInList(Line){
 ;Создать ярлык
 createShortcut(Params){
 	FileCreateShortcut, %A_ScriptFullPath%, %A_Desktop%\LeagueOverlay_ru.lnk, %A_ScriptDir%, %Params%
+}
+
+favoriteList(){
+	Menu, favoriteList, Add
+	Menu, favoriteList, DeleteAll
+	Loop, %configFolder%\MyFiles\*.fmenu, 1
+		Menu, favoriteList, Add, %A_LoopFileName%, favoriteSetFile
+	Menu, favoriteList, Show
+}
+
+favoriteSetFile(Name){
+	IniWrite, %Name%, %configFile%, settings, sMenu
 }
