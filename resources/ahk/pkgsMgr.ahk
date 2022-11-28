@@ -5,7 +5,8 @@ pkgsMgr_packagesMenu(){
 	
 	Menu, packagesMenu, Add
 	Menu, packagesMenu, DeleteAll
-	Menu, packagesMenu, Add, Добавить из файла, pkgsMgr_fromFile
+	Menu, packagesMenu, Add, + из файла, pkgsMgr_fromFile
+	Menu, packagesMenu, Add, + по URL, pkgsMgr_fromURL
 	Menu, packagesMenu, Add
 	
 	FileRead, Data, %FilePath%
@@ -67,6 +68,16 @@ pkgsMgr_fromFile(){
 	pkgsMgr_installPackage(FilePath)
 }
 
+pkgsMgr_fromURL(){
+	InputBox, fileURL, Укажите URL,,, 300, 100
+	SplitPath, fileURL, fileName
+	If (RegExMatch(fileURL, "i)https://")!=1) || !LoadFile(fileURL,  A_Temp "\" fileName) {
+		TrayTip, %prjName%, Ошибка загрузки '%fileName%'!
+		return
+	}
+	pkgsMgr_installPackage(A_Temp "\" fileName)
+}
+
 pkgsMgr_installPackage(FilePath){
 	If (FilePath="" || !FileExist(FilePath)) {
 		msgtext:="Файл не найден, операция прервана!"
@@ -77,15 +88,22 @@ pkgsMgr_installPackage(FilePath){
 	If RegExMatch(FilePath, "i).(jpg|jpeg|bmp|png|txt|fmenu)$") {
 		FileCopy, %FilePath%, %configFolder%\MyFiles\%Name%, 1
 	}
-	If RegExMatch(FilePath, "i).ahk$") {
-		FileCopy, %FilePath%, %configFolder%\%Name%, 1
-	}
 	If RegExMatch(FilePath, "i).upd.zip$") {
 		unZipArchive(FilePath, A_ScriptDir)
 		ReStart()
 	}
 	If RegExMatch(FilePath, "i).zip$") {
 		unZipArchive(FilePath, configFolder)
+	}
+	If RegExMatch(FilePath, "i).ahk$") {
+		FileCopy, %FilePath%, %configFolder%\%Name%, 1
+	}
+	AHKFile:=RegExReplace(name, "i).zip$", ".ahk")
+	If RegExMatch(AHKFile, "i).ahk$") && FileExist(configFolder "\" AHKFile) {
+		IniDelete, %configFolder%\pkgsMgr.ini, pkgsMgr, %AHKFile%
+		Sleep 50
+		permissionsCustomScript(AHKFile)
+		ReStart()
 	}
 	TrayTip, %prjName%, Дополнение '%Name%' установлено!
 }
@@ -97,8 +115,8 @@ pkgsMgr_delPackage(Name){
 		return
 	}
 	
-	If RegExMatch(Name, ".ahk$") {
-		Name:=SubStr(RegExReplace(Name, ".ahk$", ""), 3)
+	If RegExMatch(Name, "i).ahk$") {
+		Name:=SubStr(RegExReplace(Name, "i).ahk$", ""), 3)
 		IniDelete, %configFolder%\pkgsMgr.ini, pkgsMgr, %Name%.ahk
 		FileDelete, %configFolder%\%Name%.ahk
 		FileRemoveDir, %configFolder%\%Name%, 1

@@ -87,8 +87,10 @@ devInit()
 
 ;Проверка обновлений
 IniRead, update, %configFile%, settings, update, 1
-If update
+If update {
 	CheckUpdate()
+	updateAutoHotkey()
+}
 
 ;Проверка версии и перенос настроек
 migrateConfig()
@@ -133,8 +135,7 @@ checkRequirementsAndArgs() {
 		}
 		If (A_PtrSize!=8) {
 			msgtext:="Для работы " prjName " требуется 64-разрядный интерпретатор AutoHotkey!"
-			Loop, %A_AhkPath%
-				AhkDir:=A_LoopFileDir
+			SplitPath, A_AhkPath,,AHKDir
 			If FileExist(AhkDir "\Installer.ahk")
 				msgtext.="`n`nПосле нажатия кнопки 'ОК' откроется 'AutoHotkey Setup', выберите в нем 'Modify', а затем 'Unicode 64-bit'."
 			MsgBox, 0x1010, %prjName%, %msgtext%
@@ -250,7 +251,8 @@ shLastImage(){
 ;Загрузить событие
 loadEvent(){
 	IniRead, EventURL, %buildConfig%, settings, EventURL, %A_Space%
-	If (EventURL="")
+	IniRead, useEvent, %configFile%, settings, useEvent, 1
+	If !useEvent || (EventURL="")
 		return
 	
 	EventPath:="resources\data\event.txt"
@@ -275,22 +277,19 @@ loadEvent(){
 			return
 	}
 	
-	EventInfo:=EventName "(" SubStr(EndDate, 7, 2) "." SubStr(EndDate, 5, 2) ")"
-	StartUIMsg:=EventInfo
-	If (EventMsg!="")
-		StartUIMsg.="`n" EventMsg
+	EventName.="(" SubStr(EndDate, 7, 2) "." SubStr(EndDate, 5, 2) ")"
 	
 	If (EventLogo!="")
 		LoadFile(EventLogo, "resources\data\bg.jpg", true)
 	
-	showStartUI(StartUIMsg, (EventLogo!="")?"resources\data\bg.jpg":"")
+	showStartUI(EventName "`n" EventMsg, (EventLogo!="")?"resources\data\bg.jpg":"")
 	
 	eventDataSplit:=StrSplit(loadFastFile(EventPath), "`n")
 	For k, val in eventDataSplit
 		If RegExMatch(eventDataSplit[k], "ResourceFile=(.*)$", rURL)=1
 			loadEventResourceFile(rURL1)
 			
-	Globals.Set("eventName", EventInfo)
+	Globals.Set("eventName", EventName)
 	
 	Sleep 1500
 	
@@ -589,6 +588,7 @@ showSettings(){
 	IniRead, lr, %configFile%, curl, limit-rate, 1000
 	IniRead, ct, %configFile%, curl, connect-timeout, 3
 	IniRead, update, %configFile%, settings, update, 1
+	IniRead, useEvent, %configFile%, settings, useEvent, 1
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	
 	;Скрытые настройки
@@ -678,7 +678,9 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x10 y+5 w480 h1 0x12
 	
-	Gui, Settings:Add, Checkbox, vupdate x12 y+6 w480 Checked%update% , Автоматическая установка обновлений
+	Gui, Settings:Add, Checkbox, vupdate x12 y+6 w480 Checked%update% , Автоматическая проверка обновлений
+	
+	Gui, Settings:Add, Checkbox, vuseEvent x12 yp+21 w480 Checked%useEvent%, Разрешить события
 	
 	Gui, Settings:Add, Checkbox, vloadLab x12 yp+21 w385 Checked%loadLab%, Скачивать раскладку лабиринта('Мои файлы'>Labyrinth.jpg)
 	Gui, Settings:Add, Link, x+2 yp+0 w90 +Right, <a href="https://www.poelab.com/">POELab.com</a>
@@ -758,6 +760,7 @@ saveSettings(){
 	IniWrite, %lr%, %configFile%, curl, limit-rate
 	IniWrite, %ct%, %configFile%, curl, connect-timeout
 	IniWrite, %update%, %configFile%, settings, update
+	IniWrite, %useEvent%, %configFile%, settings, useEvent
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
 	
 	;Скрытые настройки

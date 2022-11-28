@@ -96,3 +96,15 @@ favoriteList(){
 favoriteSetFile(Name){
 	IniWrite, %Name%, %configFile%, settings, sMenu
 }
+
+updateAutoHotkey(){
+	filePath:=A_Temp "\ahkver.txt"
+	FileDelete, %filePath%
+	UrlDownloadToFile, https://www.autohotkey.com/download/1.1/version.txt, %filePath%
+	FileReadLine, AHKRelVer, %filePath%, 1
+	If (A_AhkVersion<AHKRelVer){
+		SplitPath, A_AhkPath,,AHKDir
+		If FileExist(AHKDir "\Installer.ahk")
+			Run *RunAs "%AhkDir%\Installer.ahk"
+	}
+}
