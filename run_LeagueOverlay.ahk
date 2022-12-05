@@ -382,7 +382,7 @@ textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 		Gui, tfwGui:Add, Edit, w615 h380 vtfwContentFile, %tfwContentFile%
 	}
 	Gui, tfwGui:+AlwaysOnTop -MinimizeBox -MaximizeBox
-	Gui, tfwGui:Show,, %prjName% - %Title%
+	Gui, tfwGui:Show,, %Title%
 	
 	sleep 15
 	BlockInput On
@@ -896,7 +896,7 @@ ReStart(){
 
 ;Иногда после запуска будем предлагать поддержать проект
 showDonateUIOnStart() {
-	Random, randomNum, 1, 4
+	Random, randomNum, 1, 3
 	If (randomNum=1)
 		traytip, %prjName%, Поддержи %githubUser% <3
 }
@@ -951,7 +951,7 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 	If FileExist(A_WinDir "\System32\curl.exe") {
 		IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 		If (UserAgent="")
-			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"
+			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"
 		IniRead, lr, %configFile%, curl, limit-rate, 1000
 		IniRead, ct, %configFile%, curl, connect-timeout, 10
 		

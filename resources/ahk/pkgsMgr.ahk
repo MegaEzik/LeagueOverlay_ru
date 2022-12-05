@@ -81,7 +81,8 @@ pkgsMgr_fromURL(){
 pkgsMgr_installPackage(FilePath){
 	If (FilePath="" || !FileExist(FilePath)) {
 		msgtext:="Файл не найден, операция прервана!"
-		msgbox, 0x1010, %prjName%, %msgtext%, 3
+		TrayTip, %prjName%, %msgtext%
+		;msgbox, 0x1010, %prjName%, %msgtext%, 3
 		return
 	}
 	SplitPath, FilePath, Name
@@ -116,7 +117,7 @@ pkgsMgr_delPackage(Name){
 	}
 	
 	If RegExMatch(Name, "i).ahk$") {
-		Name:=SubStr(RegExReplace(Name, "i).ahk$", ""), 3)
+		Name:=RegExReplace(SubStr(Name, 3), "i).ahk$", "")
 		IniDelete, %configFolder%\pkgsMgr.ini, pkgsMgr, %Name%.ahk
 		FileDelete, %configFolder%\%Name%.ahk
 		FileRemoveDir, %configFolder%\%Name%, 1
@@ -149,6 +150,8 @@ permissionsCustomScript(ScriptName){
 		IfMsgBox No
 			return
 		IniWrite, %MD5File%, %configFolder%\pkgsMgr.ini, pkgsMgr, %ScriptName%
+		Sleep 100
+		ReStart()
 		;RunWait *RunAs "%A_AhkPath%" "%configFolder%\%ScriptName%" "%A_ScriptDir%"
 	} else {
 		IniDelete, %configFolder%\pkgsMgr.ini, pkgsMgr, %ScriptName%

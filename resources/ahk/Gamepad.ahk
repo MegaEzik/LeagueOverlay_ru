@@ -40,7 +40,8 @@ setHotkeyGamepad(){
 	
 	If (JID="") {
 		SetTimer, setHotkeyGamepad, Delete
-		msgbox, 0x1010, %prjName%, Игровой контроллер не обнаружен!, 3
+		TrayTip, %prjName%, Игровой контроллер не обнаружен!
+		;msgbox, 0x1010, %prjName%, Игровой контроллер не обнаружен!, 3
 		Return
 	}
 	

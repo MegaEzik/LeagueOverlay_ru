@@ -4,7 +4,7 @@ ItemMenu_ConvertFromGame() {
 	ItemData:=IDCL_ConvertMain(Globals.Get("ItemDataFullText"))
 	Sleep 100
 	Clipboard:=ItemData
-	showToolTip("Скопировано в буфер обмена!`n-----------------------------------`n" ItemData, 10000)
+	showToolTip("Скопировано в буфер обмена!`n-----------------------------------`n" ItemData, 15000)
 }
 
 ItemMenu_Show(){
@@ -44,6 +44,7 @@ ItemMenu_Show(){
 			ItemMenu_AddCopyInBuffer(ItemName_En)
 		
 		;Пункт копирования жертвы в ультиматумах
+		/*
 		If (ItemName="Начертанный Ультиматум") {
 			Menu, itemMenu, Add
 			If (RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*) x\d+", findtext) || RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*)", findtext))
@@ -52,6 +53,7 @@ ItemMenu_Show(){
 				If !RegExMatch(findtext1, "Удваивает")
 					ItemMenu_AddCopyInBuffer(findtext1)
 		}
+		*/
 		
 		;Пункт меню для конвертирования описания
 		Menu, itemMenu, Add
@@ -78,11 +80,6 @@ ItemMenu_Show(){
 					ItemMenu_AddHightlight(splitItemName[k])
 		}
 		
-		/*
-		If RegExMatch(ItemName, "(Масло|масло|Сущность|сущность|катализатор|резонатор|ископаемое|сфера Делириума|Карта|Заражённая Карта|флакон маны|флакон жизни|кластерный|Копия)", findtext)
-			ItemMenu_AddHightlight(findtext%, ItemMenu_Hightlight
-		*/
-		
 		If (RegExMatch(ItemClass1, "Камни") && RegExMatch(ItemName, "(Пробужденный|Аномальный|Искривлённый|Фантомный): ", findtext))
 			ItemMenu_AddHightlight(findtext1)
 		If (ItemClass1="Кольца" && RegExMatch(ItemData, "Редкость: Уникальный"))
@@ -91,23 +88,24 @@ ItemMenu_Show(){
 			ItemMenu_AddHightlight("""Камни""" " " """Качество""")
 		
 		For k, val in ItemDataSplit {
-			If RegExMatch(ItemDataSplit[k], "(Предмет Создателя|Древний предмет|Расколотый предмет|Синтезированный предмет|Предмет Вождя|Предмет Избавительницы|Предмет Крестоносца|Предмет Охотника|Завуалированный|Качество|Область находится под влиянием Древнего|Область находится под влиянием Создателя)", findtext)
+			If RegExMatch(ItemDataSplit[k], "(Предмет Создателя|Древний предмет|Расколотый предмет|Синтезированный предмет|Предмет Вождя|Предмет Избавительницы|Предмет Крестоносца|Предмет Охотника|Завуалированный|Качество|Область находится под влиянием Древнего|Область находится под влиянием Создателя|Предмет Пожирателя миров|Предмет Пламенного экзарха)", findtext)
 				ItemMenu_AddHightlight(findtext)
 			If RegExMatch(ItemDataSplit[k], "Уровень предмета: (.*)", findtext)
 				ItemMenu_AddHightlight(findtext)
-			If RegExMatch(ItemDataSplit[k], "Регион Атласа: (.*)", findtext)
-				ItemMenu_AddHightlight(findtext1)
 			If RegExMatch(ItemDataSplit[k], "Уровень карты: (.*)", findtext)
 				ItemMenu_AddHightlight("tier:" findtext1)
 			If ((ItemClass1="Чертежи" || ItemClass1="Контракты") && RegExMatch(ItemDataSplit[k], "Требуется (.*) \(\d+", findtext))
 				ItemMenu_AddHightlight(findtext1)
 			If (ItemClass1="Журналы экспедиции" && RegExMatch(ItemDataSplit[k], "(Друиды Разомкнутого круга|Наёмники Чёрной косы|Рыцари Солнца|Орден Чаши)", findtext)=1)
 				ItemMenu_AddHightlight(findtext1)
-			If (ItemName="Зеркальная табличка" && RegExMatch(ItemDataSplit[k], "Отражение (.*) \(\d+", findtext))
-				ItemMenu_AddHightlight("Отражение " findtext1)
-			;If (ItemName="Хроники Ацоатля" && RegExMatch(ItemDataSplit[k], "(.*) \(Уровень \d+\)", findtext))
 			If (ItemName="Хроники Ацоатля" && RegExMatch(ItemDataSplit[k], "(.*) \(Уровень 3\)", findtext))
 				ItemMenu_AddHightlight(findtext1)
+			/*
+			If RegExMatch(ItemDataSplit[k], "Регион Атласа: (.*)", findtext)
+				ItemMenu_AddHightlight(findtext1)
+			If (ItemName="Зеркальная табличка" && RegExMatch(ItemDataSplit[k], "Отражение (.*) \(\d+", findtext))
+				ItemMenu_AddHightlight("Отражение " findtext1)
+			*/
 		}
 		FileRead, hightlightData, %configFolder%\highlight.list
 		hightlightDataSplit:=strSplit(StrReplace(hightlightData, "`r", ""), "`n")
@@ -115,7 +113,6 @@ ItemMenu_Show(){
 			If RegExMatch(ItemData, hightlightDataSplit[k])
 				ItemMenu_AddHightlight(hightlightDataSplit[k])
 	} Else {
-		;showToolTip("ОШИБКА: Буфер обмена пуст, окно не в фокусе`n`tили не удалось определить тип предмета!", 5000)
 		FileRead, hightlightData, %configFolder%\highlight.list
 		hightlightDataSplit:=strSplit(StrReplace(hightlightData, "`r", ""), "`n")
 		For k, val in hightlightDataSplit
@@ -123,7 +120,7 @@ ItemMenu_Show(){
 				ItemMenu_AddHightlight(hightlightDataSplit[k])
 	}		
 	Menu, itemMenu, Add
-	Menu, itemMenu, Add, Добавить подсветку, ItemMenu_customHightlight
+	Menu, itemMenu, Add, Редактировать подсветку, ItemMenu_customHightlight
 	Menu, itemMenu, Show
 }
 
@@ -155,7 +152,7 @@ ItemMenu_OpenOnPoEDB(Line){
 
 ItemMenu_CopyInBuffer(Line){
 	Clipboard:=Line
-	showToolTip("Скопировано в буфер обмена!`n-----------------------------------`n" Line, 3000)
+	showToolTip("Скопировано в буфер обмена!`n-----------------------------------`n" Line, 5000)
 }
 
 ItemMenu_Hightlight(Line){
@@ -183,18 +180,12 @@ ItemMenu_IDCLInit(){
 	FileCreateDir, resources\data
 	ResultNames:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/data/names.json", "resources\data\names.json")
 	ResultStats:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/data/stats.json", "resources\data\stats.json")
-	;IfNotExist, resources\data\presufflask.json
-		;ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/data/presufflask.json", "resources\data\presufflask.json")
 	sleep 500
 	
 	FileRead, stats_list, resources\data\stats.json
 	Globals.Set("item_stats", JSON.Load(stats_list))
 	FileRead, names_list, resources\data\names.json
 	Globals.Set("item_names", JSON.Load(names_list))
-	;FileRead, presufflask_list, resources\data\presufflask.json
-	;Globals.Set("item_presufflask", JSON.Load(presufflask_list))
-	;FileRead, samename_list, resources\data\samename.json
-	;Globals.Set("item_samename", JSON.Load(samename_list))
 	
 	If (ResultNames || ResultStats)
 		TrayTip, %prjName%, Списки соответствий обновлены)
@@ -219,7 +210,6 @@ ItemMenu_LoadDataFile(URL, Path){
 		If (NewFileData!=CurrentFileData) {
 			FileDelete, %Path%
 			Sleep 100
-			;FileAppend, %NewFileData%, %Path%, UTF-8
 			FileCopy, %tmpPath%, %Path%, 1
 			return true
 		}
