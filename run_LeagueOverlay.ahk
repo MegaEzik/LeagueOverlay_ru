@@ -896,7 +896,7 @@ ReStart(){
 
 ;Иногда после запуска будем предлагать поддержать проект
 showDonateUIOnStart() {
-	Random, randomNum, 1, 3
+	Random, randomNum, 1, 5
 	If (randomNum=1)
 		traytip, %prjName%, Поддержи %githubUser% <3
 }
