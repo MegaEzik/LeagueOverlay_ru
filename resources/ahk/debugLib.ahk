@@ -9,6 +9,7 @@ devInit(){
 	Menu, devMenu, Add
 	Menu, devMenu, Add, Папка макроса, openScriptFolder	
 	Menu, devMenu, Add, Папка настроек, openConfigFolder
+	Menu, devMenu, Add, Изменить конфиг, editConfig
 	Menu, devMenu, Add
 	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
 	Menu, devMenu, Add, Перезагрузить данные, devClSD
@@ -95,6 +96,10 @@ favoriteList(){
 
 favoriteSetFile(Name){
 	IniWrite, %Name%, %configFile%, settings, sMenu
+}
+
+editConfig(){
+	textFileWindow("", configFile, false)
 }
 
 updateAutoHotkey(){

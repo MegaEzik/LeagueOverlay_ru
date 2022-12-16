@@ -87,10 +87,11 @@ devInit()
 
 ;Проверка обновлений
 IniRead, update, %configFile%, settings, update, 1
-If update {
+If update
 	CheckUpdate()
+IniRead, updateAHK, %configFile%, settings, updateAHK, 1
+If update && updateAHK
 	updateAutoHotkey()
-}
 
 ;Проверка версии и перенос настроек
 migrateConfig()
@@ -595,6 +596,7 @@ showSettings(){
 	IniRead, debugMode, %configFile%, settings, debugMode, 0
 	IniRead, sMenu, %configFile%, settings, sMenu, MyMenu.fmenu
 	IniRead, useSystemTheme, %configFile%, settings, useSystemTheme, 1
+	IniRead, updateAHK, %configFile%, settings, updateAHK, 1
 	
 	If FileExist("resources\imgs\bg.jpg")
 		Gui, Settings:Add, Picture, x0 y0 w500 h70, resources\imgs\bg.jpg
@@ -767,6 +769,7 @@ saveSettings(){
 	IniWrite, %debugMode%, %configFile%, settings, debugMode
 	IniWrite, %sMenu%, %configFile%, settings, sMenu
 	IniWrite, %useSystemTheme%, %configFile%, settings, useSystemTheme
+	IniWrite, %updateAHK%, %configFile%, settings, updateAHK
 
 	;Настраиваемые команды fastReply
 	Loop %cmdNum% {
