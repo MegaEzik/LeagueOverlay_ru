@@ -87,11 +87,10 @@ devInit()
 
 ;Проверка обновлений
 IniRead, update, %configFile%, settings, update, 1
-If update
+If update {
 	CheckUpdate()
-IniRead, updateAHK, %configFile%, settings, updateAHK, 1
-If update && updateAHK
 	updateAutoHotkey()
+}
 
 ;Проверка версии и перенос настроек
 migrateConfig()

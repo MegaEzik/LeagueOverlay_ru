@@ -103,6 +103,9 @@ editConfig(){
 }
 
 updateAutoHotkey(){
+	IniRead, updateAHK, %configFile%, settings, updateAHK, 1
+	If !updateAHK
+		return
 	filePath:=A_Temp "\ahkver.txt"
 	FileDelete, %filePath%
 	UrlDownloadToFile, https://www.autohotkey.com/download/1.1/version.txt, %filePath%
