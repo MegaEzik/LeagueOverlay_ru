@@ -99,7 +99,9 @@ favoriteSetFile(Name){
 }
 
 editConfig(){
-	textFileWindow("", configFile, false)
+	;textFileWindow("", configFile, false)
+	RunWait, notepad.exe "%configFile%"
+	ReStart()
 }
 
 updateAutoHotkey(){
