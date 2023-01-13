@@ -112,19 +112,24 @@ ItemMenu_Show(){
 		}
 		FileRead, hightlightData, %configFolder%\highlight.list
 		hightlightDataSplit:=strSplit(StrReplace(hightlightData, "`r", ""), "`n")
-		For k, val in hightlightDataSplit
+		For k, val in hightlightDataSplit {
+			If (hightlightDataSplit[k]="") || (InStr(hightlightDataSplit[k], ";")=1)
+				Continue
 			If RegExMatch(ItemData, hightlightDataSplit[k], findtext) {
 				ItemMenu_AddHightlight(findtext)
 				If FileExist("resources\imgs\favorite.png")
 					Menu, itemMenu, Icon, *%findtext%, resources\imgs\favorite.png
 				;Menu, itemMenu, Check, *%findtext%
 			}
+		}
 	} Else {
 		FileRead, hightlightData, %configFolder%\highlight.list
 		hightlightDataSplit:=strSplit(StrReplace(hightlightData, "`r", ""), "`n")
-		For k, val in hightlightDataSplit
-			If (InStr(hightlightDataSplit[k], ";")!=1)
-				ItemMenu_AddHightlight(hightlightDataSplit[k])
+		For k, val in hightlightDataSplit {
+			If (hightlightDataSplit[k]="") || (InStr(hightlightDataSplit[k], ";")=1)
+				Continue
+			ItemMenu_AddHightlight(hightlightDataSplit[k])
+		}
 	}		
 	Menu, itemMenu, Add
 	Menu, itemMenu, Add, Редактировать подсветку, ItemMenu_customHightlight
