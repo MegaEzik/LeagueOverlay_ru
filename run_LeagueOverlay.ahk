@@ -146,7 +146,11 @@ checkRequirementsAndArgs() {
 	}
 	If !FileExist(A_WinDir "\System32\curl.exe") {
 		msgtext:="В вашей системе не найдена утилита 'curl.exe', без нее некоторые функции " prjName " не будут работать!"
-		MsgBox, 0x1030, %prjName%, %msgtext%
+		MsgBox, 0x1010, %prjName%, %msgtext%
+	}
+	If (A_ScreenWidth<1024 || A_ScreenHeight<720) {
+		msgtext:="Разрешение основного дисплея ниже 1024x720, некоторые элементы " prjName " могут не поместиться на экран!"
+		MsgBox, 0x1010, %prjName%, %msgtext%, 10
 	}
 	;Запуск gdi+
 	If !pToken:=Gdip_Startup()
@@ -365,11 +369,21 @@ textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 	If (Title="")
 		Title:=FilePath
 	
-	Gui, tfwGui:Font, s10, Consolas
+	IniRead, fSize, %configFile%, settings, tfwFontSize, 12
+	Gui, tfwGui:Font, s%fSize%, Consolas
 	FileRead, tfwContentFile, %tfwFilePath%
 	If ReadOnlyStatus {
-		Gui, tfwGui:Add, Edit, w615 h380 +ReadOnly, %tfwContentFile%
+		Gui, tfwGui:Add, Edit, x0 y0 w1000 h640 +ReadOnly, %tfwContentFile%
 	} Else {
+		Menu, tfwFontMenu, Add
+		Menu, tfwFontMenu, DeleteAll
+		Menu, tfwFontMenu, Add, 8,tfwSetFontSize
+		Menu, tfwFontMenu, Add, 10,tfwSetFontSize
+		Menu, tfwFontMenu, Add, 12,tfwSetFontSize
+		Menu, tfwFontMenu, Add, 14,tfwSetFontSize
+		Menu, tfwFontMenu, Add, 16,tfwSetFontSize
+		Menu, tfwFontMenu, Add, %fSize%,tfwSetFontSize
+		Menu, tfwFontMenu, Check, %fSize%
 		Menu, tfwMenuBar, Add
 		Menu, tfwMenuBar, DeleteAll
 		If (tfwContentFile="" && contentDefault!="")
@@ -377,12 +391,13 @@ textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 		Menu, tfwMenuBar, Add, Сохранить `tCtrl+S, tfwSave
 		If FileExist(tfwFilePath)
 			Menu, tfwMenuBar, Add, Удалить `tCtrl+Del, tfwDelFile
+		Menu, tfwMenuBar, Add, Размер шрифта, :tfwFontMenu
 		Menu, tfwMenuBar, Add, Закрыть `tEsc, tfwClose
 		Gui, tfwGui:Menu, tfwMenuBar
-		Gui, tfwGui:Add, Edit, w615 h380 vtfwContentFile, %tfwContentFile%
+		Gui, tfwGui:Add, Edit, x0 y0 w1000 h640 vtfwContentFile, %tfwContentFile%
 	}
 	Gui, tfwGui:+AlwaysOnTop -MinimizeBox -MaximizeBox
-	Gui, tfwGui:Show,, %Title%
+	Gui, tfwGui:Show, w1000 h640, %Title%
 	
 	sleep 15
 	BlockInput On
@@ -392,30 +407,8 @@ textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 		SendInput, ^{End}
 	}
 	BlockInput Off
-}
-
-;Создание заметки
-createNewNote(){
-	Gui, Settings:Destroy
-	InputBox, fileName, Введите название для заметки,,, 300, 100,,,,, NewNote
-	filePath:=configFolder "\MyFiles\" fileName ".txt"
-	If (FileExist(filePath) || fileName="" || ErrorLevel) {
-		traytip, %prjName%, Что-то пошло не так(
-		return
-	}
-	textFileWindow("", filePath, false)
-}
-
-;Создание нового меню
-createNewMenu(){
-	Gui, Settings:Destroy
-	InputBox, fileName, Введите название для файла меню,,, 300, 100,,,,, MyMenu
-	filePath:=configFolder "\MyFiles\" fileName ".fmenu"
-	If (FileExist(filePath) || fileName="" || ErrorLevel) {
-		traytip, %prjName%, Что-то пошло не так(
-		return
-	}
-	textFileWindow("", filePath, false, "Список команд>>|>https://pathofexile.fandom.com/wiki/Chat_console#Commands`n---`n@<last> sure`n/global 820`n/whois <last>`n/deaths`n/passives`n/atlaspassives`n/remaining`n/kills`n/dance")
+	
+	WinSet, Transparent, 215, %Title%
 }
 
 ;Закрытие окна с текстом
@@ -438,10 +431,44 @@ tfwDelFile(){
 tfwSave(){
 	global
 	Gui, tfwGui:Submit
+	Globals.Set("tfwLast", tfwFilePath)
 	FileDelete, %tfwFilePath%
 	sleep 100
 	FileAppend, %tfwContentFile%, %tfwFilePath%, UTF-8
 	Gui, tfwGui:Destroy
+}
+
+;Изменить размер шрифта
+tfwSetFontSize(FontSize){
+	tfwSave()
+	IniWrite, %FontSize%, %configFile%, settings, tfwFontSize
+	sleep 50
+	textFileWindow("", Globals.Get("tfwLast"), false)
+}
+
+
+;Создание заметки
+createNewNote(){
+	Gui, Settings:Destroy
+	InputBox, fileName, Введите название для заметки,,, 300, 100,,,,, NewNote
+	filePath:=configFolder "\MyFiles\" fileName ".txt"
+	If (FileExist(filePath) || fileName="" || ErrorLevel) {
+		traytip, %prjName%, Что-то пошло не так(
+		return
+	}
+	textFileWindow("", filePath, false)
+}
+
+;Создание нового меню
+createNewMenu(){
+	Gui, Settings:Destroy
+	InputBox, fileName, Введите название для файла меню,,, 300, 100,,,,, MyMenu
+	filePath:=configFolder "\MyFiles\" fileName ".fmenu"
+	If (FileExist(filePath) || fileName="" || ErrorLevel) {
+		traytip, %prjName%, Что-то пошло не так(
+		return
+	}
+	textFileWindow("", filePath, false, "Список команд>>|>https://www.poewiki.net/wiki/Chat_console#Commands`n---`n@<last> sure`n/global 820`n/whois <last>`n/deaths`n/passives`n/atlaspassives`n/recheck_achievements`n/remaining`n/kills`n/dance")
 }
 
 ;История изменений
@@ -541,7 +568,9 @@ showStartUI(SpecialText="", LogoPath=""){
 	
 	;Gui, StartUI:+AlwaysOnTop -SysMenu
 	Gui, StartUI:+ToolWindow -Caption +Border +AlwaysOnTop
-	Gui, StartUI:Show, w500 h70, %prjName% %VerScript% | AHK %A_AhkVersion%
+	Gui, StartUI:Show, w500 h70, StartUI
+	Sleep 15
+	WinSet, Transparent, 215, StartUI
 }
 
 ;Закрыть окно запуска
@@ -581,7 +610,7 @@ showSettings(){
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
 	IniRead, hotkeyGamepad, %configFile%, hotkeys, hotkeyGamepad, %A_Space%
-	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, %A_Space%
+	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, !c
 	
 	;Настройки второй вкладки
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
@@ -594,8 +623,8 @@ showSettings(){
 	;Скрытые настройки
 	IniRead, debugMode, %configFile%, settings, debugMode, 0
 	IniRead, sMenu, %configFile%, settings, sMenu, MyMenu.fmenu
-	IniRead, useSystemTheme, %configFile%, settings, useSystemTheme, 1
 	IniRead, updateAHK, %configFile%, settings, updateAHK, 1
+	IniRead, tfwFontSize, %configFile%, settings, tfwFontSize, 12
 	
 	If FileExist("resources\imgs\bg.jpg")
 		Gui, Settings:Add, Picture, x0 y0 w500 h70, resources\imgs\bg.jpg
@@ -767,8 +796,8 @@ saveSettings(){
 	;Скрытые настройки
 	IniWrite, %debugMode%, %configFile%, settings, debugMode
 	IniWrite, %sMenu%, %configFile%, settings, sMenu
-	IniWrite, %useSystemTheme%, %configFile%, settings, useSystemTheme
 	IniWrite, %updateAHK%, %configFile%, settings, updateAHK
+	IniWrite, %tfwFontSize%, %configFile%, settings, tfwFontSize
 
 	;Настраиваемые команды fastReply
 	Loop %cmdNum% {
@@ -898,7 +927,7 @@ ReStart(){
 
 ;Иногда после запуска будем предлагать поддержать проект
 showDonateUIOnStart() {
-	Random, randomNum, 1, 5
+	Random, randomNum, 1, 4
 	If (randomNum=1)
 		traytip, %prjName%, Поддержи %githubUser% <3
 }
@@ -953,7 +982,7 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 	If FileExist(A_WinDir "\System32\curl.exe") {
 		IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 		If (UserAgent="")
-			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"
+			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36"
 		IniRead, lr, %configFile%, curl, limit-rate, 1000
 		IniRead, ct, %configFile%, curl, connect-timeout, 10
 		
@@ -982,9 +1011,6 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 
 ;Использование системной темы
 systemTheme(){
-	IniRead, useSystemTheme, %configFile%, settings, useSystemTheme, 1
-	If !useSystemTheme
-		return
 	uxtheme:=DllCall("GetModuleHandle", "str", "uxtheme", "ptr")
 	SetPreferredAppMode:=DllCall("GetProcAddress", "ptr", uxtheme, "ptr", 135, "ptr")
 	FlushMenuThemes:=DllCall("GetProcAddress", "ptr", uxtheme, "ptr", 136, "ptr")

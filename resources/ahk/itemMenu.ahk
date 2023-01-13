@@ -94,12 +94,15 @@ ItemMenu_Show(){
 				ItemMenu_AddHightlight(findtext)
 			If RegExMatch(ItemDataSplit[k], "Уровень карты: (.*)", findtext)
 				ItemMenu_AddHightlight("tier:" findtext1)
+			If (ItemClass1="Чертежи" && RegExMatch(ItemDataSplit[k], "Предмет кражи: (.*)", findtext))
+				ItemMenu_AddHightlight(findtext1)
 			If ((ItemClass1="Чертежи" || ItemClass1="Контракты") && RegExMatch(ItemDataSplit[k], "Требуется (.*) \(\d+", findtext))
 				ItemMenu_AddHightlight(findtext1)
 			If (ItemClass1="Журналы экспедиции" && RegExMatch(ItemDataSplit[k], "(Друиды Разомкнутого круга|Наёмники Чёрной косы|Рыцари Солнца|Орден Чаши)", findtext)=1)
 				ItemMenu_AddHightlight(findtext1)
-			If (ItemName="Хроники Ацоатля" && RegExMatch(ItemDataSplit[k], "(.*) \(Уровень 3\)", findtext))
-				ItemMenu_AddHightlight(findtext1)
+			;If (ItemName="Хроники Ацоатля" && RegExMatch(ItemDataSplit[k], "(.*) \(Уровень 3\)", findtext))
+			If (ItemName="Хроники Ацоатля" && RegExMatch(ItemDataSplit[k], "(Аудитория Дориани|Очаг осквернения)", findtext))
+				ItemMenu_AddHightlight(findtext)
 			/*
 			If RegExMatch(ItemDataSplit[k], "Регион Атласа: (.*)", findtext)
 				ItemMenu_AddHightlight(findtext1)
@@ -110,8 +113,12 @@ ItemMenu_Show(){
 		FileRead, hightlightData, %configFolder%\highlight.list
 		hightlightDataSplit:=strSplit(StrReplace(hightlightData, "`r", ""), "`n")
 		For k, val in hightlightDataSplit
-			If RegExMatch(ItemData, hightlightDataSplit[k])
-				ItemMenu_AddHightlight(hightlightDataSplit[k])
+			If RegExMatch(ItemData, hightlightDataSplit[k], findtext) {
+				ItemMenu_AddHightlight(findtext)
+				If FileExist("resources\imgs\favorite.png")
+					Menu, itemMenu, Icon, *%findtext%, resources\imgs\favorite.png
+				;Menu, itemMenu, Check, *%findtext%
+			}
 	} Else {
 		FileRead, hightlightData, %configFolder%\highlight.list
 		hightlightDataSplit:=strSplit(StrReplace(hightlightData, "`r", ""), "`n")
