@@ -603,7 +603,6 @@ showSettings(){
 	posW:=splitOverlayPosition[3]
 	posH:=splitOverlayPosition[4]
 	
-	IniRead, windowLine, %configFile%, settings, windowLine, %A_Space%
 	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
 	IniRead, preset, %configFile%, settings, preset, PoE_Russian
 	IniRead, mouseDistance, %configFile%, settings, mouseDistance, 500
@@ -775,7 +774,6 @@ saveSettings(){
 	Gui, Settings:Submit
 			
 	;Настройки первой вкладки
-	IniWrite, %windowLine%, %configFile%, settings, windowLine
 	IniWrite, %posX%/%posY%/%posW%/%posH%, %configFile%, settings, overlayPosition
 	IniWrite, %expandMyImages%, %configFile%, settings, expandMyImages
 	IniWrite, %preset%, %configFile%, settings, preset
