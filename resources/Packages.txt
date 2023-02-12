@@ -3,4 +3,4 @@ LutTools.ahk|http://lutbot.com/ahk/macro.ahk
 Bow+3.png|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Bow+3.png
 Catalysts.jpg|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Catalysts.jpg
 PoE_English.zip|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/PoE_English.zip|7B297E27C4B1964CEA38A4F9E0E1B841
-NewPreset.zip|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/NewPreset.zip|F07192EB4413B99AD62F75A15706DA88
+NewPreset.zip|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/NewPreset.zip|175463BFC9F123E269ABACFDE896A789
