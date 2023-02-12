@@ -859,9 +859,11 @@ loadPreset(){
 	If (preset="")
 		return
 	Path:=(InStr(preset, "*")=1?configFolder "\Presets\" SubStr(preset, 2):"resources\presets\" preset)
+	Globals.Set("presetFolder", Path)
 	
 	Loop, %Path%\*, 0
-		If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt)$")
+		;If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt)$")
+		If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt|fmenu)$")
 			Menu, mainMenu, Add, %A_LoopFileName%, shPreset
 	Menu, mainMenu, Add
 }
@@ -869,7 +871,8 @@ loadPreset(){
 ;Открыть файл набора
 shPreset(FileName){
 	IniRead, preset, %configFile%, settings, preset, %A_Space%
-	FilePath:=(InStr(preset, "*")=1?configFolder "\Presets\" SubStr(preset, 2):"resources\presets\" preset) "\" FileName
+	;FilePath:=(InStr(preset, "*")=1?configFolder "\Presets\" SubStr(preset, 2):"resources\presets\" preset) "\" FileName
+	FilePath:=Globals.Get("presetFolder") "\" FileName
 	
 	commandFastReply(FilePath)
 }

@@ -93,6 +93,8 @@ commandFastReply(Line:="/dance"){
 	;Замена переменных
 	If InStr(Line, "<configFolder>")
 		Line:=StrReplace(Line, "<configFolder>", configFolder)
+	If InStr(Line, "<presetFolder>")
+		Line:=StrReplace(Line, "<presetFolder>", Globals.Get("presetFolder"))
 	If InStr(Line, "<time>") {
 		FormatTime, currentTime, %A_NowUTC%, HH:mm
 		Line:=StrReplace(Line, "<time>", currentTime)
@@ -171,13 +173,13 @@ commandFastReply(Line:="/dance"){
 		run, %Line%
 		return
 	}
-	If RegExMatch(Line, ".(png|jpg|jpeg|bmp|txt|fmenu)") {
+	If RegExMatch(Line, ".(png|jpg|jpeg|bmp|txt|list|fmenu)") {
 		SplitImg:=StrSplit(Line, "|")
 		if RegExMatch(SplitImg[1], ".(png|jpg|jpeg|bmp)$") {
 			shOverlay(SplitImg[1], SplitImg[2], SplitImg[3])
 			return
 		}
-		If RegExMatch(SplitImg[1], ".txt$") {
+		If RegExMatch(SplitImg[1], ".(txt|list)$") {
 			textFileWindow(SplitImg[1], SplitImg[1], false)
 			return
 		}
