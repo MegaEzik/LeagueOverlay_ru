@@ -5,8 +5,8 @@ pkgsMgr_packagesMenu(){
 	
 	Menu, packagesMenu, Add
 	Menu, packagesMenu, DeleteAll
-	Menu, packagesMenu, Add, + из файла, pkgsMgr_fromFile
-	Menu, packagesMenu, Add, + по URL, pkgsMgr_fromURL
+	Menu, packagesMenu, Add, Установка из файла, pkgsMgr_fromFile
+	Menu, packagesMenu, Add, Загрузить из сети, pkgsMgr_fromURL
 	Menu, packagesMenu, Add
 	
 	FileRead, Data, %FilePath%
@@ -16,7 +16,7 @@ pkgsMgr_packagesMenu(){
 			PackInfo:=StrSplit(DataSplit[k], "|")
 			PackName:=PackInfo[1]
 			If (RegExMatch(PackName, ";")!=1)
-				Menu, packagesMenu, Add, + %PackName%, pkgsMgr_loadPackage
+				Menu, packagesMenu, Add, Загрузить '%PackName%', pkgsMgr_loadPackage
 		}
 	}
 	Menu, packagesMenu, Add
@@ -34,17 +34,14 @@ pkgsMgr_packagesMenu(){
 	
 	
 	Loop, %configFolder%\*.ahk, 1
-		Menu, packagesMenu, Add, × %A_LoopFileName%, pkgsMgr_delPackage
-	
-	Loop, %configFolder%\Presets\*, 2
-		Menu, packagesMenu, Add, × *%A_LoopFileName%, pkgsMgr_delPackage
-		
+		Menu, packagesMenu, Add, Удалить '%A_LoopFileName%', pkgsMgr_delPackage
 	
 	Menu, packagesMenu, Show
 }
 
 pkgsMgr_loadPackage(Name){
-	Name:=SubStr(Name, 3)
+	;Name:=SubStr(Name, 3)
+	Name:=searchName(Name)
 	FilePath:="resources\Packages.txt"
 	FileRead, Data, %FilePath%
 	DataSplit:=strSplit(StrReplace(Data, "`r", ""), "`n")
@@ -110,20 +107,12 @@ pkgsMgr_installPackage(FilePath){
 }
 
 pkgsMgr_delPackage(Name){
-	If inStr(Name, "*")=3 {
-		Name:=SubStr(Name, 4)
-		FileRemoveDir, %configFolder%\Presets\%Name%, 1
-		return
-	}
-	
-	If RegExMatch(Name, "i).ahk$") {
-		Name:=RegExReplace(SubStr(Name, 3), "i).ahk$", "")
-		IniDelete, %configFolder%\pkgsMgr.ini, pkgsMgr, %Name%.ahk
-		FileDelete, %configFolder%\%Name%.ahk
-		FileRemoveDir, %configFolder%\%Name%, 1
-		Sleep 1000
-		ReStart()
-	}
+	Name:=RegExReplace(searchName(Name), "i).ahk$", "")
+	IniDelete, %configFolder%\pkgsMgr.ini, pkgsMgr, %Name%.ahk
+	FileDelete, %configFolder%\%Name%.ahk
+	FileRemoveDir, %configFolder%\%Name%, 1
+	Sleep 1000
+	ReStart()
 }
 
 pkgsMgr_startCustomScripts(){

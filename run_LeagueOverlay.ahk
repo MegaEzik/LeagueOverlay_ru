@@ -514,14 +514,12 @@ showStartUI(SpecialText="", LogoPath=""){
 	Gui, StartUI:Destroy
 	
 	initMsgs := ["Подготовка макроса к работе"
-				,"Опускаемся на 65535 глубину в 'Бесконечном спуске'"
 				,"Поиск NPC 'Борис Бритва'"
-				,"Призываем Создателя на Сумрачное взморье"
-				,"Шагаем сквозь непроглядное безумие"
 				,"Получаем приглашение Януса на поминки Кадиро"
 				,"Предсказываем... огонь, насилие, СМЕРТЬ"
 				,"Входим в 820ый для поиска лаб ... а ну да"
-				,"Удаляем Зеркало Каландры из вашего фильтра предметов"]
+				,"Удаляем Зеркало Каландры из вашего фильтра предметов"
+				,"@pathofexilebota мотай на 8:72"]
 	
 	Random, randomNum, 1, initMsgs.MaxIndex()
 	initMsg:=initMsgs[randomNum] "..."
@@ -668,7 +666,8 @@ showSettings(){
 		presetList.="|*" A_LoopFileName
 	
 	Gui, Settings:Add, Text, x12 yp+24 w360, Набор:
-	Gui, Settings:Add, DropDownList, vpreset x+27 yp-4 w90, %presetList%
+	Gui, Settings:Add, Button, x+3 yp-4 w23 h23 gpresetMenuCfgShow, ☰
+	Gui, Settings:Add, DropDownList, vpreset x+1 yp+1 w90, %presetList%
 	GuiControl,Settings:ChooseString, preset, %preset%
 	
 	Gui, Settings:Add, Text, x12 yp+26 w385, Смещение указателя(пиксели):
@@ -983,7 +982,7 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 	If FileExist(A_WinDir "\System32\curl.exe") {
 		IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 		If (UserAgent="")
-			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36"
+			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
 		IniRead, lr, %configFile%, curl, limit-rate, 1000
 		IniRead, ct, %configFile%, curl, connect-timeout, 10
 		

@@ -3,6 +3,7 @@
 devInit(){
 	IniRead, debugMode, %configFile%, settings, debugMode, 0
 	
+	;Menu, devMenu, Add, Мои наборы, devPresetMenuShow
 	Menu, devMenu, Add, Режим отладки, switchDebugMode
 	If debugMode
 		Menu, devMenu, Check, Режим отладки
@@ -117,4 +118,60 @@ updateAutoHotkey(){
 		If FileExist(AHKDir "\Installer.ahk")
 			Run *RunAs "%AhkDir%\Installer.ahk"
 	}
+}
+
+presetMenuCfgShow(){
+	Menu, devPresetMenu, Add
+	Menu, devPresetMenu, DeleteAll
+	Menu, devPresetMenu, Add, Создать, presetCreate
+	Menu, devPresetMenu, Add, Дополнения, pkgsMgr_packagesMenu
+	
+	Loop, %configFolder%\Presets\*, 2
+	{
+		Menu, devPresetMenu, Add
+		Menu, devPresetMenu, Add, Открыть папку '%A_LoopFileName%', presetFolderOpen
+		Menu, devPresetMenu, Add, Удалить '%A_LoopFileName%', presetFolderDelete
+	}
+		
+	Menu, devPresetMenu, Show
+}
+
+searchName(FullText){
+	If RegExMatch(FullText, "'(.*)'", Result)
+		return Result1
+	return FullText
+}
+
+presetFolderOpen(Name){
+	Gui, Settings:Destroy
+	PresetFolder:=configFolder "\Presets\" searchName(Name)
+	Run, explorer "%PresetFolder%"
+}
+
+presetFolderDelete(Name){
+	Gui, Settings:Destroy
+	PresetFolder:=configFolder "\Presets\" searchName(Name)
+	msgbox, 0x1024, %prjName%, Удалить папку '%PresetFolder%'?
+	IfMsgBox No
+		return
+	FileRemoveDir, %PresetFolder%, 1
+}
+
+presetCreate(){
+	Gui, Settings:Destroy
+	InputBox, PresetName, Введите название набора,,, 300, 100,,,,, NewPreset
+	PresetFolder:=configFolder "\Presets\" PresetName
+	If (PresetName="") || FileExist(PresetFolder) {
+		msgbox, 0x1040,, Недопустимое имя для набора!
+		return
+	}
+	FileCreateDir, %PresetFolder%
+	InputBox, wline, Укажите окно отслеживания,,, 300, 100,,,,, ahk_exe notepad.exe
+	FileAppend, %wline%, %PresetFolder%\windows.list, UTF-8
+	ReadMeFullText:="Вы создали шаблон для набора '" PresetName "'!`n`nОткройте папку набора и поместите в нее желаемые файлы.`nДля корректного открытия текстовых файлов требуется кодировка UTF-8-BOM!`n`nЕсли вам потребуется изменить 'Окна отслеживания', то вы можете сделать это отредактировав файл 'windows.list'."
+	FileAppend, %ReadMeFullText%, %PresetFolder%\ReadMe.txt, UTF-8
+	textFileWindow("", PresetFolder "\ReadMe.txt", false)
+}
+
+devVoid(){
 }
