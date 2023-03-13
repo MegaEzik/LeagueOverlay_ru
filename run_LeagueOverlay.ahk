@@ -58,7 +58,6 @@ Loop, %0%
 FileReadLine, verScript, resources\Updates.txt, 1
 
 IniRead, githubUser, %buildConfig%, Settings, Author, MegaEzik
-
 IniRead, LastImg, %configFile%, info, lastImg, %A_Space%
 IniRead, globalOverlayPosition, %configFile%, settings, overlayPosition, %A_Space%
 IniRead, mouseDistance, %configFile%, settings, mouseDistance, 500
@@ -607,6 +606,7 @@ showSettings(){
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
 	IniRead, hotkeyGamepad, %configFile%, hotkeys, hotkeyGamepad, %A_Space%
+	IniRead, hotkeyHeistScanner, %configFile%, hotkeys, hotkeyHeistScanner, %A_Space%
 	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, !c
 	
 	;Настройки второй вкладки
@@ -684,6 +684,11 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x12 yp+21 w385, Меню быстрого доступа:
 	Gui, Settings:Add, Hotkey, vhotkeyMainMenu x+2 yp-2 w90 h17, %hotkeyMainMenu%
+	
+	Gui, Settings:Add, Text, x12 yp+21 w385, Сканер предметов Кражи:
+	Gui, Settings:Add, Hotkey, vhotkeyHeistScanner x+2 yp-2 w90 h17 disabled, %hotkeyHeistScanner%
+	If FileExist(configFolder "\HeistScanner.ahk")
+		GuiControl, Settings:Enable, hotkeyHeistScanner
 	
 	Gui, Settings:Add, Text, x12 yp+21 w385, Меню предмета:
 	Gui, Settings:Add, Hotkey, vhotkeyItemMenu x+2 yp-2 w90 h17, %hotkeyItemMenu%
@@ -780,6 +785,7 @@ saveSettings(){
 	IniWrite, %hotkeyLastImg%, %configFile%, hotkeys, hotkeyLastImg
 	IniWrite, %hotkeyMainMenu%, %configFile%, hotkeys, hotkeyMainMenu
 	IniWrite, %hotkeyGamepad%, %configFile%, hotkeys, hotkeyGamepad
+	IniWrite, %hotkeyHeistScanner%, %configFile%, hotkeys, hotkeyHeistScanner
 	IniWrite, %hotkeyItemMenu%, %configFile%, hotkeys, hotkeyItemMenu
 	
 	;Настройки второй вкладки
@@ -982,7 +988,7 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 	If FileExist(A_WinDir "\System32\curl.exe") {
 		IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 		If (UserAgent="")
-			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
+			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36"
 		IniRead, lr, %configFile%, curl, limit-rate, 1000
 		IniRead, ct, %configFile%, curl, connect-timeout, 10
 		
