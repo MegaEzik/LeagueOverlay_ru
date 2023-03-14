@@ -94,8 +94,9 @@ If update {
 ;Проверка версии и перенос настроек
 migrateConfig()
 
-;Загрузка события, лабиринта, и данных для IDCL
+;Загрузка события, лиг, лабиринта, и данных для IDCL
 loadEvent()
+updateLeagueData()
 initLab()
 ItemMenu_IDCLInit()
 
@@ -606,8 +607,11 @@ showSettings(){
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
 	IniRead, hotkeyGamepad, %configFile%, hotkeys, hotkeyGamepad, %A_Space%
-	IniRead, hotkeyHeistScanner, %configFile%, hotkeys, hotkeyHeistScanner, %A_Space%
 	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, !c
+	
+	IniRead, league, %configFile%, settings, league, %A_Space%
+	IniRead, hotkeyPrediction, %configFile%, hotkeys, hotkeyPrediction, %A_Space%
+	IniRead, hotkeyHeistScanner, %configFile%, hotkeys, hotkeyHeistScanner, %A_Space%
 	
 	;Настройки второй вкладки
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
@@ -641,7 +645,7 @@ showSettings(){
 	Gui, Settings:Font, s8 normal
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
-	Gui, Settings:Add, Text, x12 y80 w385, Отслеживаемые окна:
+	Gui, Settings:Add, Text, x12 y78 w385, Отслеживаемые окна:
 	Gui, Settings:Add, Button, x+1 yp-3 w92 h23 gsetWindowsList, Изменить
 	
 	Gui, Settings:Add, Text, x12 yp+26 w185, Позиция изображений(пиксели):
@@ -677,7 +681,7 @@ showSettings(){
 	Gui, Settings:Add, Checkbox, vexpandMyImages x12 yp+24 w385 Checked%expandMyImages%, Развернуть 'Мои файлы'
 	Gui, Settings:Add, Button, x+1 yp-4 w92 h23 gsMenuImagesActions, Действия
 	
-	Gui, Settings:Add, Text, x10 y+3 w480 h1 0x12
+	Gui, Settings:Add, Text, x10 y+2 w480 h1 0x12
 	
 	Gui, Settings:Add, Text, x12 yp+6 w385, Последнее изображение:
 	Gui, Settings:Add, Hotkey, vhotkeyLastImg x+2 yp-2 w90 h17, %hotkeyLastImg%
@@ -685,20 +689,34 @@ showSettings(){
 	Gui, Settings:Add, Text, x12 yp+21 w385, Меню быстрого доступа:
 	Gui, Settings:Add, Hotkey, vhotkeyMainMenu x+2 yp-2 w90 h17, %hotkeyMainMenu%
 	
-	Gui, Settings:Add, Text, x12 yp+21 w385, Сканер предметов Кражи:
-	Gui, Settings:Add, Hotkey, vhotkeyHeistScanner x+2 yp-2 w90 h17 disabled, %hotkeyHeistScanner%
-	If FileExist(configFolder "\HeistScanner.ahk")
-		GuiControl, Settings:Enable, hotkeyHeistScanner
-	
 	Gui, Settings:Add, Text, x12 yp+21 w385, Меню предмета:
 	Gui, Settings:Add, Hotkey, vhotkeyItemMenu x+2 yp-2 w90 h17, %hotkeyItemMenu%
 	
 	Gui, Settings:Add, Text, x12 yp+21 w385, Игровой контроллер(Beta) - Удерживайте [%hotkeyGamepad%] для использования
 	Gui, Settings:Add, Button, x+1 yp-3 w92 h23 gcfgGamepad, Изменить
 	
+	Gui, Settings:Add, Text, x10 y+2 w480 h1 0x12
+	
+	LeaguesList:=LeaguesList()
+	
+	Gui, Settings:Add, Text, x12 yp+7 w385, Лига:
+	Gui, Settings:Add, DropDownList, vleague x+2 yp-3 w90, %LeaguesList%
+	GuiControl,Settings:ChooseString, league, %league%
+	
+	Gui, Settings:Add, Text, x12 yp+25 w385, Прогнозирование(ruPrediction):
+	Gui, Settings:Add, Hotkey, vhotkeyPrediction x+2 yp-2 w90 h17 disabled, %hotkeyPrediction%
+	If FileExist(configFolder "\ruPrediction.ahk")
+		GuiControl, Settings:Enable, hotkeyPrediction
+		
+	Gui, Settings:Add, Text, x12 yp+21 w385, Сканер ветрин Кражи(HeistScanner):
+	Gui, Settings:Add, Hotkey, vhotkeyHeistScanner x+2 yp-2 w90 h17 disabled, %hotkeyHeistScanner%
+	If FileExist(configFolder "\HeistScanner.ahk")
+		GuiControl, Settings:Enable, hotkeyHeistScanner
+	
+	
 	Gui, Settings:Tab, 2 ;Вторая вкладка
 	
-	Gui, Settings:Add, Text, x12 y80 w120, cURL | User-Agent:
+	Gui, Settings:Add, Text, x12 y78 w120, cURL | User-Agent:
 	Gui, Settings:Add, Edit, vUserAgent x+2 yp-2 w355 h17, %UserAgent%
 	
 	Gui, Settings:Add, Text, x12 yp+21 w385, cURL | Ограничение загрузки(Кб/с, 0 - без лимита):
@@ -709,9 +727,9 @@ showSettings(){
 	Gui, Settings:Add, Edit, vct x+2 yp-2 w90 h18 Number, %ct%
 	Gui, Settings:Add, UpDown, Range1-99999 0x80, %ct%
 	
-	Gui, Settings:Add, Text, x10 y+5 w480 h1 0x12
+	Gui, Settings:Add, Text, x10 y+3 w480 h1 0x12
 	
-	Gui, Settings:Add, Checkbox, vupdate x12 y+6 w480 Checked%update% , Автоматическая проверка обновлений
+	Gui, Settings:Add, Checkbox, vupdate x12 y+5 w480 Checked%update% , Автоматическая проверка обновлений
 	
 	Gui, Settings:Add, Checkbox, vuseEvent x12 yp+21 w480 Checked%useEvent%, Разрешить события
 	
@@ -720,7 +738,7 @@ showSettings(){
 	
 	Gui, Settings:Tab, 3 ; Третья вкладка
 	
-	Gui, Settings:Add, Text, x12 y80 w0 h0
+	Gui, Settings:Add, Text, x12 y78 w0 h0
 	
 	;Настраиваемые команды fastReply
 	LoopVar:=cmdNum/2
@@ -785,8 +803,11 @@ saveSettings(){
 	IniWrite, %hotkeyLastImg%, %configFile%, hotkeys, hotkeyLastImg
 	IniWrite, %hotkeyMainMenu%, %configFile%, hotkeys, hotkeyMainMenu
 	IniWrite, %hotkeyGamepad%, %configFile%, hotkeys, hotkeyGamepad
-	IniWrite, %hotkeyHeistScanner%, %configFile%, hotkeys, hotkeyHeistScanner
 	IniWrite, %hotkeyItemMenu%, %configFile%, hotkeys, hotkeyItemMenu
+	
+	IniWrite, %league%, %configFile%, settings, league
+	IniWrite, %hotkeyPrediction%, %configFile%, hotkeys, hotkeyPrediction
+	IniWrite, %hotkeyHeistScanner%, %configFile%, hotkeys, hotkeyHeistScanner
 	
 	;Настройки второй вкладки
 	IniWrite, %UserAgent%, %configFile%, curl, user-agent
@@ -839,6 +860,80 @@ setHotkeys(){
 	IniRead, hotkeyGamepad, %configFile%, hotkeys, hotkeyGamepad, %A_Space%
 	If (hotkeyGamepad!="")
 		Hotkey, % hotkeyGamepad, shGamepadMenu, On
+}
+
+;Проверка обновления AHK
+updateAutoHotkey(){
+	IniRead, updateAHK, %configFile%, settings, updateAHK, 1
+	If !updateAHK
+		return
+	filePath:=A_Temp "\ahkver.txt"
+	FileDelete, %filePath%
+	UrlDownloadToFile, https://www.autohotkey.com/download/1.1/version.txt, %filePath%
+	FileReadLine, AHKRelVer, %filePath%, 1
+	If (A_AhkVersion<AHKRelVer){
+		SplitPath, A_AhkPath,,AHKDir
+		If FileExist(AHKDir "\Installer.ahk")
+			Run *RunAs "%AhkDir%\Installer.ahk"
+	}
+}
+
+;Меню управления наборами
+presetMenuCfgShow(){
+	Menu, devPresetMenu, Add
+	Menu, devPresetMenu, DeleteAll
+	Menu, devPresetMenu, Add, Создать, presetCreate
+	Menu, devPresetMenu, Add, Дополнения, pkgsMgr_packagesMenu
+	
+	Loop, %configFolder%\Presets\*, 2
+	{
+		Menu, devPresetMenu, Add
+		Menu, devPresetMenu, Add, Открыть папку '%A_LoopFileName%', presetFolderOpen
+		Menu, devPresetMenu, Add, Удалить '%A_LoopFileName%', presetFolderDelete
+	}
+		
+	Menu, devPresetMenu, Show
+}
+
+;Поиск имени
+searchName(FullText){
+	If RegExMatch(FullText, "'(.*)'", Result)
+		return Result1
+	return FullText
+}
+
+;Открыть папку набора
+presetFolderOpen(Name){
+	Gui, Settings:Destroy
+	PresetFolder:=configFolder "\Presets\" searchName(Name)
+	Run, explorer "%PresetFolder%"
+}
+
+;Удалить папку набора
+presetFolderDelete(Name){
+	Gui, Settings:Destroy
+	PresetFolder:=configFolder "\Presets\" searchName(Name)
+	msgbox, 0x1024, %prjName%, Удалить папку '%PresetFolder%'?
+	IfMsgBox No
+		return
+	FileRemoveDir, %PresetFolder%, 1
+}
+
+;Менеджер создания нового набора
+presetCreate(){
+	Gui, Settings:Destroy
+	InputBox, PresetName, Введите название набора,,, 300, 100,,,,, NewPreset
+	PresetFolder:=configFolder "\Presets\" PresetName
+	If (PresetName="") || FileExist(PresetFolder) {
+		msgbox, 0x1040,, Недопустимое имя для набора!
+		return
+	}
+	FileCreateDir, %PresetFolder%
+	InputBox, wline, Укажите окно отслеживания,,, 300, 100,,,,, ahk_exe notepad.exe
+	FileAppend, %wline%, %PresetFolder%\windows.list, UTF-8
+	ReadMeFullText:="Вы создали шаблон для набора '" PresetName "'!`n`nОткройте папку набора и поместите в нее желаемые файлы.`nДля корректного открытия текстовых файлов требуется кодировка UTF-8-BOM!`n`nЕсли вам потребуется изменить 'Окна отслеживания', то вы можете сделать это отредактировав файл 'windows.list'."
+	FileAppend, %ReadMeFullText%, %PresetFolder%\ReadMe.txt, UTF-8
+	textFileWindow("", PresetFolder "\ReadMe.txt", false)
 }
 
 ;Меню области уведомлений
