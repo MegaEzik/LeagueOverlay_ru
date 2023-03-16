@@ -125,6 +125,8 @@ pkgMgr_checkScript(ScriptPath){
 		return
 	SplitPath, ScriptPath, ScriptName
 	IniRead, MD5, %configFolder%\pkgsMgr.ini, pkgsMgr, %ScriptName%, %A_Space%
+	If (MD5="")
+		return
 	MD5File:=MD5_File(ScriptPath)
 	If (MD5!=MD5File) {
 		permissionsCustomScript(ScriptName)
@@ -135,8 +137,6 @@ pkgMgr_checkScript(ScriptPath){
 
 permissionsCustomScript(ScriptName){
 	IniRead, MD5, %configFolder%\pkgsMgr.ini, pkgsMgr, %ScriptName%, %A_Space%
-	If (MD5="")
-		return
 	MD5File:=MD5_File(configFolder "\" ScriptName)
 	If (MD5!=MD5File) {
 		IniDelete, %configFolder%\pkgsMgr.ini, pkgsMgr, %ScriptName%
