@@ -126,15 +126,20 @@ pkgMgr_checkScript(ScriptPath){
 	SplitPath, ScriptPath, ScriptName
 	IniRead, MD5, %configFolder%\pkgsMgr.ini, pkgsMgr, %ScriptName%, %A_Space%
 	MD5File:=MD5_File(ScriptPath)
-	If (MD5!=MD5File)
+	If (MD5!=MD5File) {
+		permissionsCustomScript(ScriptName)
 		return
+	}
 	RunWait *RunAs "%A_AhkPath%" "%ScriptPath%" "%A_ScriptDir%"
 }
 
 permissionsCustomScript(ScriptName){
 	IniRead, MD5, %configFolder%\pkgsMgr.ini, pkgsMgr, %ScriptName%, %A_Space%
+	If (MD5="")
+		return
 	MD5File:=MD5_File(configFolder "\" ScriptName)
 	If (MD5!=MD5File) {
+		IniDelete, %configFolder%\pkgsMgr.ini, pkgsMgr, %ScriptName%
 		msgbox, 0x1024, %prjName%, Разрешить автозапуск '%ScriptName%'?
 		IfMsgBox No
 			return
