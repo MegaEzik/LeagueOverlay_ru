@@ -1,5 +1,5 @@
 ﻿ruPrediction.zip|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/ruPrediction.zip|E6DCF16CFACAB6E6976305BBD7B8B5D6
-HeistScanner.zip|https://github.com/MegaEzik/PoE_HeistScanner_ru/releases/download/230314/HeistScanner.zip|B26D25714C46366BA42CEDB6F575AC3B
+HeistScanner.ahk|https://raw.githubusercontent.com/MegaEzik/PoE_HeistScanner_ru/main/HeistScanner.ahk
 LutTools.ahk|http://lutbot.com/ahk/macro.ahk
 Catalysts.jpg|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Catalysts.jpg
 PoE_English.zip|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/PoE_English.zip|7B297E27C4B1964CEA38A4F9E0E1B841
