@@ -692,7 +692,7 @@ showSettings(){
 	Gui, Settings:Add, Text, x12 yp+21 w385, Меню предмета:
 	Gui, Settings:Add, Hotkey, vhotkeyItemMenu x+2 yp-2 w90 h17, %hotkeyItemMenu%
 	
-	Gui, Settings:Add, Text, x12 yp+21 w385, Игровой контроллер(Beta) - Удерживайте [%hotkeyGamepad%] для использования
+	Gui, Settings:Add, Text, x12 yp+21 w385, Геймпад - Удерживайте [%hotkeyGamepad%] для использования
 	Gui, Settings:Add, Button, x+1 yp-3 w92 h23 gcfgGamepad, Изменить
 	
 	Gui, Settings:Add, Text, x10 y+2 w480 h1 0x12
