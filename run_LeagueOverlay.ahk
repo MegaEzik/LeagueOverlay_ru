@@ -123,7 +123,7 @@ checkRequirementsAndArgs() {
 	If !A_IsAdmin
 		ReStart()
 	If RegExMatch(args, "i)/Help") {
-		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/ShowCurl - отображать окно cURL`n/NoAddons - пропуск загрузки дополнений`n/BypassSystemCheck - пропуск проверки системы
+		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/NoAddons - пропуск загрузки дополнений`n/BypassSystemCheck - пропуск проверки системы
 		ExitApp
 	}
 	If !RegExMatch(args, "i)/BypassSystemCheck") {
@@ -617,14 +617,15 @@ showSettings(){
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	IniRead, lr, %configFile%, curl, limit-rate, 1000
 	IniRead, ct, %configFile%, curl, connect-timeout, 3
+	IniRead, showCurl, %configFile%, curl, showCurl, 0
 	IniRead, update, %configFile%, settings, update, 1
+	IniRead, updateAHK, %configFile%, settings, updateAHK, 1
 	IniRead, useEvent, %configFile%, settings, useEvent, 1
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	
 	;Скрытые настройки
 	IniRead, debugMode, %configFile%, settings, debugMode, 0
 	IniRead, sMenu, %configFile%, settings, sMenu, MyMenu.fmenu
-	IniRead, updateAHK, %configFile%, settings, updateAHK, 1
 	IniRead, tfwFontSize, %configFile%, settings, tfwFontSize, 12
 	
 	If FileExist("resources\imgs\bg.jpg")
@@ -645,7 +646,7 @@ showSettings(){
 	Gui, Settings:Font, s8 normal
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
-	Gui, Settings:Add, Text, x12 y78 w385, Отслеживаемые окна:
+	Gui, Settings:Add, Text, x12 y80 w385, Отслеживаемые окна:
 	Gui, Settings:Add, Button, x+1 yp-3 w92 h23 gsetWindowsList, Изменить
 	
 	Gui, Settings:Add, Text, x12 yp+26 w185, Позиция изображений(пиксели):
@@ -716,10 +717,12 @@ showSettings(){
 	
 	Gui, Settings:Tab, 2 ;Вторая вкладка
 	
-	Gui, Settings:Add, Text, x12 y78 w120, cURL | User-Agent:
+	Gui, Settings:Add, Checkbox, vshowCurl x12 y80 w480 Checked%showCurl%, Отображать выполнение curl.exe(не рекомендуется)
+	
+	Gui, Settings:Add, Text, x12 yp+20 w120, cURL | User-Agent:
 	Gui, Settings:Add, Edit, vUserAgent x+2 yp-2 w355 h17, %UserAgent%
 	
-	Gui, Settings:Add, Text, x12 yp+21 w385, cURL | Ограничение загрузки(Кб/с, 0 - без лимита):
+	Gui, Settings:Add, Text, x12 yp+20 w385, cURL | Ограничение загрузки(Кб/с, 0 - без лимита):
 	Gui, Settings:Add, Edit, vlr x+2 yp-2 w90 h18 Number, %lr%
 	Gui, Settings:Add, UpDown, Range0-99999 0x80, %lr%
 	
@@ -729,16 +732,22 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x10 y+3 w480 h1 0x12
 	
-	Gui, Settings:Add, Checkbox, vupdate x12 y+5 w480 Checked%update% , Автоматическая проверка обновлений
 	
-	Gui, Settings:Add, Checkbox, vuseEvent x12 yp+21 w480 Checked%useEvent%, Разрешить события
 	
-	Gui, Settings:Add, Checkbox, vloadLab x12 yp+21 w385 Checked%loadLab%, Скачивать раскладку лабиринта('Мои файлы'>Labyrinth.jpg)
+	Gui, Settings:Add, Checkbox, vupdate x12 y+5 w480 Checked%update%, Автоматическая проверка обновлений
+	
+	Gui, Settings:Add, Checkbox, vupdateAHK x27 yp+20 w465 Checked%updateAHK% disabled, Предлагать обновления для AutoHotkey
+	If update
+		GuiControl, Settings:Enable, updateAHK
+	
+	Gui, Settings:Add, Checkbox, vuseEvent x12 yp+20 w480 Checked%useEvent%, Разрешить события
+	
+	Gui, Settings:Add, Checkbox, vloadLab x12 yp+20 w385 Checked%loadLab%, Скачивать раскладку лабиринта('Мои файлы'>Labyrinth.jpg)
 	Gui, Settings:Add, Link, x+2 yp+0 w90 +Right, <a href="https://www.poelab.com/">POELab.com</a>
 	
 	Gui, Settings:Tab, 3 ; Третья вкладка
 	
-	Gui, Settings:Add, Text, x12 y78 w0 h0
+	Gui, Settings:Add, Text, x12 y80 w0 h0
 	
 	;Настраиваемые команды fastReply
 	LoopVar:=cmdNum/2
@@ -794,7 +803,7 @@ saveSettings(){
 	DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", 0x50, "UInt", 0x4090409, "UInt", 0x4090409)
 	sleep 100
 	Gui, Settings:Submit
-			
+	
 	;Настройки первой вкладки
 	IniWrite, %posX%/%posY%/%posW%/%posH%, %configFile%, settings, overlayPosition
 	IniWrite, %expandMyImages%, %configFile%, settings, expandMyImages
@@ -813,14 +822,15 @@ saveSettings(){
 	IniWrite, %UserAgent%, %configFile%, curl, user-agent
 	IniWrite, %lr%, %configFile%, curl, limit-rate
 	IniWrite, %ct%, %configFile%, curl, connect-timeout
+	IniWrite, %showCurl%, %configFile%, curl, showCurl
 	IniWrite, %update%, %configFile%, settings, update
+	IniWrite, %updateAHK%, %configFile%, settings, updateAHK
 	IniWrite, %useEvent%, %configFile%, settings, useEvent
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
 	
 	;Скрытые настройки
 	IniWrite, %debugMode%, %configFile%, settings, debugMode
 	IniWrite, %sMenu%, %configFile%, settings, sMenu
-	IniWrite, %updateAHK%, %configFile%, settings, updateAHK
 	IniWrite, %tfwFontSize%, %configFile%, settings, tfwFontSize
 
 	;Настраиваемые команды fastReply
@@ -868,8 +878,9 @@ updateAutoHotkey(){
 	If !updateAHK
 		return
 	filePath:=A_Temp "\ahkver.txt"
-	FileDelete, %filePath%
-	UrlDownloadToFile, https://www.autohotkey.com/download/1.1/version.txt, %filePath%
+	LoadFile("https://www.autohotkey.com/download/1.1/version.txt", filePath , true)
+	;FileDelete, %filePath%
+	;UrlDownloadToFile, https://www.autohotkey.com/download/1.1/version.txt, %filePath%
 	FileReadLine, AHKRelVer, %filePath%, 1
 	If (A_AhkVersion<AHKRelVer){
 		SplitPath, A_AhkPath,,AHKDir
@@ -1081,6 +1092,7 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 	Sleep 100
 	
 	If FileExist(A_WinDir "\System32\curl.exe") {
+		IniRead, showCurl, %configFile%, curl, showCurl, 0
 		IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 		If (UserAgent="")
 			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36"
@@ -1092,7 +1104,7 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 			CurlLine.=" --connect-timeout " ct
 		If lr>0
 			CurlLine.=" --limit-rate " lr "K"
-		If RegExMatch(args, "i)/ShowCurl")
+		If showCurl
 			RunWait, %CurlLine%
 		Else
 			RunWait, %CurlLine%, , hide
