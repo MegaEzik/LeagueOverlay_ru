@@ -882,6 +882,8 @@ updateAutoHotkey(){
 	;FileDelete, %filePath%
 	;UrlDownloadToFile, https://www.autohotkey.com/download/1.1/version.txt, %filePath%
 	FileReadLine, AHKRelVer, %filePath%, 1
+	If !RegExMatch(AHKRelVer, "(\d+).(\d+).(\d+).(\d+)")
+		return
 	If (A_AhkVersion<AHKRelVer){
 		SplitPath, A_AhkPath,,AHKDir
 		If FileExist(AHKDir "\Installer.ahk")
