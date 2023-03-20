@@ -49,11 +49,11 @@ pkgsMgr_loadPackage(Name){
 		If inStr(DataSplit[k], "|") {
 			PackInfo:=StrSplit(DataSplit[k], "|")
 			If (PackInfo[1]=Name && PackInfo[2]!="") {
-				If !LoadFile(PackInfo[2], A_Temp "\" PackInfo[1],, PackInfo[3]) {
+				If !LoadFile(PackInfo[2], A_Temp "\MegaEzik\" PackInfo[1],, PackInfo[3]) {
 					TrayTip, %prjName%, Ошибка загрузки '%Name%'!
 					return
 				}
-				pkgsMgr_installPackage(A_Temp "\" PackInfo[1])
+				pkgsMgr_installPackage(A_Temp "\MegaEzik\" PackInfo[1])
 			}
 		}
 	}
@@ -68,11 +68,11 @@ pkgsMgr_fromFile(){
 pkgsMgr_fromURL(){
 	InputBox, fileURL, Укажите URL,,, 300, 100
 	SplitPath, fileURL, fileName
-	If (RegExMatch(fileURL, "i)https://")!=1) || !LoadFile(fileURL,  A_Temp "\" fileName) {
+	If (RegExMatch(fileURL, "i)https://")!=1) || !LoadFile(fileURL,  A_Temp "\MegaEzik\" fileName) {
 		TrayTip, %prjName%, Ошибка загрузки '%fileName%'!
 		return
 	}
-	pkgsMgr_installPackage(A_Temp "\" fileName)
+	pkgsMgr_installPackage(A_Temp "\MegaEzik\" fileName)
 }
 
 pkgsMgr_installPackage(FilePath){

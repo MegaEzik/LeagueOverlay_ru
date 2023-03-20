@@ -95,6 +95,8 @@ commandFastReply(Line:="/dance"){
 		Line:=StrReplace(Line, "<configFolder>", configFolder)
 	If InStr(Line, "<presetFolder>")
 		Line:=StrReplace(Line, "<presetFolder>", Globals.Get("presetFolder"))
+	If InStr(Line, "<eventFolder>")
+		Line:=StrReplace(Line, "<eventFolder>", A_Temp "\MegaEzik\LOEvent")
 	If InStr(Line, "<time>") {
 		FormatTime, currentTime, %A_NowUTC%, HH:mm
 		Line:=StrReplace(Line, "<time>", currentTime)

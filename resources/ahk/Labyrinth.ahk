@@ -13,39 +13,17 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false) {
 		return
 	
 	;Отроем сайт, если загрузка осуществляется по время запуска макроса
-	If openPage
+	If openPage && !debubMode
 		run, %LabURL%
 		
 	;Очистка файлов
-	FileDelete, %A_Temp%\labmain.html
-	FileDelete, %A_Temp%\labpage.html
+	FileDelete, %A_Temp%\MegaEzik\labpage.html
 	FileDelete, %configFolder%\MyFiles\Labyrinth.jpg
 	
-	/*
-	;Загружаем основную страницу и извлекаем ссылку на страницу с убер-лабой
-	CurlLineLabMain:=CurlLine A_Temp "\labmain.html https://www.poelab.com/"
-	RunWait, %CurlLineLabMain%
-	FileRead, LabData, %A_Temp%\labmain.html
-	LabDataSplit:=StrSplit(LabData, "`n")
-	For k, val in LabDataSplit {
-		If RegExMatch(LabDataSplit[k], "<a href=""(.*)"">Uber Labyrinth Daily Notes</a>", URL)
-			break
-		If RegExMatch(LabDataSplit[k], "href=""(.*)""><strong>UBER LAB</strong>", URL)
-			break
-	}
-	FileDelete, %A_Temp%\labmain.html
-	If (StrLen(URL1)<23 || StrLen(URL1)>100) {
-		msgbox, 0x1010, %prjName% - Загрузка лабиринта, Не удалось скачать основную страницу!, 3
-		return
-	}
-	
-	CurlLineLabPage:=CurlLine A_Temp "\labpage.html " URL1
-	*/
-	
 	;Загружаем страницу с убер-лабой и извлекаем ссылку на изображение
-	LoadFile(LabURL, A_Temp "\labpage.html")
+	LoadFile(LabURL, A_Temp "\MegaEzik\labpage.html")
 	
-	FileRead, LabData, %A_Temp%\labpage.html
+	FileRead, LabData, %A_Temp%\MegaEzik\labpage.html
 	LabDataSplit:=StrSplit(LabData, "`n")
 	For k, val in LabDataSplit {
 		If RegExMatch(LabDataSplit[k], "<img id=""notesImg"" style=""margin: 0 auto; display: inline-block; cursor: zoom-in;"" src=""(.*)"">", URL)
@@ -55,7 +33,7 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false) {
 		If RegExMatch(LabDataSplit[k], "<img id=""light-notesImg"" style=""width: margin: 0 auto; display: inline-block; cursor: zoom-in;"" src=""(.*)"" /", URL)
 			break
 	}
-	FileDelete, %A_Temp%\labpage.html
+	FileDelete, %A_Temp%\MegaEzik\labpage.html
 	If (StrLen(URL1)<23 || StrLen(URL1)>100) {
 		TrayTip, Labyrinth.ahk, Не удалось скачать страницу с раскладкой!
 		devLog("Не удалось скачать страницу с раскладкой!")
@@ -64,7 +42,6 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false) {
 	
 	;Загружаем изображение убер-лабы
 	LoadFile(URL1, configFolder "\MyFiles\Labyrinth.jpg")
-	
 	
 	;Проверим изображение, чтобы оно не было пустым файлом или веб-страницей
 	FileReadLine, Line, %configFolder%\MyFiles\Labyrinth.jpg, 1

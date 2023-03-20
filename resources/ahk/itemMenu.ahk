@@ -214,7 +214,7 @@ ItemMenu_LoadDataFile(URL, Path){
 	If (LoadDate=CurrentDate)
 		return false
 	
-	tmpPath:=A_Temp "\file.tmp"
+	tmpPath:=A_Temp "\MegaEzik\file.tmp"
 	LoadFile(URL, tmpPath)
 	FileRead, CurrentFileData, %Path%
 	FileRead, NewFileData, %tmpPath%

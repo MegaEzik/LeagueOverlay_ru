@@ -346,16 +346,18 @@ IDCL_ConvertFromGame() {
 ;Обновление библиотеки
 IDCL_Update() {
 	If FileExist("resources\ahk\ItemDataConverterLib.ahk") {
-		FileDelete, %A_Temp%\IDCL.ahk
-		UrlDownloadToFile, https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/ahk/ItemDataConverterLib.ahk, %A_Temp%\IDCL.ahk
-		FileReadLine, AuthorLine, %A_Temp%\IDCL.ahk, 4
+		FileCreateDir, %A_Temp%\MegaEzik
+		tmpFilePath:=A_Temp "\MegaEzik\IDCL.ahk"
+		FileDelete, %tmpFilePath%
+		UrlDownloadToFile, https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/ahk/ItemDataConverterLib.ahk, %tmpFilePath%
+		FileReadLine, AuthorLine, %tmpFilePath%, 4
 		If RegExMatch(AuthorLine, "Автор: MegaEzik") {
 			FileRead, IDCLCurrent, resources\ahk\ItemDataConverterLib.ahk
-			FileRead, IDCLNew, %A_Temp%\IDCL.ahk
+			FileRead, IDCLNew, %tmpFilePath%
 			If (IDCLCurrent!=IDCLNew) {
 				msgbox, 0x1044, ItemDataConverterLib.ahk, Доступна новая версия библиотеки IDCL!`nОбновить?`n`n--------`nПосле инициализации макроса потребуется перезапустить его, чтобы изменения вступили в силу!
 				IfMsgBox Yes
-					FileCopy, %A_Temp%\IDCL.ahk, resources\ahk\ItemDataConverterLib.ahk, 1
+					FileCopy, %tmpFilePath%, resources\ahk\ItemDataConverterLib.ahk, 1
 			}
 		}
 	}

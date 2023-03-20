@@ -14,7 +14,8 @@ CheckUpdate() {
 ;Запуск процесса обновления
 StartUpdate(verRelease) {
 	SplashTextOn, 400, 20, %prjName%, Выполняется обновление, пожалуйста подождите...
-	zipArchive:=A_Temp "\" prjName "-Update.zip"
+	FileCreateDir, %A_Temp%\MegaEzik
+	zipArchive:=A_Temp "\MegaEzik\" prjName ".zip"
 	FileDelete, %zipArchive%
 	sleep 25
 	newVersionURL:="https://github.com/" githubUser "/" prjName "/releases/download/" verRelease "/" prjName ".zip"
@@ -36,12 +37,11 @@ StartUpdate(verRelease) {
 
 ;Получение данных от api в переменную
 DownloadToVar(URL) {
-	FilePath:=A_Temp "\" prjName "-JSONData.json"
+	FileCreateDir, %A_Temp%\MegaEzik
+	FilePath:=A_Temp "\MegaEzik\JSONData.json"
 	UrlDownloadToFile, %URL%, %FilePath%
 	sleep 25
 	FileRead, Result, %FilePath%
-	sleep 25
-	FileDelete, %FilePath%
 	sleep 25
 	return Result
 }

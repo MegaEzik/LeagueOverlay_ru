@@ -94,9 +94,8 @@ If update {
 ;Проверка версии и перенос настроек
 migrateConfig()
 
-;Загрузка события, лиг, лабиринта, и данных для IDCL
+;Загрузка события, лабиринта, и данных для IDCL
 loadEvent()
-updateLeagueData()
 initLab()
 ItemMenu_IDCLInit()
 
@@ -259,7 +258,8 @@ loadEvent(){
 	If !useEvent || (EventURL="")
 		return
 	
-	EventPath:="resources\data\event.txt"
+	;EventPath:="resources\data\event.txt"
+	EventPath:=A_Temp "\MegaEzik\LOEvent\event.txt"
 	LoadFile(eventURL, EventPath, true)
 	FormatTime, CurrentDate, %A_Now%, yyyyMMdd
 	
@@ -284,9 +284,9 @@ loadEvent(){
 	EventName.="(" SubStr(EndDate, 7, 2) "." SubStr(EndDate, 5, 2) ")"
 	
 	If (EventLogo!="")
-		LoadFile(EventLogo, "resources\data\bg.jpg", true)
+		LoadFile(EventLogo, A_Temp "\MegaEzik\LOEvent\bg.jpg", true)
 	
-	showStartUI(EventName "`n" EventMsg, (EventLogo!="")?"resources\data\bg.jpg":"")
+	showStartUI(EventName "`n" EventMsg, (EventLogo!="")?A_Temp "\MegaEzik\LOEvent\bg.jpg":"")
 	
 	eventDataSplit:=StrSplit(loadFastFile(EventPath), "`n")
 	For k, val in eventDataSplit
@@ -303,13 +303,14 @@ loadEvent(){
 ;Загрузить файл для события
 loadEventResourceFile(URL){
 	eventFileSplit:=strSplit(URL, "/")
-	filePath:="resources\data\" eventFileSplit[eventFileSplit.MaxIndex()]
+	;filePath:="resources\data\" eventFileSplit[eventFileSplit.MaxIndex()]
+	filePath:=A_Temp "\MegaEzik\LOEvent\" eventFileSplit[eventFileSplit.MaxIndex()]
 	LoadFile(URL, filePath, true)
 }
 
 ;Меню события
 eventMenu(){
-	shFastMenu("resources\data\event.txt", false)
+	shFastMenu(A_Temp "\MegaEzik\LOEvent\event.txt", false)
 }
 
 ;Открыть мой файл
@@ -874,10 +875,10 @@ setHotkeys(){
 
 ;Проверка обновления AHK
 updateAutoHotkey(){
-	IniRead, updateAHK, %configFile%, settings, updateAHK, 1
+	IniRead, updateAHK, %configFile%, settings, updateAHK, 0
 	If !updateAHK
 		return
-	filePath:=A_Temp "\ahkver.txt"
+	filePath:=A_Temp "\MegaEzik\ahkver.txt"
 	LoadFile("https://www.autohotkey.com/download/1.1/version.txt", filePath , true)
 	;FileDelete, %filePath%
 	;UrlDownloadToFile, https://www.autohotkey.com/download/1.1/version.txt, %filePath%
@@ -1089,6 +1090,9 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 		If (LoadDate=CurrentDate)
 			return false
 	}
+	
+	SplitPath, FilePath,, DirPath
+	FileCreateDir, %DirPath%
 	
 	FileDelete, %FilePath%
 	Sleep 100

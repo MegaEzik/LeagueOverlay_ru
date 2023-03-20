@@ -57,16 +57,18 @@ devClSD(){
 	FileDelete, resources\Packages.txt
 	FileDelete, %configFolder%\MyFiles\Labyrinth.jpg
 	FileDelete, resources\data\*
+	FileRemoveDir, %A_Temp%\MegaEzik, 1
 	Sleep 100
 	ReStart()
 }
 
 ;Запись отладочной информации
 devLog(msg){
-	If FileExist(configFolder "\dev.log") {
-		FormatTime, Time, dddd MMMM, dd.MM HH:mm:ss
-		FileAppend, %Time% v%verScript% - %msg%`n, %configFolder%\dev.log, UTF-8
-	}
+	If !debugMode
+		return
+	FileCreateDir, %A_Temp%\MegaEzik
+	FormatTime, Time, dddd MMMM, dd.MM HH:mm:ss
+	FileAppend, %Time% v%verScript% - %msg%`n, %A_Temp%\MegaEzik\%prjName%.log, UTF-8
 }
 
 ;Добавление в отслеживаемый список
@@ -105,12 +107,10 @@ editConfig(){
 	ReStart()
 }
 
-updateLeagueData(){
-	LoadFile("http://api.pathofexile.com/leagues?type=main", "resources\data\leagues.json", true)
-}
-
 LeaguesList(){
-	FileRead, html, resources\data\leagues.json
+	File:=A_Temp "\MegaEzik\Leagues.json"
+	LoadFile("http://api.pathofexile.com/leagues?type=main", File, true)
+	FileRead, html, %File%
 	html:=StrReplace(html, "},{", "},`n{")
 	
 	leagues_list:=""
