@@ -523,7 +523,7 @@ showStartUI(SpecialText="", LogoPath=""){
 				;,"Входим в 820ый для поиска лаб ... а ну да"
 				;,"Удаляем Зеркало Каландры из вашего фильтра предметов"
 				;,"@pathofexilebota мотай на 8:72"
-				,"HeistScanner - мое новое дополнение /nдля оценки предметов с ветрин в кражах"
+				,"HeistScanner - мое новое дополнение /nдля оценки предметов с витрин в кражах"
 				,"HeistScanner - если хотите открыть предмет на /npoe.ninja, то удерживайте [Alt] во время выделения имени"
 				,"HeistScanner - у уников нужно выделять имя и базу, /nу редких и магических только базу, в остальных случаях имя"]
 	
@@ -717,7 +717,7 @@ showSettings(){
 	If FileExist(configFolder "\ruPrediction.ahk")
 		GuiControl, Settings:Enable, hotkeyPrediction
 		
-	Gui, Settings:Add, Text, x12 yp+21 w385, Сканер ветрин Кражи(HeistScanner):
+	Gui, Settings:Add, Text, x12 yp+21 w385, Сканер витрин Кражи(HeistScanner):
 	Gui, Settings:Add, Hotkey, vhotkeyHeistScanner x+2 yp-2 w90 h17 disabled, %hotkeyHeistScanner%
 	If FileExist(configFolder "\HeistScanner.ahk")
 		GuiControl, Settings:Enable, hotkeyHeistScanner
