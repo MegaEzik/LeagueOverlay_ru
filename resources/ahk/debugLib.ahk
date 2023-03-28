@@ -4,6 +4,7 @@ devInit(){
 	IniRead, debugMode, %configFile%, settings, debugMode, 0
 	
 	;Menu, devMenu, Add, Мои наборы, devPresetMenuShow
+	;Menu, devMenu, Add, devStartUI
 	Menu, devMenu, Add, Режим отладки, switchDebugMode
 	If debugMode
 		Menu, devMenu, Check, Режим отладки
@@ -124,6 +125,13 @@ LeaguesList(){
 	leagues_list:=subStr(leagues_list, 2)
 	
 	return leagues_list
+}
+
+devStartUI(){
+	InputBox, inputLine, Введите текст,,, 300, 100
+	showStartUI(inputLine)
+	sleep 5000
+	closeStartUI()
 }
 
 devVoid(){

@@ -129,11 +129,11 @@ checkRequirementsAndArgs() {
 		;RegExMatch(A_OSVersion, "(\d+)$", OSBuild)
 		OSBuild:=DllCall("GetVersion") >> 16 & 0xFFFF        
 		If (OSBuild<17763) {
-			MsgBox, 0x1010, %prjName%, Для работы %prjName% требуется операционная система Windows 10 1809 или выше!
+			MsgBox, 0x1010, %prjName%, Для корректной работы %prjName% требуется операционная система Windows 10 1809 или выше!`n`nДля обхода данного ограничения вы можете использовать параметр запуска /BypassSystemCheck
 			ExitApp
 		}
 		If (A_PtrSize!=8) {
-			msgtext:="Для работы " prjName " требуется 64-разрядный интерпретатор AutoHotkey!"
+			с:="Для работы " prjName " требуется 64-разрядный интерпретатор AutoHotkey!"
 			SplitPath, A_AhkPath,,AHKDir
 			If FileExist(AhkDir "\Installer.ahk")
 				msgtext.="`n`nПосле нажатия кнопки 'ОК' откроется 'AutoHotkey Setup', выберите в нем 'Modify', а затем 'Unicode 64-bit'."
@@ -149,7 +149,7 @@ checkRequirementsAndArgs() {
 	}
 	If (A_ScreenWidth<1024 || A_ScreenHeight<720) {
 		msgtext:="Разрешение основного дисплея ниже 1024x720, некоторые элементы " prjName " могут не поместиться на экран!"
-		MsgBox, 0x1010, %prjName%, %msgtext%, 10
+		MsgBox, 0x1010, %prjName%, %msgtext%, 7
 	}
 	;Запуск gdi+
 	If !pToken:=Gdip_Startup()
@@ -340,6 +340,7 @@ myImagesMenuCreate(expandMenu=true){
 				Menu, myImagesMenu, Add, %A_LoopFileName%, shMyImage
 		Menu, myImagesMenu, Add
 		myImagesActions()
+		Menu, myImagesMenu, Add, Действия, :myImagesSubMenu
 		;Menu, myImagesMenu, Add, Открыть папку, openMyImagesFolder
 		Menu, mainMenu, Add, Мои файлы, :myImagesMenu
 	}
@@ -347,18 +348,18 @@ myImagesMenuCreate(expandMenu=true){
 
 ;Меню действий для Моих файлов
 myImagesActions(){
-	Menu, myImagesSubMenu, Add, Заметку, createNewNote
-	Menu, myImagesSubMenu, Add, Меню команд, createNewMenu
-	Menu, myImagesMenu, Add, Создать, :myImagesSubMenu
-	Menu, myImagesMenu, Add, Открыть папку, openMyImagesFolder
+	Menu, myImagesSubMenu, Add
+	Menu, myImagesSubMenu, DeleteAll
+	Menu, myImagesSubMenu, Add, Добавить 'Заметку', createNewNote
+	Menu, myImagesSubMenu, Add, Добавить 'Меню команд', createNewMenu
+	Menu, myImagesSubMenu, Add
+	Menu, myImagesSubMenu, Add, Открыть папку, openMyImagesFolder
 }
 
 ;Открыть меню действий для моих файлов
 sMenuImagesActions(){
-	Menu, myImagesMenu, Add
-	Menu, myImagesMenu, DeleteAll
 	myImagesActions()
-	Menu, myImagesMenu, Show
+	Menu, myImagesSubMenu, Show
 }
 
 ;Окно с текстом
@@ -514,13 +515,17 @@ clearPoECache(){
 showStartUI(SpecialText="", LogoPath=""){
 	Gui, StartUI:Destroy
 	
-	initMsgs := ["Подготовка макроса к работе"
-				,"Поиск NPC 'Борис Бритва'"
-				,"Получаем приглашение Януса на поминки Кадиро"
-				,"Предсказываем... огонь, насилие, СМЕРТЬ"
-				,"Входим в 820ый для поиска лаб ... а ну да"
-				,"Удаляем Зеркало Каландры из вашего фильтра предметов"
-				,"@pathofexilebota мотай на 8:72"]
+	initMsgs := ["Поддержи " githubUser " <3"
+				;,"Подготовка макроса к работе"
+				;,"Поиск NPC 'Борис Бритва'"
+				;,"Получаем приглашение Януса на поминки Кадиро"
+				;,"Предсказываем... огонь, насилие, СМЕРТЬ"
+				;,"Входим в 820ый для поиска лаб ... а ну да"
+				;,"Удаляем Зеркало Каландры из вашего фильтра предметов"
+				;,"@pathofexilebota мотай на 8:72"
+				,"HeistScanner - мое новое дополнение /nдля оценки предметов с витрин в кражах"
+				,"HeistScanner - если хотите открыть предмет на /npoe.ninja, то удерживайте [Alt] во время выделения имени"
+				,"HeistScanner - у уников нужно выделять имя и базу, /nу редких и магических только базу, в остальных случаях имя"]
 	
 	Random, randomNum, 1, initMsgs.MaxIndex()
 	initMsg:=initMsgs[randomNum] "..."
@@ -581,7 +586,7 @@ closeStartUI(){
 		showUpdateHistory()
 		IniWrite, 0, %configFile%, info, showHistory
 	}
-	showDonateUIOnStart()
+	traytip, %prjName%, Поддержи %githubUser% <3
 }
 
 ;Настройки
@@ -589,9 +594,11 @@ showSettings(){
 	global
 	Gui, Settings:Destroy
 	
-	IniRead, dCard, %buildConfig%, Donation, Card, %A_Space%
-	IniRead, dNumber, %buildConfig%, Donation, Number, %A_Space%
 	IniRead, dMsg, %buildConfig%, Donation, Msg, %A_Space%
+	IniRead, dEdit1, %buildConfig%, Donation, Edit1, %A_Space%
+	IniRead, dEdit2, %buildConfig%, Donation, Edit2, %A_Space%
+	IniRead, dInfo1, %buildConfig%, Donation, Info1, %A_Space%
+	IniRead, dInfo2, %buildConfig%, Donation, Info2, %A_Space%
 	dMsg:=StrReplace(dMsg, "/n", "`n")
 	
 	;Настройки первой вкладки
@@ -632,10 +639,10 @@ showSettings(){
 	If FileExist("resources\imgs\bg.jpg")
 		Gui, Settings:Add, Picture, x0 y0 w500 h70, resources\imgs\bg.jpg
 	
-	Gui, Settings:Add, Text, x320 y2 w170 +Right BackgroundTrans, Перевод на карту(внутри РФ): 
-	Gui, Settings:Add, Edit, x320 y+1 w170 h18 +ReadOnly +Right, %dCard%
-	Gui, Settings:Add, Text, x320 y+2 w170 +Right BackgroundTrans, Перевод по номеру телефона: 
-	Gui, Settings:Add, Edit, x320 y+1 w170 h18 +ReadOnly +Right, %dNumber%
+	Gui, Settings:Add, Text, x320 y2 w170 +Right BackgroundTrans, %dInfo1%: 
+	Gui, Settings:Add, Edit, x320 y+1 w170 h18 +ReadOnly +Right, %dEdit1%
+	Gui, Settings:Add, Text, x320 y+2 w170 +Right BackgroundTrans, %dInfo2%: 
+	Gui, Settings:Add, Edit, x320 y+1 w170 h18 +ReadOnly +Right, %dEdit2%
 	
 	Gui, Settings:Add, Text, x12 y8 w300 BackgroundTrans, %dMsg%
 	
@@ -1038,13 +1045,6 @@ ReStart(){
 	;Reload
 	Run *RunAs "%A_AhkPath%" "%A_ScriptFullPath%" %args%
 	ExitApp
-}
-
-;Иногда после запуска будем предлагать поддержать проект
-showDonateUIOnStart() {
-	Random, randomNum, 1, 4
-	If (randomNum=1)
-		traytip, %prjName%, Поддержи %githubUser% <3
 }
 
 ;Всплывающая подсказка
