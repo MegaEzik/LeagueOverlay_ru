@@ -17,18 +17,20 @@ pkgsMgr_packagesMenu(){
 			PackName:=PackInfo[1]
 			If (RegExMatch(PackName, ";")!=1)
 				Menu, packagesMenu, Add, Загрузить '%PackName%', pkgsMgr_loadPackage
+			If (PackInfo[3]!="")
+				Menu, packagesMenu, Check, Загрузить '%PackName%'
 		}
 	}
 	Menu, packagesMenu, Add
 	
 	Loop, %configFolder%\*.ahk, 1
 	{
-		Menu, packagesMenu, Add, %A_LoopFileName%, permissionsCustomScript
+		Menu, packagesMenu, Add, Автозапуск '%A_LoopFileName%', permissionsCustomScript
 		
 		IniRead, MD5, %configFolder%\pkgsMgr.ini, pkgsMgr, %A_LoopFileName%, %A_Space%
 		MD5File:=MD5_File(configFolder "\" A_LoopFileName)
 		If (MD5=MD5File)
-			Menu, packagesMenu, Check, %A_LoopFileName%
+			Menu, packagesMenu, Check, Автозапуск '%A_LoopFileName%'
 	}
 	Menu, packagesMenu, Add
 	
@@ -136,6 +138,7 @@ pkgMgr_checkScript(ScriptPath){
 }
 
 permissionsCustomScript(ScriptName){
+	ScriptName:=searchName(ScriptName)
 	IniRead, MD5, %configFolder%\pkgsMgr.ini, pkgsMgr, %ScriptName%, %A_Space%
 	MD5File:=MD5_File(configFolder "\" ScriptName)
 	If (MD5!=MD5File) {
