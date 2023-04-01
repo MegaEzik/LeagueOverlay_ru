@@ -320,7 +320,6 @@ shMyImage(imagename){
 
 ;Открыть папку с моими файлами
 openMyImagesFolder(){
-	Gui, Settings:Destroy
 	Run, explorer "%configFolder%\MyFiles"
 }
 
@@ -358,6 +357,7 @@ myImagesActions(){
 
 ;Открыть меню действий для моих файлов
 sMenuImagesActions(){
+	Gui, Settings:Destroy
 	myImagesActions()
 	Menu, myImagesSubMenu, Show
 }
@@ -451,7 +451,6 @@ tfwSetFontSize(FontSize){
 
 ;Создание заметки
 createNewNote(){
-	Gui, Settings:Destroy
 	InputBox, fileName, Введите название для заметки,,, 300, 100,,,,, NewNote
 	filePath:=configFolder "\MyFiles\" fileName ".txt"
 	If (FileExist(filePath) || fileName="" || ErrorLevel) {
@@ -463,7 +462,6 @@ createNewNote(){
 
 ;Создание нового меню
 createNewMenu(){
-	Gui, Settings:Destroy
 	InputBox, fileName, Введите название для файла меню,,, 300, 100,,,,, MyMenu
 	filePath:=configFolder "\MyFiles\" fileName ".fmenu"
 	If (FileExist(filePath) || fileName="" || ErrorLevel) {
@@ -712,15 +710,15 @@ showSettings(){
 	Gui, Settings:Add, DropDownList, vleague x+2 yp-3 w90, %LeaguesList%
 	GuiControl,Settings:ChooseString, league, %league%
 	
-	Gui, Settings:Add, Text, x12 yp+25 w385, Прогнозирование(ruPrediction):
-	Gui, Settings:Add, Hotkey, vhotkeyPrediction x+2 yp-2 w90 h17 disabled, %hotkeyPrediction%
-	If FileExist(configFolder "\ruPrediction.ahk")
-		GuiControl, Settings:Enable, hotkeyPrediction
-		
-	Gui, Settings:Add, Text, x12 yp+21 w385, Сканер витрин Кражи(HeistScanner):
+	Gui, Settings:Add, Text, x12 yp+25 w385, Сканер витрин Кражи(HeistScanner):
 	Gui, Settings:Add, Hotkey, vhotkeyHeistScanner x+2 yp-2 w90 h17 disabled, %hotkeyHeistScanner%
 	If FileExist(configFolder "\HeistScanner.ahk")
 		GuiControl, Settings:Enable, hotkeyHeistScanner
+		
+	Gui, Settings:Add, Text, x12 yp+21 w385, Оценка с помощью poeprices.info(ruPrediction):
+	Gui, Settings:Add, Hotkey, vhotkeyPrediction x+2 yp-2 w90 h17 disabled, %hotkeyPrediction%
+	If FileExist(configFolder "\ruPrediction.ahk")
+		GuiControl, Settings:Enable, hotkeyPrediction
 	
 	
 	Gui, Settings:Tab, 2 ;Вторая вкладка
@@ -901,6 +899,8 @@ updateAutoHotkey(){
 
 ;Меню управления наборами
 presetMenuCfgShow(){
+	Gui, Settings:Destroy
+	
 	Menu, devPresetMenu, Add
 	Menu, devPresetMenu, DeleteAll
 	Menu, devPresetMenu, Add, Создать, presetCreate
@@ -912,7 +912,7 @@ presetMenuCfgShow(){
 		Menu, devPresetMenu, Add, Открыть папку '%A_LoopFileName%', presetFolderOpen
 		Menu, devPresetMenu, Add, Удалить '%A_LoopFileName%', presetFolderDelete
 	}
-		
+	
 	Menu, devPresetMenu, Show
 }
 
@@ -925,14 +925,12 @@ searchName(FullText){
 
 ;Открыть папку набора
 presetFolderOpen(Name){
-	Gui, Settings:Destroy
 	PresetFolder:=configFolder "\Presets\" searchName(Name)
 	Run, explorer "%PresetFolder%"
 }
 
 ;Удалить папку набора
 presetFolderDelete(Name){
-	Gui, Settings:Destroy
 	PresetFolder:=configFolder "\Presets\" searchName(Name)
 	msgbox, 0x1024, %prjName%, Удалить папку '%PresetFolder%'?
 	IfMsgBox No
@@ -942,7 +940,6 @@ presetFolderDelete(Name){
 
 ;Менеджер создания нового набора
 presetCreate(){
-	Gui, Settings:Destroy
 	InputBox, PresetName, Введите название набора,,, 300, 100,,,,, NewPreset
 	PresetFolder:=configFolder "\Presets\" PresetName
 	If (PresetName="") || FileExist(PresetFolder) {
@@ -952,8 +949,9 @@ presetCreate(){
 	FileCreateDir, %PresetFolder%
 	InputBox, wline, Укажите окно отслеживания,,, 300, 100,,,,, ahk_exe notepad.exe
 	FileAppend, %wline%, %PresetFolder%\windows.list, UTF-8
-	ReadMeFullText:="Вы создали шаблон для набора '" PresetName "'!`n`nОткройте папку набора и поместите в нее желаемые файлы.`nДля корректного открытия текстовых файлов требуется кодировка UTF-8-BOM!`n`nЕсли вам потребуется изменить 'Окна отслеживания', то вы можете сделать это отредактировав файл 'windows.list'."
+	ReadMeFullText:="Вы создали шаблон для набора '" PresetName "'!`n`nПоместите в папку набора желаемые файлы.`nДля корректного открытия текстовых файлов требуется кодировка UTF-8-BOM!`n`nЕсли вам потребуется изменить 'Окна отслеживания', то вы можете сделать это отредактировав файл 'windows.list'."
 	FileAppend, %ReadMeFullText%, %PresetFolder%\ReadMe.txt, UTF-8
+	presetFolderOpen(PresetName)
 	textFileWindow("", PresetFolder "\ReadMe.txt", false)
 }
 
