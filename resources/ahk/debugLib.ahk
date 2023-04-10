@@ -118,7 +118,7 @@ LeaguesList(){
 	
 	htmlSplit:=StrSplit(html, "`n")
 	For k, val in htmlSplit {
-		If !RegExMatch(htmlSplit[k], "SSF") && RegExMatch(htmlSplit[k], "id"":""(.*)"",""realm", res)
+		If !RegExMatch(htmlSplit[k], "(SSF|Ruthless)") && RegExMatch(htmlSplit[k], "id"":""(.*)"",""realm", res)
 			leagues_list.="|" res1
 	}
 	
