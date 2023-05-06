@@ -23,7 +23,8 @@
 		Остальные клавиши по умолчанию не назначены и определяются пользователем через настройки или файл конфигурации
 */
 
-#NoEnv
+;#NoEnv
+#Requires AutoHotkey 1.1
 #SingleInstance Force
 SetWorkingDir %A_ScriptDir%
 
@@ -64,7 +65,7 @@ IniRead, mouseDistance, %configFile%, settings, mouseDistance, 500
 Globals.Set("mouseDistance", mouseDistance)
 
 ;Добавляем окна для отслеживания
-GroupAdd, WindowGrp, ahk_exe GeForceNOWStreamer.exe
+GroupAdd, WindowGrp, ahk_exe GeForceNOW.exe
 splitWinList:=strSplit(strReplace(WinList(), "`r", ""), "`n")
 For k, val in splitWinList
 	If (splitWinList[k]!="") {
@@ -86,10 +87,8 @@ devInit()
 
 ;Проверка обновлений
 IniRead, update, %configFile%, settings, update, 1
-If update {
+If update
 	CheckUpdate()
-	updateAutoHotkey()
-}
 
 ;Проверка версии и перенос настроек
 migrateConfig()
@@ -122,29 +121,11 @@ checkRequirementsAndArgs() {
 	If !A_IsAdmin
 		ReStart()
 	If RegExMatch(args, "i)/Help") {
-		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/NoAddons - пропуск загрузки дополнений`n/BypassSystemCheck - пропуск проверки системы
+		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/NoAddons - пропуск загрузки дополнений
 		ExitApp
 	}
-	If !RegExMatch(args, "i)/BypassSystemCheck") {
-		;RegExMatch(A_OSVersion, "(\d+)$", OSBuild)
-		OSBuild:=DllCall("GetVersion") >> 16 & 0xFFFF        
-		If (OSBuild<17763) {
-			MsgBox, 0x1010, %prjName%, Для корректной работы %prjName% требуется операционная система Windows 10 1809 или выше!`n`nДля обхода данного ограничения вы можете использовать параметр запуска /BypassSystemCheck
-			ExitApp
-		}
-		If (A_PtrSize!=8) {
-			с:="Для работы " prjName " требуется 64-разрядный интерпретатор AutoHotkey!"
-			SplitPath, A_AhkPath,,AHKDir
-			If FileExist(AhkDir "\Installer.ahk")
-				msgtext.="`n`nПосле нажатия кнопки 'ОК' откроется 'AutoHotkey Setup', выберите в нем 'Modify', а затем 'Unicode 64-bit'."
-			MsgBox, 0x1010, %prjName%, %msgtext%
-			If FileExist(AhkDir "\Installer.ahk")
-				Run *RunAs "%AhkDir%\Installer.ahk"
-			ExitApp
-		}
-	}
 	If !FileExist(A_WinDir "\System32\curl.exe") {
-		msgtext:="В вашей системе не найдена утилита 'curl.exe', без нее некоторые функции " prjName " не будут работать!"
+		msgtext:="В вашей системе не найдена утилита " A_WinDir "\System32\curl.exe, без нее некоторые функции " prjName " не будут работать!"
 		MsgBox, 0x1010, %prjName%, %msgtext%
 	}
 	If (A_ScreenWidth<1024 || A_ScreenHeight<720) {
@@ -357,7 +338,7 @@ myImagesActions(){
 
 ;Открыть меню действий для моих файлов
 sMenuImagesActions(){
-	Gui, Settings:Destroy
+	;Gui, Settings:Destroy
 	myImagesActions()
 	Menu, myImagesSubMenu, Show
 }
@@ -625,7 +606,6 @@ showSettings(){
 	IniRead, ct, %configFile%, curl, connect-timeout, 3
 	IniRead, showCurl, %configFile%, curl, showCurl, 0
 	IniRead, update, %configFile%, settings, update, 1
-	IniRead, updateAHK, %configFile%, settings, updateAHK, 1
 	IniRead, useEvent, %configFile%, settings, useEvent, 1
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	
@@ -645,15 +625,15 @@ showSettings(){
 	Gui, Settings:Add, Text, x12 y8 w300 BackgroundTrans, %dMsg%
 	
 	Gui, Settings:Font, s11
-	Gui, Settings:Add, Button, x290 y392 w210 h23 gsaveSettings, Применить и перезапустить ;💾 465
+	Gui, Settings:Add, Button, x320 y392 w180 h23 gsaveSettings, Применить ;💾 465
 	
 	Gui, Settings:Add, Tab3, x0 y70 w500 h345 Bottom, Основные|Загрузки|Команды ;Вкладки
 	;Gui, Settings:Add, Tab, x0 y75 w640 h385 Bottom +Theme, Основные|Загрузки|Команды ;Вкладки
 	Gui, Settings:Font, s8 normal
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
-	Gui, Settings:Add, Text, x12 y80 w385, Отслеживаемые окна:
-	Gui, Settings:Add, Button, x+1 yp-3 w92 h23 gsetWindowsList, Изменить
+	Gui, Settings:Add, Text, x12 y80 w345, Отслеживаемые окна:
+	Gui, Settings:Add, Button, x+1 yp-3 w132 h23 gsetWindowsList, Изменить
 	
 	Gui, Settings:Add, Text, x12 yp+26 w185, Позиция изображений(пиксели):
 	Gui, Settings:Add, Text, x+7 w12 +Right, X
@@ -676,47 +656,49 @@ showSettings(){
 	Loop, %configFolder%\Presets\*, 2
 		presetList.="|*" A_LoopFileName
 	
-	Gui, Settings:Add, Text, x12 yp+24 w360, Набор:
+	Gui, Settings:Add, Text, x12 yp+24 w320, Набор:
 	Gui, Settings:Add, Button, x+3 yp-4 w23 h23 gpresetMenuCfgShow, ☰
-	Gui, Settings:Add, DropDownList, vpreset x+1 yp+1 w90, %presetList%
+	Gui, Settings:Add, DropDownList, vpreset x+1 yp+1 w130, %presetList%
 	GuiControl,Settings:ChooseString, preset, %preset%
 	
-	Gui, Settings:Add, Text, x12 yp+26 w385, Смещение указателя(пиксели):
-	Gui, Settings:Add, Edit, vmouseDistance x+2 yp-2 w90 h18 Number, %mouseDistance%
+	Gui, Settings:Add, Text, x12 yp+26 w345, Смещение указателя(пиксели):
+	Gui, Settings:Add, Edit, vmouseDistance x+2 yp-2 w130 h18 Number, %mouseDistance%
 	Gui, Settings:Add, UpDown, Range5-99999 0x80, %mouseDistance%
 	
-	Gui, Settings:Add, Checkbox, vexpandMyImages x12 yp+24 w385 Checked%expandMyImages%, Развернуть 'Мои файлы'
-	Gui, Settings:Add, Button, x+1 yp-4 w92 h23 gsMenuImagesActions, Действия
+	Gui, Settings:Add, Checkbox, vexpandMyImages x12 yp+24 w345 Checked%expandMyImages%, Развернуть 'Мои файлы'
+	Gui, Settings:Add, Button, x+1 yp-4 w132 h23 gsMenuImagesActions, Действия
 	
 	Gui, Settings:Add, Text, x10 y+2 w480 h1 0x12
 	
-	Gui, Settings:Add, Text, x12 yp+6 w385, Последнее изображение:
-	Gui, Settings:Add, Hotkey, vhotkeyLastImg x+2 yp-2 w90 h17, %hotkeyLastImg%
+	Gui, Settings:Add, Text, x12 yp+6 w345, Последнее изображение:
+	Gui, Settings:Add, Hotkey, vhotkeyLastImg x+2 yp-2 w130 h17, %hotkeyLastImg%
 	
-	Gui, Settings:Add, Text, x12 yp+21 w385, Меню быстрого доступа:
-	Gui, Settings:Add, Hotkey, vhotkeyMainMenu x+2 yp-2 w90 h17, %hotkeyMainMenu%
+	Gui, Settings:Add, Text, x12 yp+21 w345, Меню быстрого доступа:
+	Gui, Settings:Add, Hotkey, vhotkeyMainMenu x+2 yp-2 w130 h17, %hotkeyMainMenu%
 	
-	Gui, Settings:Add, Text, x12 yp+21 w385, Меню предмета:
-	Gui, Settings:Add, Hotkey, vhotkeyItemMenu x+2 yp-2 w90 h17, %hotkeyItemMenu%
+	Gui, Settings:Add, Text, x12 yp+21 w345, Меню предмета:
+	Gui, Settings:Add, Hotkey, vhotkeyItemMenu x+2 yp-2 w130 h17, %hotkeyItemMenu%
 	
-	Gui, Settings:Add, Text, x12 yp+21 w385, Геймпад - Удерживайте [%hotkeyGamepad%] для использования
-	Gui, Settings:Add, Button, x+1 yp-3 w92 h23 gcfgGamepad, Изменить
+	Gui, Settings:Add, Text, x12 yp+21 w345, Геймпад - Удерживайте [%hotkeyGamepad%] для использования
+	Gui, Settings:Add, Button, x+1 yp-3 w132 h23 gcfgGamepad, Изменить
 	
 	Gui, Settings:Add, Text, x10 y+2 w480 h1 0x12
 	
 	LeaguesList:=LeaguesList()
+	If !RegExMatch(LeaguesList, league)
+		LeaguesList.="|" league
 	
-	Gui, Settings:Add, Text, x12 yp+7 w385, Лига:
-	Gui, Settings:Add, DropDownList, vleague x+2 yp-3 w90, %LeaguesList%
+	Gui, Settings:Add, Text, x12 yp+7 w345, Лига:
+	Gui, Settings:Add, DropDownList, vleague x+2 yp-3 w130, %LeaguesList%
 	GuiControl,Settings:ChooseString, league, %league%
 	
-	Gui, Settings:Add, Text, x12 yp+25 w385, Сканер витрин Кражи(HeistScanner):
-	Gui, Settings:Add, Hotkey, vhotkeyHeistScanner x+2 yp-2 w90 h17 disabled, %hotkeyHeistScanner%
+	Gui, Settings:Add, Text, x12 yp+25 w345, Сканер витрин Кражи(HeistScanner):
+	Gui, Settings:Add, Hotkey, vhotkeyHeistScanner x+2 yp-2 w130 h17 disabled, %hotkeyHeistScanner%
 	If FileExist(configFolder "\HeistScanner.ahk")
 		GuiControl, Settings:Enable, hotkeyHeistScanner
 		
-	Gui, Settings:Add, Text, x12 yp+21 w385, Оценка с помощью poeprices.info(ruPrediction):
-	Gui, Settings:Add, Hotkey, vhotkeyPrediction x+2 yp-2 w90 h17 disabled, %hotkeyPrediction%
+	Gui, Settings:Add, Text, x12 yp+21 w345, Оценка с помощью poeprices.info(ruPrediction):
+	Gui, Settings:Add, Hotkey, vhotkeyPrediction x+2 yp-2 w130 h17 disabled, %hotkeyPrediction%
 	If FileExist(configFolder "\ruPrediction.ahk")
 		GuiControl, Settings:Enable, hotkeyPrediction
 	
@@ -728,12 +710,12 @@ showSettings(){
 	Gui, Settings:Add, Text, x12 yp+20 w120, cURL | User-Agent:
 	Gui, Settings:Add, Edit, vUserAgent x+2 yp-2 w355 h17, %UserAgent%
 	
-	Gui, Settings:Add, Text, x12 yp+20 w385, cURL | Ограничение загрузки(Кб/с, 0 - без лимита):
-	Gui, Settings:Add, Edit, vlr x+2 yp-2 w90 h18 Number, %lr%
+	Gui, Settings:Add, Text, x12 yp+20 w345, cURL | Ограничение загрузки(Кб/с, 0 - без лимита):
+	Gui, Settings:Add, Edit, vlr x+2 yp-2 w130 h18 Number, %lr%
 	Gui, Settings:Add, UpDown, Range0-99999 0x80, %lr%
 	
-	Gui, Settings:Add, Text, x12 yp+22 w385, cURL | Время соединения(сек.):
-	Gui, Settings:Add, Edit, vct x+2 yp-2 w90 h18 Number, %ct%
+	Gui, Settings:Add, Text, x12 yp+22 w345, cURL | Время соединения(сек.):
+	Gui, Settings:Add, Edit, vct x+2 yp-2 w130 h18 Number, %ct%
 	Gui, Settings:Add, UpDown, Range1-99999 0x80, %ct%
 	
 	Gui, Settings:Add, Text, x10 y+3 w480 h1 0x12
@@ -742,14 +724,10 @@ showSettings(){
 	
 	Gui, Settings:Add, Checkbox, vupdate x12 y+5 w480 Checked%update%, Автоматическая проверка обновлений
 	
-	Gui, Settings:Add, Checkbox, vupdateAHK x27 yp+20 w465 Checked%updateAHK% disabled, Предлагать обновления для AutoHotkey
-	If update
-		GuiControl, Settings:Enable, updateAHK
-	
 	Gui, Settings:Add, Checkbox, vuseEvent x12 yp+20 w480 Checked%useEvent%, Разрешить события
 	
-	Gui, Settings:Add, Checkbox, vloadLab x12 yp+20 w385 Checked%loadLab%, Скачивать раскладку лабиринта('Мои файлы'>Labyrinth.jpg)
-	Gui, Settings:Add, Link, x+2 yp+0 w90 +Right, <a href="https://www.poelab.com/">POELab.com</a>
+	Gui, Settings:Add, Checkbox, vloadLab x12 yp+20 w345 Checked%loadLab%, Скачивать раскладку лабиринта('Мои файлы'>Labyrinth.jpg)
+	Gui, Settings:Add, Link, x+2 yp+0 w130 +Right, <a href="https://www.poelab.com/">POELab.com</a>
 	
 	Gui, Settings:Tab, 3 ; Третья вкладка
 	
@@ -799,7 +777,8 @@ showSettings(){
 	Gui, Settings:Add, Text, x12 y+2 w237 c7F3208, %helptext%
 	Gui, Settings:Add, Text, x+2 w237 c7F3208, %helptext2%
 	
-	Gui, Settings:+AlwaysOnTop -MinimizeBox -MaximizeBox
+	;Gui, Settings:+AlwaysOnTop -MinimizeBox -MaximizeBox
+	Gui, Settings:-MinimizeBox -MaximizeBox
 	Gui, Settings:Show, w500 h415, %prjName% %verScript% | AHK %A_AhkVersion% - Информация и настройки ;Отобразить окно настроек
 }
 
@@ -830,7 +809,6 @@ saveSettings(){
 	IniWrite, %ct%, %configFile%, curl, connect-timeout
 	IniWrite, %showCurl%, %configFile%, curl, showCurl
 	IniWrite, %update%, %configFile%, settings, update
-	IniWrite, %updateAHK%, %configFile%, settings, updateAHK
 	IniWrite, %useEvent%, %configFile%, settings, useEvent
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
 	
@@ -878,28 +856,9 @@ setHotkeys(){
 		Hotkey, % hotkeyGamepad, shGamepadMenu, On
 }
 
-;Проверка обновления AHK
-updateAutoHotkey(){
-	IniRead, updateAHK, %configFile%, settings, updateAHK, 0
-	If !updateAHK
-		return
-	filePath:=A_Temp "\MegaEzik\ahkver.txt"
-	LoadFile("https://www.autohotkey.com/download/1.1/version.txt", filePath , true)
-	;FileDelete, %filePath%
-	;UrlDownloadToFile, https://www.autohotkey.com/download/1.1/version.txt, %filePath%
-	FileReadLine, AHKRelVer, %filePath%, 1
-	If !RegExMatch(AHKRelVer, "(\d+).(\d+).(\d+).(\d+)")
-		return
-	If (A_AhkVersion<AHKRelVer){
-		SplitPath, A_AhkPath,,AHKDir
-		If FileExist(AHKDir "\Installer.ahk")
-			Run *RunAs "%AhkDir%\Installer.ahk"
-	}
-}
-
 ;Меню управления наборами
 presetMenuCfgShow(){
-	Gui, Settings:Destroy
+	;Gui, Settings:Destroy
 	
 	Menu, devPresetMenu, Add
 	Menu, devPresetMenu, DeleteAll
