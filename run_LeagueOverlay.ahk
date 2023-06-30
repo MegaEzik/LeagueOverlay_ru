@@ -121,12 +121,14 @@ checkRequirementsAndArgs() {
 	If !A_IsAdmin
 		ReStart()
 	If RegExMatch(args, "i)/Help") {
-		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/NoAddons - пропуск загрузки дополнений
+		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/DebugMode - режим отладки`n/NoCurl - запрещает использование 'curl.exe'`n/NoAddons - пропуск автозагрузки дополнений
 		ExitApp
 	}
+	If !DllCall("Wininet\InternetCheckConnection", Str, "https://ya.ru/", UInt, FLAG_ICC_FORCE_CONNECTION := 1, UInt, 0)
+		MsgBox, 0x1010, %prjName%, Не удалось проверить доступность сети интернет!`n`nОтсутствие доступа к сети не позволит обновить данные и может негативно сказаться на работе %prjName%!, 10
 	If !FileExist(A_WinDir "\System32\curl.exe") {
-		msgtext:="В вашей системе не найдена утилита " A_WinDir "\System32\curl.exe, без нее некоторые функции " prjName " не будут работать!"
-		MsgBox, 0x1010, %prjName%, %msgtext%
+		msgtext:="В вашей системе не найдена утилита " A_WinDir "\System32\curl.exe, без нее могут возникнуть проблемы в работе " prjName "!"
+		MsgBox, 0x1010, %prjName%, %msgtext%, 7
 	}
 	If (A_ScreenWidth<1024 || A_ScreenHeight<720) {
 		msgtext:="Разрешение основного дисплея ниже 1024x720, некоторые элементы " prjName " могут не поместиться на экран!"
@@ -134,10 +136,7 @@ checkRequirementsAndArgs() {
 	}
 	;Запуск gdi+
 	If !pToken:=Gdip_Startup()
-		{
-		   ;MsgBox, 48, gdiplus error!, Gdiplus failed to start. Please ensure you have gdiplus on your system
 		   MsgBox, 48, %prjName%, Не удалось запустить gdi+! Пожалуйста, убедитесь, что в вашей системе он есть!
-		}
 	OnExit, Exit
 }
 
@@ -165,17 +164,12 @@ migrateConfig() {
 				FileMove, %configFolder%\commands.txt, %configFolder%\cmds.preset, 1
 				FileDelete, %configFolder%\curl.exe
 				FileDelete, %configFolder%\curl-ca-bundle.crt
-			}
-			If (verConfig<220417.2) {
 				FileMove, %configFolder%\highlight.txt, %configFolder%\highlight.list, 1
 			}
-			If (verConfig<221010) {
+			If (verConfig<221010.8) {
 				FileMove, %configFolder%\cmds.preset, %configFolder%\MyFiles\MyMenu.preset, 1
-			}
-			If (verConfig<221010.7) {
 				FileMove, %configFolder%\Presets\*.preset, %configFolder%\MyFiles\*.fmenu, 1
 				FileMove, %configFolder%\MyFiles\*.preset, %configFolder%\MyFiles\*.fmenu, 1
-				
 				IniRead, hotkeyToCharacterSelection, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
 				If (hotkeyToCharacterSelection!="") {
 					IniWrite, %hotkeyToCharacterSelection%, %configFile%, fastReply, hotkeyCmd9
@@ -186,9 +180,8 @@ migrateConfig() {
 					IniWrite, %hotkeyForceSync%, %configFile%, fastReply, hotkeyCmd10
 					IniWrite, /oos, %configFile%, fastReply, textCmd10
 				}
-			}
-			If (verConfig<221010.8)
 				IniWrite, PoE_Russian, %configFile%, settings, preset
+			}
 		}
 		
 		showSettings()
@@ -239,7 +232,6 @@ loadEvent(){
 	If !useEvent || (EventURL="")
 		return
 	
-	;EventPath:="resources\data\event.txt"
 	EventPath:=A_Temp "\MegaEzik\LOEvent\event.txt"
 	LoadFile(eventURL, EventPath, true)
 	FormatTime, CurrentDate, %A_Now%, yyyyMMdd
@@ -284,7 +276,6 @@ loadEvent(){
 ;Загрузить файл для события
 loadEventResourceFile(URL){
 	eventFileSplit:=strSplit(URL, "/")
-	;filePath:="resources\data\" eventFileSplit[eventFileSplit.MaxIndex()]
 	filePath:=A_Temp "\MegaEzik\LOEvent\" eventFileSplit[eventFileSplit.MaxIndex()]
 	LoadFile(URL, filePath, true)
 }
@@ -321,7 +312,6 @@ myImagesMenuCreate(expandMenu=true){
 		Menu, myImagesMenu, Add
 		myImagesActions()
 		Menu, myImagesMenu, Add, Действия, :myImagesSubMenu
-		;Menu, myImagesMenu, Add, Открыть папку, openMyImagesFolder
 		Menu, mainMenu, Add, Мои файлы, :myImagesMenu
 	}
 }
@@ -495,13 +485,9 @@ showStartUI(SpecialText="", LogoPath=""){
 	Gui, StartUI:Destroy
 	
 	initMsgs := ["Поддержи " githubUser " <3"
-				;,"Подготовка макроса к работе"
-				;,"Поиск NPC 'Борис Бритва'"
-				;,"Получаем приглашение Януса на поминки Кадиро"
-				;,"Предсказываем... огонь, насилие, СМЕРТЬ"
-				;,"Входим в 820ый для поиска лаб ... а ну да"
-				;,"Удаляем Зеркало Каландры из вашего фильтра предметов"
-				;,"@pathofexilebota мотай на 8:72"
+				,"Подготовка макроса к работе"
+				,"Поиск NPC 'Борис Бритва'"
+				,"Удаляем Зеркало Каландры из вашего фильтра предметов"
 				,"HeistScanner - мое новое дополнение /nдля оценки предметов с витрин в кражах"
 				,"HeistScanner - если хотите открыть предмет на /npoe.ninja, то удерживайте [Alt] во время выделения имени"
 				,"HeistScanner - у уников нужно выделять имя и базу, /nу редких и магических только базу, в остальных случаях имя"]
@@ -517,7 +503,6 @@ showStartUI(SpecialText="", LogoPath=""){
 	
 	IniRead, Supporters, %buildConfig%, Donation, Supporters, %githubUser%
 	
-	;dNames:=["AbyssSPIRIT", "milcart", "Pip4ik", "ДанилАР", "MONI9K", "ИванАК", "РоманВК", "Sapen"]
 	dNames:=strSplit(Supporters, "|")
 	Random, randomNum, 1, dNames.MaxIndex()
 	dName:="@" dNames[randomNum] " ty) "
@@ -529,9 +514,6 @@ showStartUI(SpecialText="", LogoPath=""){
 		Gui, StartUI:Add, Picture, x0 y0 w500 h70, %LogoPath%
 	
 	BGTitle:="7F3208"
-	;If RegExMatch(verScript, "i)(Experimental|Alpha|Beta|RC)")
-		;BGTitle:="505050"
-	;Gui, StartUI:Add, Progress, w500 h26 x0 y0 Background%BGTitle%
 
 	Gui, StartUI:Font, s12 c%BGTitle% bold
 	
@@ -544,12 +526,11 @@ showStartUI(SpecialText="", LogoPath=""){
 	Gui, StartUI:Font, s10 bold italic
 	Gui, StartUI:Add, Text, x0 y+2 h30 w500 +Center BackgroundTrans, %initMsg%
 	
-	Gui, StartUI:Font, s8 norm italic
+	Gui, StartUI:Font, s8 norm
 	Gui, StartUI:Add, Text, x4 y55 w150 BackgroundTrans, %dName%
 	
 	Gui, StartUI:Add, Text, x+2 w340 BackgroundTrans +Right, %args%
 	
-	;Gui, StartUI:+AlwaysOnTop -SysMenu
 	Gui, StartUI:+ToolWindow -Caption +Border +AlwaysOnTop
 	Gui, StartUI:Show, w500 h70, StartUI
 	Sleep 15
@@ -610,7 +591,6 @@ showSettings(){
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	
 	;Скрытые настройки
-	IniRead, debugMode, %configFile%, settings, debugMode, 0
 	IniRead, sMenu, %configFile%, settings, sMenu, MyMenu.fmenu
 	IniRead, tfwFontSize, %configFile%, settings, tfwFontSize, 12
 	
@@ -625,10 +605,10 @@ showSettings(){
 	Gui, Settings:Add, Text, x12 y8 w300 BackgroundTrans, %dMsg%
 	
 	Gui, Settings:Font, s11
-	Gui, Settings:Add, Button, x320 y392 w180 h23 gsaveSettings, Применить ;💾 465
+	Gui, Settings:Add, Button, x320 y392 w180 h23 gsaveSettings, Применить
 	
-	Gui, Settings:Add, Tab3, x0 y70 w500 h345 Bottom, Основные|Загрузки|Команды ;Вкладки
-	;Gui, Settings:Add, Tab, x0 y75 w640 h385 Bottom +Theme, Основные|Загрузки|Команды ;Вкладки
+	Gui, Settings:Add, Tab3, x0 y70 w500 h345 Bottom, Основные|Загрузки|Команды
+	;Gui, Settings:Add, Tab, x0 y75 w640 h385 Bottom, Основные|Загрузки|Команды ;Вкладки
 	Gui, Settings:Font, s8 normal
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
@@ -693,15 +673,10 @@ showSettings(){
 	GuiControl,Settings:ChooseString, league, %league%
 	
 	Gui, Settings:Add, Text, x12 yp+25 w345, Сканер витрин Кражи(HeistScanner):
-	Gui, Settings:Add, Hotkey, vhotkeyHeistScanner x+2 yp-2 w130 h17 disabled, %hotkeyHeistScanner%
-	If FileExist(configFolder "\HeistScanner.ahk")
-		GuiControl, Settings:Enable, hotkeyHeistScanner
-		
-	Gui, Settings:Add, Text, x12 yp+21 w345, Оценка с помощью poeprices.info(ruPrediction):
-	Gui, Settings:Add, Hotkey, vhotkeyPrediction x+2 yp-2 w130 h17 disabled, %hotkeyPrediction%
-	If FileExist(configFolder "\ruPrediction.ahk")
-		GuiControl, Settings:Enable, hotkeyPrediction
+	Gui, Settings:Add, Hotkey, vhotkeyHeistScanner x+2 yp-2 w130 h17, %hotkeyHeistScanner%
 	
+	Gui, Settings:Add, Text, x12 yp+21 w345, Оценка с помощью poeprices.info(ruPrediction):
+	Gui, Settings:Add, Hotkey, vhotkeyPrediction x+2 yp-2 w130 h17, %hotkeyPrediction%
 	
 	Gui, Settings:Tab, 2 ;Вторая вкладка
 	
@@ -773,11 +748,9 @@ showSettings(){
 	
 	helptext:="/dance - простая команда`n/whois <last> - команда к последнему игроку`n@<last> ty, gl) - сообщение последнему игроку`n_ty, gl) - сообщение в чат области`n%ty, gl) - сообщение в групповой чат`n>calc.exe - выполнить`nmy.jpg - изображение/набор/текст`n!текст - всплывающая подсказка"
 	helptext2:="--- - разделитель`n;/dance - комментарий`n<configFolder> - папка настроек`n<time> - время UTC`n<inputbox> - поле ввода"
-	;Gui, Settings:Add, Text, x12 y+2 w237 cTeal, %helptext%
 	Gui, Settings:Add, Text, x12 y+2 w237 c7F3208, %helptext%
 	Gui, Settings:Add, Text, x+2 w237 c7F3208, %helptext2%
 	
-	;Gui, Settings:+AlwaysOnTop -MinimizeBox -MaximizeBox
 	Gui, Settings:-MinimizeBox -MaximizeBox
 	Gui, Settings:Show, w500 h415, %prjName% %verScript% | AHK %A_AhkVersion% - Информация и настройки ;Отобразить окно настроек
 }
@@ -813,7 +786,6 @@ saveSettings(){
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
 	
 	;Скрытые настройки
-	IniWrite, %debugMode%, %configFile%, settings, debugMode
 	IniWrite, %sMenu%, %configFile%, settings, sMenu
 	IniWrite, %tfwFontSize%, %configFile%, settings, tfwFontSize
 
@@ -924,7 +896,8 @@ menuCreate(){
 	Menu, Tray, Default, Настройки
 	Menu, Tray, Add, Очистить кэш PoE, clearPoECache
 	Menu, Tray, Add, Дополнения, pkgsMgr_packagesMenu
-	Menu, Tray, Add, Меню отладки, :devMenu
+	if debugMode
+		Menu, Tray, Add, Меню отладки, :devMenu
 	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить, ReStart
 	Menu, Tray, Add, Выход, Exit
@@ -940,7 +913,6 @@ loadPreset(){
 	Globals.Set("presetFolder", Path)
 	
 	Loop, %Path%\*, 0
-		;If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt)$")
 		If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt|fmenu)$")
 			Menu, mainMenu, Add, %A_LoopFileName%, shPreset
 	Menu, mainMenu, Add
@@ -949,7 +921,6 @@ loadPreset(){
 ;Открыть файл набора
 shPreset(FileName){
 	IniRead, preset, %configFile%, settings, preset, %A_Space%
-	;FilePath:=(InStr(preset, "*")=1?configFolder "\Presets\" SubStr(preset, 2):"resources\presets\" preset) "\" FileName
 	FilePath:=Globals.Get("presetFolder") "\" FileName
 	
 	commandFastReply(FilePath)
@@ -999,7 +970,6 @@ openScriptFolder(){
 ReStart(){
 	Gdip_Shutdown(pToken)
 	sleep 250
-	;Reload
 	Run *RunAs "%A_AhkPath%" "%A_ScriptFullPath%" %args%
 	ExitApp
 }
@@ -1054,11 +1024,12 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 	FileDelete, %FilePath%
 	Sleep 100
 	
-	If FileExist(A_WinDir "\System32\curl.exe") {
+	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
+	If (UserAgent="")
+		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+	
+	If FileExist(A_WinDir "\System32\curl.exe") && !RegExMatch(args, "i)/NoCurl") {
 		IniRead, showCurl, %configFile%, curl, showCurl, 0
-		IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
-		If (UserAgent="")
-			UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36"
 		IniRead, lr, %configFile%, curl, limit-rate, 1000
 		IniRead, ct, %configFile%, curl, connect-timeout, 10
 		
@@ -1071,11 +1042,11 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 			RunWait, %CurlLine%
 		Else
 			RunWait, %CurlLine%, , hide
+		devLog(CurlLine)
 	} Else {
-		UrlDownloadToFile, %URL%, %FilePath%
+		;UrlDownloadToFile, %URL%, %FilePath%
+		devAHKLoadFile(URL, FilePath, UserAgent)
 	}
-	
-	devLog(CurlLine)
 	
 	If (MD5!="" && MD5!=MD5_File(FilePath)) {
 		FileDelete, %FilePath%

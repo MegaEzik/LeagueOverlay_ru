@@ -1,18 +1,20 @@
 ﻿
 ;Инициализация и создание меню разработчика
 devInit(){
-	IniRead, debugMode, %configFile%, settings, debugMode, 0
+	If !(GetKeyState("Ctrl", P) || RegExMatch(args, "i)/DebugMode"))
+		return
 	
-	;Menu, devMenu, Add, Мои наборы, devPresetMenuShow
-	;Menu, devMenu, Add, devStartUI
-	Menu, devMenu, Add, Режим отладки, switchDebugMode
-	If debugMode
-		Menu, devMenu, Check, Режим отладки
+	debugMode:=1
+	traytip, %prjName%, Режим отладки активен!
+	
+	Menu, devMenu, Add, Файл отладки, devOpenLog
+	Menu, devMenu, Add, Экран запуска, devStartUI
+	Menu, devMenu, Add, Изменить конфиг, editConfig
 	Menu, devMenu, Add
 	Menu, devMenu, Add, Папка макроса, openScriptFolder	
 	Menu, devMenu, Add, Папка настроек, openConfigFolder
-	Menu, devMenu, Add, Изменить конфиг, editConfig
 	Menu, devMenu, Add
+	Menu, devMenu, Add, Автозагрузка, devAutoStart
 	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
 	Menu, devMenu, Add, Перезагрузить данные, devClSD
 	Menu, devSubMenu1, Add, https://poelab.com/gtgax, reloadLab
@@ -20,21 +22,11 @@ devInit(){
 	Menu, devSubMenu1, Add, https://poelab.com/riikv, reloadLab
 	Menu, devSubMenu1, Add, https://poelab.com/wfbra, reloadLab
 	Menu, devMenu, Add, Лабиринт, :devSubMenu1
-	;Menu, devMenu, Add
-	;Menu, devMenu, Add, Избранные комманды, favoriteList
 	Menu, devMenu, Add
 	Menu, devMenu, Add, Контрольная сумма(MD5), devMD5FileCheck
 	Menu, devMenu, Add
 	Menu, devSubMenu2, Standard
 	Menu, devMenu, Add, AutoHotkey, :devSubMenu2
-}
-
-;Переключить режим разработчика
-switchDebugMode(){
-	newDebugMode:=!debugMode
-	IniWrite, %newDebugMode%, %configFile%, settings, debugMode
-	Sleep 100
-	ReStart()
 }
 
 ;Подсчет MD5 файла
@@ -67,9 +59,13 @@ devClSD(){
 devLog(msg){
 	If !debugMode
 		return
-	FileCreateDir, %A_Temp%\MegaEzik
 	FormatTime, Time, dddd MMMM, dd.MM HH:mm:ss
-	FileAppend, %Time% v%verScript% - %msg%`n, %A_Temp%\MegaEzik\%prjName%.log, UTF-8
+	FileAppend, %Time% v%verScript% - %msg%`n, %configFolder%\%prjName%.log, UTF-8
+}
+
+devOpenLog(){
+	filePath:=configFolder "\" prjName ".log"
+	textFileWindow(filePath, filePath, false)
 }
 
 ;Добавление в отслеживаемый список
@@ -85,25 +81,7 @@ devAddInList(Line){
 	FileAppend, %Line%`n, %FilePath%, UTF-8
 }
 
-;Создать ярлык
-createShortcut(Params){
-	FileCreateShortcut, %A_ScriptFullPath%, %A_Desktop%\LeagueOverlay_ru.lnk, %A_ScriptDir%, %Params%
-}
-
-favoriteList(){
-	Menu, favoriteList, Add
-	Menu, favoriteList, DeleteAll
-	Loop, %configFolder%\MyFiles\*.fmenu, 1
-		Menu, favoriteList, Add, %A_LoopFileName%, favoriteSetFile
-	Menu, favoriteList, Show
-}
-
-favoriteSetFile(Name){
-	IniWrite, %Name%, %configFile%, settings, sMenu
-}
-
 editConfig(){
-	;textFileWindow("", configFile, false)
 	RunWait, notepad.exe "%configFile%"
 	ReStart()
 }
@@ -132,6 +110,33 @@ devStartUI(){
 	showStartUI(inputLine)
 	sleep 5000
 	closeStartUI()
+}
+
+devAutoStart(){
+	RegRead, StartLine, HKEY_CURRENT_USER, SOFTWARE\Microsoft\Windows\CurrentVersion\Run, %prjName%
+	If (StartLine="") {
+		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\Microsoft\Windows\CurrentVersion\Run, %prjName%, "%A_ScriptFullPath%" %args%
+		TrayTip, %prjName%, Добавлен в автозагрузку!
+	} Else {
+		RegDelete, HKEY_CURRENT_USER, SOFTWARE\Microsoft\Windows\CurrentVersion\Run, %prjName%
+		TrayTip, %prjName%, Удален из автозагрузки!
+	}
+}
+
+devAHKLoadFile(URL, File, UserAgent:=""){
+	hObject:=comObjCreate("WinHttp.WinHttpRequest.5.1")
+	hObject.open("GET", URL)
+	If (UserAgent)
+		hObject.setRequestHeader("User-Agent",UserAgent)
+	hObject.send()
+		
+	uBytes:=hObject.responseBody,cLen:=uBytes.maxIndex()
+	fileHandle:=fileOpen(File,"w")
+	varSetCapacity(f,cLen,0)
+	Loop % cLen+1
+		numPut(uBytes[a_index-1],f,a_index-1,"UChar")
+	fileHandle.rawWrite(f,cLen+1)
+	devLog("AHKLoader > " URL " | " File " | " UserAgent )
 }
 
 devVoid(){
