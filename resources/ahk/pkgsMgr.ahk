@@ -15,10 +15,11 @@ pkgsMgr_packagesMenu(){
 		If inStr(DataSplit[k], "|") {
 			PackInfo:=StrSplit(DataSplit[k], "|")
 			PackName:=PackInfo[1]
-			If (RegExMatch(PackName, ";")!=1)
+			If (RegExMatch(PackName, ";")!=1) {
 				Menu, packagesMenu, Add, Загрузить '%PackName%', pkgsMgr_loadPackage
-			If (PackInfo[3]!="")
-				Menu, packagesMenu, Check, Загрузить '%PackName%'
+				If (PackInfo[3]!="") && debugMode
+					Menu, packagesMenu, Check, Загрузить '%PackName%'
+			}
 		}
 	}
 	Menu, packagesMenu, Add
