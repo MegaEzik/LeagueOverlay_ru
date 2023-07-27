@@ -190,8 +190,8 @@ ItemMenu_IDCLInit(){
 	Hotkey, % hotkeyItemMenu, ItemMenu_Show, On
 	
 	FileCreateDir, Data\JSON
-	ResultNames:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/data/JSON/names.json", "Data\JSON\names.json")
-	ResultStats:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/data/JSON/stats.json", "Data\JSON\stats.json")
+	ResultNames:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/Data/JSON/names.json", "Data\JSON\names.json")
+	ResultStats:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/Data/JSON/stats.json", "Data\JSON\stats.json")
 	sleep 500
 	
 	FileRead, stats_list, Data\JSON\stats.json
