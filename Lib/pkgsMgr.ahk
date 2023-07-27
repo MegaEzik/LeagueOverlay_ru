@@ -1,7 +1,7 @@
 ﻿
 pkgsMgr_packagesMenu(){
-	FilePath:="resources\Packages.txt"
-	LoadFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/Packages.txt", FilePath, true)
+	FilePath:="Data\Packages.txt"
+	LoadFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/data/Packages.txt", FilePath, true)
 	
 	Menu, packagesMenu, Add
 	Menu, packagesMenu, DeleteAll
@@ -45,7 +45,7 @@ pkgsMgr_packagesMenu(){
 pkgsMgr_loadPackage(Name){
 	;Name:=SubStr(Name, 3)
 	Name:=searchName(Name)
-	FilePath:="resources\Packages.txt"
+	FilePath:="Data\Packages.txt"
 	FileRead, Data, %FilePath%
 	DataSplit:=strSplit(StrReplace(Data, "`r", ""), "`n")
 	For k, val in DataSplit {

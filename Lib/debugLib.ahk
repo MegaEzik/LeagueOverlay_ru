@@ -47,9 +47,9 @@ devRestoreRelease() {
 
 ;Перезагрузка данных
 devClSD(){
-	FileDelete, resources\Packages.txt
+	FileDelete, Data\Packages.txt
 	FileDelete, %configFolder%\MyFiles\Labyrinth.jpg
-	FileDelete, resources\data\*
+	FileDelete, Data\JSON\*
 	FileRemoveDir, %A_Temp%\MegaEzik, 1
 	Sleep 100
 	ReStart()
@@ -87,7 +87,7 @@ editConfig(){
 }
 
 LeaguesList(){
-	File:=A_Temp "\MegaEzik\Leagues.json"
+	File:=A_ScriptDir "\Data\JSON\leagues.json"
 	LoadFile("http://api.pathofexile.com/leagues?type=main", File, true)
 	FileRead, html, %File%
 	html:=StrReplace(html, "},{", "},`n{")

@@ -58,8 +58,8 @@ ItemMenu_Show(){
 		;Пункт меню для конвертирования описания
 		Menu, itemMenu, Add
 		Menu, itemMenu, Add, Конвертировать Ru>En, ItemMenu_ConvertFromGame
-		If FileExist("resources\imgs\copy.png")
-			Menu, itemMenu, Icon, Конвертировать Ru>En, resources\imgs\copy.png
+		If FileExist("Data\imgs\copy.png")
+			Menu, itemMenu, Icon, Конвертировать Ru>En, Data\imgs\copy.png
 		Menu, itemMenu, Add	
 		
 		;Создадим меню для подсветки
@@ -117,8 +117,8 @@ ItemMenu_Show(){
 				Continue
 			If RegExMatch(ItemData, hightlightDataSplit[k], findtext) {
 				ItemMenu_AddHightlight(findtext)
-				If FileExist("resources\imgs\favorite.png")
-					Menu, itemMenu, Icon, *%findtext%, resources\imgs\favorite.png
+				If FileExist("Data\imgs\favorite.png")
+					Menu, itemMenu, Icon, *%findtext%, Data\imgs\favorite.png
 				;Menu, itemMenu, Check, *%findtext%
 			}
 		}
@@ -138,21 +138,21 @@ ItemMenu_Show(){
 
 ItemMenu_AddPoEDB(Line) {
 	Menu, itemMenu, Add, PoEDB>%Line%, ItemMenu_OpenOnPoEDB
-	If FileExist("resources\imgs\web.png")
-		Menu, itemMenu, Icon, PoEDB>%Line%, resources\imgs\web.png
+	If FileExist("Data\imgs\web.png")
+		Menu, itemMenu, Icon, PoEDB>%Line%, Data\imgs\web.png
 }
 
 
 ItemMenu_AddCopyInBuffer(Line){
 	Menu, itemMenu, Add, %Line%, ItemMenu_CopyInBuffer
-	If FileExist("resources\imgs\copy.png")
-		Menu, itemMenu, Icon, %Line%, resources\imgs\copy.png
+	If FileExist("Data\imgs\copy.png")
+		Menu, itemMenu, Icon, %Line%, Data\imgs\copy.png
 }
 
 ItemMenu_AddHightlight(Line){
 	Menu, itemMenu, Add, *%Line%, ItemMenu_Hightlight
-	If FileExist("resources\imgs\highlight.png")
-		Menu, itemMenu, Icon, *%Line%, resources\imgs\highlight.png
+	If FileExist("Data\imgs\highlight.png")
+		Menu, itemMenu, Icon, *%Line%, Data\imgs\highlight.png
 }
 
 ItemMenu_OpenOnPoEDB(Line){
@@ -189,14 +189,14 @@ ItemMenu_IDCLInit(){
 		return
 	Hotkey, % hotkeyItemMenu, ItemMenu_Show, On
 	
-	FileCreateDir, resources\data
-	ResultNames:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/data/names.json", "resources\data\names.json")
-	ResultStats:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/resources/data/stats.json", "resources\data\stats.json")
+	FileCreateDir, Data\JSON
+	ResultNames:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/data/JSON/names.json", "Data\JSON\names.json")
+	ResultStats:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/data/JSON/stats.json", "Data\JSON\stats.json")
 	sleep 500
 	
-	FileRead, stats_list, resources\data\stats.json
+	FileRead, stats_list, Data\JSON\stats.json
 	Globals.Set("item_stats", JSON.Load(stats_list))
-	FileRead, names_list, resources\data\names.json
+	FileRead, names_list, Data\JSON\names.json
 	Globals.Set("item_names", JSON.Load(names_list))
 	
 	If (ResultNames || ResultStats)

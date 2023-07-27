@@ -29,6 +29,7 @@
 SetWorkingDir %A_ScriptDir%
 
 ;Подключение библиотек
+/*
 #Include, %A_ScriptDir%\resources\ahk\Gdip_All.ahk
 #Include, %A_ScriptDir%\resources\ahk\JSON.ahk
 #Include, %A_ScriptDir%\resources\ahk\Overlay.ahk
@@ -41,6 +42,19 @@ SetWorkingDir %A_ScriptDir%
 #Include, %A_ScriptDir%\resources\ahk\MD5.ahk
 #Include, %A_ScriptDir%\resources\ahk\Gamepad.ahk
 #Include, %A_ScriptDir%\resources\ahk\pkgsMgr.ahk
+*/
+#Include <Gdip_All>
+#Include <JSON>
+#Include <Overlay>
+#Include <Labyrinth>
+#Include <Updater>
+#Include <fastReply>
+#Include <debugLib>
+#Include <ItemDataConverterLib>
+#Include <itemMenu>
+#Include <MD5>
+#Include <Gamepad>
+#Include <pkgsMgr>
 
 ;Объявление и загрузка переменных
 global githubUser, prjName="LeagueOverlay_ru"
@@ -50,13 +64,13 @@ If InStr(FileExist(A_ScriptDir "\..\Profile"), "D") {
 	configFolder.="\Profile"
 }
 global configFile:=configFolder "\settings.ini"
-global buildConfig:=A_ScriptDir "\resources\Build.ini"
+global buildConfig:=A_ScriptDir "\Data\Build.ini"
 global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, textCmd11, textCmd12, textCmd13, textCmd14, textCmd15, textCmd16, textCmd17, textCmd18, textCmd19, textCmd20, cmdNum=20
 global verScript, args, LastImg, globalOverlayPosition, OverlayStatus=0, debugMode=0
 
 Loop, %0%
 	args.=" " %A_Index%
-FileReadLine, verScript, resources\Updates.txt, 1
+FileReadLine, verScript, Data\Updates.txt, 1
 
 IniRead, githubUser, %buildConfig%, Settings, Author, MegaEzik
 IniRead, LastImg, %configFile%, info, lastImg, %A_Space%
@@ -77,8 +91,8 @@ For k, val in splitWinList
 checkRequirementsAndArgs()
 	
 ;Установка иконки и описания в области уведомлений
-If FileExist("resources\imgs\icon.png")
-	Menu, Tray, Icon, resources\imgs\icon.png
+If FileExist("Data\imgs\icon.png")
+	Menu, Tray, Icon, Data\imgs\icon.png
 Menu, Tray, Tip, %prjName% %verScript% | AHK %A_AhkVersion%
 
 ;UI загрузки и загрузка инструментов разработчика
@@ -120,6 +134,10 @@ Return
 checkRequirementsAndArgs() {
 	If !A_IsAdmin
 		ReStart()
+	If GetKeyState("Ctrl", P) && !RegExMatch(args, "i)/DebugMode") {
+		args.=" /DebugMode"
+		ReStart()
+	}
 	If RegExMatch(args, "i)/Help") {
 		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/DebugMode - режим отладки`n/NoCurl - запрещает использование 'curl.exe'`n/NoAddons - пропуск автозагрузки дополнений
 		ExitApp
@@ -210,7 +228,7 @@ WinList(){
 	}
 	IniRead, preset, %configFile%, settings, preset, %A_Space%
 	If (preset!="") {
-		Path:=(InStr(preset, "*")=1?configFolder "\Presets\" SubStr(preset, 2):"resources\presets\" preset) "\windows.list"
+		Path:=(InStr(preset, "*")=1?configFolder "\Presets\" SubStr(preset, 2):"Data\presets\" preset) "\windows.list"
 		If FileExist(Path) {
 			FileRead, PresetWinList, %Path%
 			MainWinList.=PresetWinList "`n"
@@ -345,6 +363,10 @@ textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 	IniRead, fSize, %configFile%, settings, tfwFontSize, 12
 	Gui, tfwGui:Font, s%fSize%, Consolas
 	FileRead, tfwContentFile, %tfwFilePath%
+	If (StrLen(tfwContentFile)>65535) {
+		Run *RunAs notepad.exe "%tfwFilePath%"
+		return
+	}
 	If ReadOnlyStatus {
 		Gui, tfwGui:Add, Edit, x0 y0 w1000 h640 +ReadOnly, %tfwContentFile%
 	} Else {
@@ -444,7 +466,7 @@ createNewMenu(){
 
 ;История изменений
 showUpdateHistory(){
-	textFileWindow("История изменений", "resources\Updates.txt")
+	textFileWindow("История изменений", "Data\Updates.txt")
 }
 
 ;Лицензия
@@ -507,8 +529,8 @@ showStartUI(SpecialText="", LogoPath=""){
 	Random, randomNum, 1, dNames.MaxIndex()
 	dName:="@" dNames[randomNum] " ty) "
 	
-	If (LogoPath="") && FileExist("resources\imgs\bg.jpg")
-		LogoPath:="resources\imgs\bg.jpg"
+	If (LogoPath="") && FileExist("Data\imgs\bg.jpg")
+		LogoPath:="Data\imgs\bg.jpg"
 	
 	If FileExist(LogoPath)
 		Gui, StartUI:Add, Picture, x0 y0 w500 h70, %LogoPath%
@@ -594,8 +616,8 @@ showSettings(){
 	IniRead, sMenu, %configFile%, settings, sMenu, MyMenu.fmenu
 	IniRead, tfwFontSize, %configFile%, settings, tfwFontSize, 12
 	
-	If FileExist("resources\imgs\bg.jpg")
-		Gui, Settings:Add, Picture, x0 y0 w500 h70, resources\imgs\bg.jpg
+	If FileExist("Data\imgs\bg.jpg")
+		Gui, Settings:Add, Picture, x0 y0 w500 h70, Data\imgs\bg.jpg
 	
 	Gui, Settings:Add, Text, x320 y2 w170 +Right BackgroundTrans, %dInfo1%: 
 	Gui, Settings:Add, Edit, x320 y+1 w170 h18 +ReadOnly +Right, %dEdit1%
@@ -631,7 +653,7 @@ showSettings(){
 	Gui, Settings:Add, UpDown, Range0-99999 0x80, %posH%
 	
 	presetList:=""
-	Loop, resources\presets\*, 2
+	Loop, Data\presets\*, 2
 		presetList.="|" A_LoopFileName
 	Loop, %configFolder%\Presets\*, 2
 		presetList.="|*" A_LoopFileName
@@ -909,7 +931,7 @@ loadPreset(){
 	IniRead, preset, %configFile%, settings, preset, %A_Space%
 	If (preset="")
 		return
-	Path:=(InStr(preset, "*")=1?configFolder "\Presets\" SubStr(preset, 2):"resources\presets\" preset)
+	Path:=(InStr(preset, "*")=1?configFolder "\Presets\" SubStr(preset, 2):"Data\presets\" preset)
 	Globals.Set("presetFolder", Path)
 	
 	Loop, %Path%\*, 0
@@ -1026,7 +1048,7 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 	
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	If (UserAgent="")
-		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:115.0) Gecko/20100101 Firefox/115.0"
 	
 	If FileExist(A_WinDir "\System32\curl.exe") && !RegExMatch(args, "i)/NoCurl") {
 		IniRead, showCurl, %configFile%, curl, showCurl, 0
@@ -1044,8 +1066,8 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 			RunWait, %CurlLine%, , hide
 		devLog(CurlLine)
 	} Else {
-		;UrlDownloadToFile, %URL%, %FilePath%
-		devAHKLoadFile(URL, FilePath, UserAgent)
+		UrlDownloadToFile, %URL%, %FilePath%
+		;devAHKLoadFile(URL, FilePath, UserAgent)
 	}
 	
 	If (MD5!="" && MD5!=MD5_File(FilePath)) {

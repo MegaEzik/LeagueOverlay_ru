@@ -23,21 +23,21 @@ IDCL_DownloadJSONList(url, file) {
 IDCL_Init() {
 	IDCL_Update()
 	
-	IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/stats.json", "resources\data\stats.json")
-	FileRead, stats_list, resources\data\stats.json
+	IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/Data/JSON/stats.json", "Data\JSON\stats.json")
+	FileRead, stats_list, Data\JSON\stats.json
 	Globals.Set("item_stats", JSON.Load(stats_list))
 	
-	IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/names.json", "resources\data\names.json")
-	FileRead, names_list, resources\data\names.json
+	IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/Data/JSON/names.json", "Data\JSON\names.json")
+	FileRead, names_list, Data\JSON\names.json
 	Globals.Set("item_names", JSON.Load(names_list))
 	
 	/*
-	IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/presufflask.json", "resources\data\presufflask.json")
-	FileRead, presufflask_list, resources\data\presufflask.json
+	IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/Data/JSON/presufflask.json", "Data\JSON\presufflask.json")
+	FileRead, presufflask_list, Data\JSON\presufflask.json
 	Globals.Set("item_presufflask", JSON.Load(presufflask_list))
 	
 	
-	IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/data/samename.json", "data\ru\sameNameItem.json")
+	IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/Data/JSON/samename.json", "data\ru\sameNameItem.json")
 	FileRead, samename_list, data\ru\sameNameItem.json
 	Globals.Set("item_samename", JSON.Load(samename_list))
 	*/
@@ -345,19 +345,19 @@ IDCL_ConvertFromGame() {
 
 ;Обновление библиотеки
 IDCL_Update() {
-	If FileExist("resources\ahk\ItemDataConverterLib.ahk") {
+	If FileExist("Lib\ItemDataConverterLib.ahk") {
 		FileCreateDir, %A_Temp%\MegaEzik
 		tmpFilePath:=A_Temp "\MegaEzik\IDCL.ahk"
 		FileDelete, %tmpFilePath%
-		UrlDownloadToFile, https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/resources/ahk/ItemDataConverterLib.ahk, %tmpFilePath%
+		UrlDownloadToFile, https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/Lib/ItemDataConverterLib.ahk, %tmpFilePath%
 		FileReadLine, AuthorLine, %tmpFilePath%, 4
 		If RegExMatch(AuthorLine, "Автор: MegaEzik") {
-			FileRead, IDCLCurrent, resources\ahk\ItemDataConverterLib.ahk
+			FileRead, IDCLCurrent, Lib\ItemDataConverterLib.ahk
 			FileRead, IDCLNew, %tmpFilePath%
 			If (IDCLCurrent!=IDCLNew) {
 				msgbox, 0x1044, ItemDataConverterLib.ahk, Доступна новая версия библиотеки IDCL!`nОбновить?`n`n--------`nПосле инициализации макроса потребуется перезапустить его, чтобы изменения вступили в силу!
 				IfMsgBox Yes
-					FileCopy, %tmpFilePath%, resources\ahk\ItemDataConverterLib.ahk, 1
+					FileCopy, %tmpFilePath%, Lib\ItemDataConverterLib.ahk, 1
 			}
 		}
 	}
