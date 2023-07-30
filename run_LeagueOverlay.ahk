@@ -29,20 +29,6 @@
 SetWorkingDir %A_ScriptDir%
 
 ;Подключение библиотек
-/*
-#Include, %A_ScriptDir%\resources\ahk\Gdip_All.ahk
-#Include, %A_ScriptDir%\resources\ahk\JSON.ahk
-#Include, %A_ScriptDir%\resources\ahk\Overlay.ahk
-#Include, %A_ScriptDir%\resources\ahk\Labyrinth.ahk
-#Include, %A_ScriptDir%\resources\ahk\Updater.ahk
-#Include, %A_ScriptDir%\resources\ahk\fastReply.ahk
-#Include, %A_ScriptDir%\resources\ahk\debugLib.ahk
-#Include, %A_ScriptDir%\resources\ahk\ItemDataConverterLib.ahk
-#Include, %A_ScriptDir%\resources\ahk\itemMenu.ahk
-#Include, %A_ScriptDir%\resources\ahk\MD5.ahk
-#Include, %A_ScriptDir%\resources\ahk\Gamepad.ahk
-#Include, %A_ScriptDir%\resources\ahk\pkgsMgr.ahk
-*/
 #Include <Gdip_All>
 #Include <JSON>
 #Include <Overlay>
@@ -52,7 +38,6 @@ SetWorkingDir %A_ScriptDir%
 #Include <debugLib>
 #Include <ItemDataConverterLib>
 #Include <itemMenu>
-#Include <MD5>
 #Include <Gamepad>
 #Include <pkgsMgr>
 
@@ -139,7 +124,7 @@ checkRequirementsAndArgs() {
 		ReStart()
 	}
 	If RegExMatch(args, "i)/Help") {
-		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/DebugMode - режим отладки`n/NoCurl - запрещает использование 'curl.exe'`n/NoAddons - пропуск автозагрузки дополнений
+		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/DebugMode - режим отладки`n/NoCurl - запрещает использование 'curl.exe'`n/NoAddons - пропуск автозагрузки дополнений`n/EnableAutolinks - включает систему автозагрузки ссылок
 		ExitApp
 	}
 	If !DllCall("Wininet\InternetCheckConnection", Str, "https://ya.ru/", UInt, FLAG_ICC_FORCE_CONNECTION := 1, UInt, 0)
@@ -200,6 +185,8 @@ migrateConfig() {
 				}
 				IniWrite, PoE_Russian, %configFile%, settings, preset
 			}
+			If (verConfig>230701.1)
+				FileDelete, %configFolder%\pkgsMgr.ini
 		}
 		
 		showSettings()
@@ -1067,15 +1054,8 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 		devLog(CurlLine)
 	} Else {
 		UrlDownloadToFile, %URL%, %FilePath%
-		;devAHKLoadFile(URL, FilePath, UserAgent)
 	}
-	
-	If (MD5!="" && MD5!=MD5_File(FilePath)) {
-		FileDelete, %FilePath%
-		Sleep 100
-		return false
-	}
-	return true	
+	Return 
 }
 
 ;Использование системной темы

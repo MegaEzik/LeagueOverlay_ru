@@ -6,7 +6,7 @@ pkgsMgr_packagesMenu(){
 	Menu, packagesMenu, Add
 	Menu, packagesMenu, DeleteAll
 	Menu, packagesMenu, Add, Установка из файла, pkgsMgr_fromFile
-	Menu, packagesMenu, Add, Загрузить из сети, pkgsMgr_fromURL
+	Menu, packagesMenu, Add, Загрузить по ссылке, pkgsMgr_fromURL
 	Menu, packagesMenu, Add
 	
 	FileRead, Data, %FilePath%
@@ -15,27 +15,33 @@ pkgsMgr_packagesMenu(){
 		If inStr(DataSplit[k], "|") {
 			PackInfo:=StrSplit(DataSplit[k], "|")
 			PackName:=PackInfo[1]
-			If (RegExMatch(PackName, ";")!=1) {
+			If (RegExMatch(PackName, ";")!=1)
 				Menu, packagesMenu, Add, Загрузить '%PackName%', pkgsMgr_loadPackage
-				If (PackInfo[3]!="") && debugMode
-					Menu, packagesMenu, Check, Загрузить '%PackName%'
-			}
 		}
 	}
+	
 	Menu, packagesMenu, Add
 	
 	Loop, %configFolder%\*.ahk, 1
 	{
-		Menu, packagesMenu, Add, Автозапуск '%A_LoopFileName%', permissionsCustomScript
+		Menu, packagesMenu, Add, Автозапуск '%A_LoopFileName%', pkgMgr_permissionsCustomScript
 		
-		IniRead, MD5, %configFolder%\pkgsMgr.ini, pkgsMgr, %A_LoopFileName%, %A_Space%
-		MD5File:=MD5_File(configFolder "\" A_LoopFileName)
-		If (MD5=MD5File)
+		IniRead, AutoStart, %configFolder%\pkgsMgr.ini, pkgsMgr, %A_LoopFileName%, 0
+		If AutoStart
 			Menu, packagesMenu, Check, Автозапуск '%A_LoopFileName%'
 	}
+	
+	If RegExMatch(args, "i)/EnableAutolinks") {
+		Loop, %configFolder%\*.lnk, 1
+		{
+			Menu, packagesMenu, Add, Автозапуск '%A_LoopFileName%', pkgMgr_delLink
+			Menu, packagesMenu, Check, Автозапуск '%A_LoopFileName%'
+		}
+		Menu, packagesMenu, Add, Создать ссылку для автозапуска, pkgsMgr_addLink
+	}
+	
 	Menu, packagesMenu, Add
-	
-	
+		
 	Loop, %configFolder%\*.ahk, 1
 		Menu, packagesMenu, Add, Удалить '%A_LoopFileName%', pkgsMgr_delPackage
 	
@@ -52,7 +58,7 @@ pkgsMgr_loadPackage(Name){
 		If inStr(DataSplit[k], "|") {
 			PackInfo:=StrSplit(DataSplit[k], "|")
 			If (PackInfo[1]=Name && PackInfo[2]!="") {
-				If !LoadFile(PackInfo[2], A_Temp "\MegaEzik\" PackInfo[1],, PackInfo[3]) {
+				If !LoadFile(PackInfo[2], A_Temp "\MegaEzik\" PackInfo[1]) {
 					TrayTip, %prjName%, Ошибка загрузки '%Name%'!
 					return
 				}
@@ -91,7 +97,7 @@ pkgsMgr_installPackage(FilePath){
 	}
 	If RegExMatch(FilePath, "i).upd.zip$") {
 		unZipArchive(FilePath, A_ScriptDir)
-		ReStart()
+		;ReStart()
 	}
 	If RegExMatch(FilePath, "i).zip$") {
 		unZipArchive(FilePath, configFolder)
@@ -99,60 +105,55 @@ pkgsMgr_installPackage(FilePath){
 	If RegExMatch(FilePath, "i).ahk$") {
 		FileCopy, %FilePath%, %configFolder%\%Name%, 1
 	}
-	AHKFile:=RegExReplace(name, "i).zip$", ".ahk")
-	If RegExMatch(AHKFile, "i).ahk$") && FileExist(configFolder "\" AHKFile) {
-		IniDelete, %configFolder%\pkgsMgr.ini, pkgsMgr, %AHKFile%
-		Sleep 50
-		permissionsCustomScript(AHKFile)
-		ReStart()
-	}
 	TrayTip, %prjName%, Дополнение '%Name%' установлено!
 }
 
 pkgsMgr_delPackage(Name){
 	Name:=RegExReplace(searchName(Name), "i).ahk$", "")
-	IniDelete, %configFolder%\pkgsMgr.ini, pkgsMgr, %Name%.ahk
+	Msgbox, %Name%
 	FileDelete, %configFolder%\%Name%.ahk
 	FileRemoveDir, %configFolder%\%Name%, 1
-	Sleep 1000
-	ReStart()
+	Sleep 500
+	;ReStart()
 }
 
 pkgsMgr_startCustomScripts(){
-	Loop, %configFolder%\*.ahk, 1
-		pkgMgr_checkScript(configFolder "\" A_LoopFileName)
-}
-
-pkgMgr_checkScript(ScriptPath){
 	If RegExMatch(args, "i)/NoAddons")
 		return
-	SplitPath, ScriptPath, ScriptName
-	IniRead, MD5, %configFolder%\pkgsMgr.ini, pkgsMgr, %ScriptName%, %A_Space%
-	If (MD5="")
-		return
-	MD5File:=MD5_File(ScriptPath)
-	If (MD5!=MD5File) {
-		permissionsCustomScript(ScriptName)
-		return
-	}
-	RunWait *RunAs "%A_AhkPath%" "%ScriptPath%" "%A_ScriptDir%"
+	If RegExMatch(args, "i)/EnableAutolinks")
+		Loop, %configFolder%\*.lnk, 1
+			Run *RunAs "%configFolder%\%A_LoopFileName%"
+	Loop, %configFolder%\*.ahk, 1
+		pkgMgr_runScript(configFolder "\" A_LoopFileName)
 }
 
-permissionsCustomScript(ScriptName){
+pkgMgr_runScript(ScriptPath){
+	SplitPath, ScriptPath, ScriptName
+	IniRead, AutoStart, %configFolder%\pkgsMgr.ini, pkgsMgr, %ScriptName%, 0
+	If AutoStart && RegExMatch(ScriptPath, "i).ahk$")
+		RunWait *RunAs "%A_AhkPath%" "%ScriptPath%" "%A_ScriptDir%"
+}
+
+pkgMgr_permissionsCustomScript(ScriptName){
 	ScriptName:=searchName(ScriptName)
-	IniRead, MD5, %configFolder%\pkgsMgr.ini, pkgsMgr, %ScriptName%, %A_Space%
-	MD5File:=MD5_File(configFolder "\" ScriptName)
-	If (MD5!=MD5File) {
+	IniRead, AutoStart, %configFolder%\pkgsMgr.ini, pkgsMgr, %ScriptName%, 0
+	If AutoStart {
 		IniDelete, %configFolder%\pkgsMgr.ini, pkgsMgr, %ScriptName%
-		msgbox, 0x1024, %prjName%, Разрешить автозапуск '%ScriptName%'?
-		IfMsgBox No
-			return
-		IniWrite, %MD5File%, %configFolder%\pkgsMgr.ini, pkgsMgr, %ScriptName%
-		Sleep 100
-		ReStart()
-		;RunWait *RunAs "%A_AhkPath%" "%configFolder%\%ScriptName%" "%A_ScriptDir%"
-	} else {
-		IniDelete, %configFolder%\pkgsMgr.ini, pkgsMgr, %ScriptName%
-		TrayTip, %ScriptName%, Разрешение на автозапуск отозвано!
+	} Else {
+		IniWrite, 1, %configFolder%\pkgsMgr.ini, pkgsMgr, %ScriptName%
 	}
+}
+
+pkgsMgr_addLink(){
+	FileSelectFile, TargetPath,,, Укажите путь к файлу для автозапуска
+		If (TargetPath="")
+			Return
+		
+		SplitPath, TargetPath, Name
+		FileCreateShortcut, %TargetPath%, %configFolder%\%Name%.lnk
+}
+
+pkgMgr_delLink(Name){
+	Name:=searchName(Name)
+	FileDelete, %configFolder%\%Name%
 }

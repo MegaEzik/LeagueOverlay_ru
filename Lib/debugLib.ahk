@@ -23,19 +23,8 @@ devInit(){
 	Menu, devSubMenu1, Add, https://poelab.com/wfbra, reloadLab
 	Menu, devMenu, Add, Лабиринт, :devSubMenu1
 	Menu, devMenu, Add
-	Menu, devMenu, Add, Контрольная сумма(MD5), devMD5FileCheck
-	Menu, devMenu, Add
 	Menu, devSubMenu2, Standard
 	Menu, devMenu, Add, AutoHotkey, :devSubMenu2
-}
-
-;Подсчет MD5 файла
-devMD5FileCheck(){
-	FileSelectFile, FilePath
-	If FileExist(FilePath){
-		Clipboard:=MD5_File(FilePath)
-		TrayTip, %prjName% - Контрольная сумма, Скопировано в буфер обмена:`n%Clipboard%
-	}
 }
 
 ;Откатиться на релизную версию
@@ -72,7 +61,7 @@ devOpenLog(){
 devAddInList(Line){
 	If !debugMode
 		return
-	FilePath:=configFolder "\devList.list"
+	FilePath:=configFolder "\devList.txt"
 	FileRead, DataList, %FilePath%
 	DataListSplit:=strSplit(StrReplace(DataList, "`r", ""), "`n")
 	For k, val in DataListSplit
