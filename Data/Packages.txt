@@ -2,4 +2,4 @@
 HeistScanner.ahk|https://raw.githubusercontent.com/MegaEzik/PoE_HeistScanner_ru/main/HeistScanner.ahk
 LutTools.ahk|http://lutbot.com/ahk/macro.ahk
 Catalysts.jpg|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/Catalysts.jpg|D49E94F865377DB3CD08B3B90F707B8D
-DevTools.zip|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/DevTools.zip
+DevTools.upd.zip|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/DevTools.upd.zip
