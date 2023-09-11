@@ -1,7 +1,9 @@
 ﻿
 pkgsMgr_packagesMenu(){
 	FilePath:="Data\Packages.txt"
-	LoadFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/Data/Packages.txt", FilePath, true)
+	IniRead, PackagesURL, %buildConfig%, settings, PackagesURL, %A_Space%
+	If (PackagesURL!="")
+		LoadFile(PackagesURL, FilePath, true)
 	
 	Menu, packagesMenu, Add
 	Menu, packagesMenu, DeleteAll
@@ -21,7 +23,10 @@ pkgsMgr_packagesMenu(){
 	}
 	
 	Menu, packagesMenu, Add
+	Loop, %configFolder%\*.ahk, 1
+		Menu, packagesMenu, Add, Выполнить '%A_LoopFileName%', pkgsMgr_runPackage
 	
+	Menu, packagesMenu, Add
 	Loop, %configFolder%\*.ahk, 1
 	{
 		Menu, packagesMenu, Add, Автозапуск '%A_LoopFileName%', pkgMgr_permissionsCustomScript
@@ -31,17 +36,7 @@ pkgsMgr_packagesMenu(){
 			Menu, packagesMenu, Check, Автозапуск '%A_LoopFileName%'
 	}
 	
-	If RegExMatch(args, "i)/EnableAutolinks") {
-		Loop, %configFolder%\*.lnk, 1
-		{
-			Menu, packagesMenu, Add, Автозапуск '%A_LoopFileName%', pkgMgr_delLink
-			Menu, packagesMenu, Check, Автозапуск '%A_LoopFileName%'
-		}
-		Menu, packagesMenu, Add, Создать ссылку для автозапуска, pkgsMgr_addLink
-	}
-	
 	Menu, packagesMenu, Add
-		
 	Loop, %configFolder%\*.ahk, 1
 		Menu, packagesMenu, Add, Удалить '%A_LoopFileName%', pkgsMgr_delPackage
 	
@@ -97,7 +92,7 @@ pkgsMgr_installPackage(FilePath){
 	}
 	If RegExMatch(FilePath, "i).upd.zip$") {
 		unZipArchive(FilePath, A_ScriptDir)
-		;ReStart()
+		ReStart()
 	}
 	If RegExMatch(FilePath, "i).zip$") {
 		unZipArchive(FilePath, configFolder)
@@ -110,19 +105,20 @@ pkgsMgr_installPackage(FilePath){
 
 pkgsMgr_delPackage(Name){
 	Name:=RegExReplace(searchName(Name), "i).ahk$", "")
-	Msgbox, %Name%
 	FileDelete, %configFolder%\%Name%.ahk
 	FileRemoveDir, %configFolder%\%Name%, 1
 	Sleep 500
 	;ReStart()
 }
 
+pkgsMgr_runPackage(Name){
+	ScriptName:=searchName(Name)
+	Run *RunAs "%A_AhkPath%" "%configFolder%\%ScriptName%" "%A_ScriptDir%"
+}
+
 pkgsMgr_startCustomScripts(){
 	If RegExMatch(args, "i)/NoAddons")
 		return
-	If RegExMatch(args, "i)/EnableAutolinks")
-		Loop, %configFolder%\*.lnk, 1
-			Run *RunAs "%configFolder%\%A_LoopFileName%"
 	Loop, %configFolder%\*.ahk, 1
 		pkgMgr_runScript(configFolder "\" A_LoopFileName)
 }
@@ -134,26 +130,20 @@ pkgMgr_runScript(ScriptPath){
 		RunWait *RunAs "%A_AhkPath%" "%ScriptPath%" "%A_ScriptDir%"
 }
 
+
+
 pkgMgr_permissionsCustomScript(ScriptName){
 	ScriptName:=searchName(ScriptName)
+	/*
+	If GetKeyState("Ctrl", P) {
+		Run *RunAs "%A_AhkPath%" "%configFolder%\%ScriptName%" "%A_ScriptDir%"
+		Return
+	}
+	*/
 	IniRead, AutoStart, %configFolder%\pkgsMgr.ini, pkgsMgr, %ScriptName%, 0
 	If AutoStart {
 		IniDelete, %configFolder%\pkgsMgr.ini, pkgsMgr, %ScriptName%
 	} Else {
 		IniWrite, 1, %configFolder%\pkgsMgr.ini, pkgsMgr, %ScriptName%
 	}
-}
-
-pkgsMgr_addLink(){
-	FileSelectFile, TargetPath,,, Укажите путь к файлу для автозапуска
-		If (TargetPath="")
-			Return
-		
-		SplitPath, TargetPath, Name
-		FileCreateShortcut, %TargetPath%, %configFolder%\%Name%.lnk
-}
-
-pkgMgr_delLink(Name){
-	Name:=searchName(Name)
-	FileDelete, %configFolder%\%Name%
 }

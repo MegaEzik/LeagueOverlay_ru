@@ -25,15 +25,21 @@ ItemMenu_Show(){
 	
 	If (RegExMatch(ItemDataSplit[1], "Класс предмета: (.*)", ItemClass) && RegExMatch(ItemDataSplit[2], "Редкость: (.*)", Rarity)) {
 		devAddInList(ItemClass1) ;Временная функция разработчика для сбора классов предметов
-		;Пункт для открытия на PoEDB
+		;Пункты для открытия на сетевых ресурсах 
 		If (Rarity1!="Волшебный") {
+			ItemMenu_AddPoEDB(RegExReplace(ItemName, "(Аномальный|Искривлённый|Фантомный): ", ""))
+			/*
 			If RegExMatch(ItemClass1, "(Камни умений|Камни поддержки)") {
 				ItemMenu_AddPoEDB(RegExReplace(ItemName, "(Аномальный|Искривлённый|Фантомный): ", ""))
 			} else {
 				ItemMenu_AddPoEDB(ItemName)
 			}
+			*/
+			If RegExMatch(Rarity1, "(Уникальный|Валюта|Гадальная карта)")
+				ItemMenu_AddTrade(ItemName)
 			Menu, itemMenu, Add
 		}
+		
 		;Пункт для копирования имени предмета
 		ItemMenu_AddCopyInBuffer(ItemName)
 		rlvl:=IDCL_lvlRarity(ItemData) ;Оценим тип предмета по его редкости и описанию
@@ -57,9 +63,9 @@ ItemMenu_Show(){
 		
 		;Пункт меню для конвертирования описания
 		Menu, itemMenu, Add
-		Menu, itemMenu, Add, Конвертировать Ru>En, ItemMenu_ConvertFromGame
+		Menu, itemMenu, Add, Конвертировать Ru > En, ItemMenu_ConvertFromGame
 		If FileExist("Data\imgs\copy.png")
-			Menu, itemMenu, Icon, Конвертировать Ru>En, Data\imgs\copy.png
+			Menu, itemMenu, Icon, Конвертировать Ru > En, Data\imgs\copy.png
 		Menu, itemMenu, Add	
 		
 		;Создадим меню для подсветки
@@ -137,9 +143,15 @@ ItemMenu_Show(){
 }
 
 ItemMenu_AddPoEDB(Line) {
-	Menu, itemMenu, Add, PoEDB>%Line%, ItemMenu_OpenOnPoEDB
+	Menu, itemMenu, Add, PoEDB > '%Line%', ItemMenu_OpenOnPoEDB
 	If FileExist("Data\imgs\web.png")
-		Menu, itemMenu, Icon, PoEDB>%Line%, Data\imgs\web.png
+		Menu, itemMenu, Icon, PoEDB > '%Line%', Data\imgs\web.png
+}
+
+ItemMenu_AddTrade(Line) {
+	Menu, itemMenu, Add, PoE\trade > '%Line%', ItemMenu_OpenOnTrade
+	If FileExist("Data\imgs\web.png")
+		Menu, itemMenu, Icon, PoE\trade > '%Line%', Data\imgs\web.png
 }
 
 
@@ -156,11 +168,31 @@ ItemMenu_AddHightlight(Line){
 }
 
 ItemMenu_OpenOnPoEDB(Line){
-	Line:=SubStr(Line, 7)
+	Line:=searchName(Line)
 	;run, "https://poedb.tw/ru/search.php?q=%Line%"
 	run, "https://poedb.tw/ru/search?q=%Line%"
 	return
 }
+
+ItemMenu_OpenOnTrade(Line){
+	Line:=searchName(Line)
+	IniRead, league, %configFile%, settings, league, Standard
+	ItemData:=Globals.Get("ItemDataFullText")
+	urltype:=RegExMatch(Globals.Get("ItemDataFullText"), "Редкость: Уникальный")?"name":"type"
+	url:="https://ru.pathofexile.com/trade/search/" league "?q={%22query%22:{%22" urltype "%22:%22" Line "%22}}"
+	run,"%url%"
+	return
+}
+
+/*
+ItemMenu_OpenOnTradeUnique(Line){
+	Line:=searchName(Line)
+	IniRead, league, %configFile%, settings, league, Standard
+	url:="https://ru.pathofexile.com/trade/search/" league "?q={%22query%22:{%22type%22:%22" Line "%22}}"
+	run,"%url%"
+	return
+}
+*/
 
 ItemMenu_CopyInBuffer(Line){
 	Clipboard:=Line
@@ -204,6 +236,7 @@ ItemMenu_IDCLInit(){
 }
 
 ItemMenu_LoadDataFile(URL, Path){
+	return false ;Отключение обновления данных
 	FormatTime, CurrentDate, %A_Now%, yyyyMMdd
 	FileGetTime, LoadDate, %Path%, M
 	FormatTime, LoadDate, %LoadDate%, yyyyMMdd

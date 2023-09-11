@@ -190,6 +190,11 @@ commandFastReply(Line:="/dance"){
 			return
 		}
 	}
+	If RegExMatch(Line, ".lnk$") {
+		;msgbox, %Line%
+		Run "%Line%"
+		return
+	}
 	TrayTip, %prjName% - Неизвестная команда!, %Line%
 	;msgbox, 0x1010, %prjName%, %Line%`nНеизвестная команда!, 3
 }

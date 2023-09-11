@@ -1,5 +1,4 @@
-﻿
-/*
+﻿/*
 	Оригинальная идея https://github.com/heokor/League-Overlay
 	Данный скрипт создан MegaEzik
 	
@@ -26,6 +25,7 @@
 ;#NoEnv
 #Requires AutoHotkey 1.1
 #SingleInstance Force
+;FileEncoding, UTF-8
 SetWorkingDir %A_ScriptDir%
 
 ;Подключение библиотек
@@ -86,13 +86,16 @@ devInit()
 
 ;Проверка обновлений
 IniRead, update, %configFile%, settings, update, 1
-If update
+If update {
 	CheckUpdate()
+	updateAutoHotkey()
+}
 
 ;Проверка версии и перенос настроек
 migrateConfig()
 
 ;Загрузка события, лабиринта, и данных для IDCL
+LoadFile("http://api.pathofexile.com/leagues?type=main", A_ScriptDir "\Data\JSON\leagues.json", true)
 loadEvent()
 initLab()
 ItemMenu_IDCLInit()
@@ -124,7 +127,7 @@ checkRequirementsAndArgs() {
 		ReStart()
 	}
 	If RegExMatch(args, "i)/Help") {
-		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/DebugMode - режим отладки`n/NoCurl - запрещает использование 'curl.exe'`n/NoAddons - пропуск автозагрузки дополнений`n/EnableAutolinks - включает систему автозагрузки ссылок
+		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/DebugMode - режим отладки`n/NoCurl - запрещает использование 'curl.exe'
 		ExitApp
 	}
 	If !DllCall("Wininet\InternetCheckConnection", Str, "https://ya.ru/", UInt, FLAG_ICC_FORCE_CONNECTION := 1, UInt, 0)
@@ -154,6 +157,9 @@ migrateConfig() {
 	If (verConfig!=verScript) {
 		;FileCopy, %configFile%, %configFolder%\%verConfig%.ini, 1
 		If (verConfig>0) {
+			FileDelete, Data\Packages.txt
+			FileDelete, Data\JSON\leagues.json
+			IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
 			If (verConfig<210823.1) {
 				FileRemoveDir, %A_MyDocuments%\LeagueOverlay_ru, 1
 				FileRemoveDir, %configFolder%\cache, 1
@@ -185,8 +191,20 @@ migrateConfig() {
 				}
 				IniWrite, PoE_Russian, %configFile%, settings, preset
 			}
-			If (verConfig>230701.1)
+			If (verConfig<230701.2) {
+				IniWrite, %expandMyImages%, %configFile%, settings, expandMyFiles
 				FileDelete, %configFolder%\pkgsMgr.ini
+			}
+			If (verConfig<230805.1) {
+				FileDelete, Lib\MD5.ahk
+				FileDelete, Data\presets\PoE_English\windows.list
+				FileDelete, Data\presets\PoE_Russian\windows.list
+				FileDelete, Data\presets\PoE_Russian\Альва - Храм Ацоатль.jpg
+				FileDelete, Data\presets\PoE_Russian\Джун - Бессмертный Синдикат.jpg
+				FileDelete, Data\presets\PoE_Russian\Кассия - Масла.jpg
+				FileDelete, Data\presets\PoE_Russian\Кураи - Кража.jpg
+				FileDelete, Data\presets\PoE_Russian\Нико - Азуритовая шахта.jpg
+			}
 		}
 		
 		showSettings()
@@ -215,11 +233,9 @@ WinList(){
 	}
 	IniRead, preset, %configFile%, settings, preset, %A_Space%
 	If (preset!="") {
-		Path:=(InStr(preset, "*")=1?configFolder "\Presets\" SubStr(preset, 2):"Data\presets\" preset) "\windows.list"
-		If FileExist(Path) {
-			FileRead, PresetWinList, %Path%
-			MainWinList.=PresetWinList "`n"
-		}
+		Path:=(InStr(preset, "*")=1?configFolder "\Presets\" SubStr(preset, 2):"Data\presets\" preset) "\PresetConfig.ini"
+		IniRead, PresetWinList, %Path%, Settings, Window, %A_Space%
+		MainWinList.=StrReplace(PresetWinList, "/n", "`n")
 	}
 	return MainWinList
 }
@@ -230,6 +246,26 @@ shLastImage(){
 	shOverlay(SplitLastImg[1], SplitLastImg[2], SplitLastImg[3])
 }
 
+;Формирование списка лиг
+LeaguesList(){
+	File:=A_ScriptDir "\Data\JSON\leagues.json"
+	;LoadFile("http://api.pathofexile.com/leagues?type=main", File, true)
+	FileRead, html, %File%
+	html:=StrReplace(html, "},{", "},`n{")
+	
+	leagues_list:=""
+	
+	htmlSplit:=StrSplit(html, "`n")
+	For k, val in htmlSplit {
+		If !RegExMatch(htmlSplit[k], "SSF") && RegExMatch(htmlSplit[k], "id"":""(.*)"",""realm", res)
+			leagues_list.="|" res1
+	}
+	
+	leagues_list:=subStr(leagues_list, 2)
+	
+	return leagues_list
+}
+
 ;Загрузить событие
 loadEvent(){
 	IniRead, EventURL, %buildConfig%, settings, EventURL, %A_Space%
@@ -237,7 +273,8 @@ loadEvent(){
 	If !useEvent || (EventURL="")
 		return
 	
-	EventPath:=A_Temp "\MegaEzik\LOEvent\event.txt"
+	;EventPath:=A_Temp "\MegaEzik\LOEvent\event.txt"
+	EventPath:=configFolder "\Event\event.txt"
 	LoadFile(eventURL, EventPath, true)
 	FormatTime, CurrentDate, %A_Now%, yyyyMMdd
 	
@@ -262,9 +299,9 @@ loadEvent(){
 	EventName.="(" SubStr(EndDate, 7, 2) "." SubStr(EndDate, 5, 2) ")"
 	
 	If (EventLogo!="")
-		LoadFile(EventLogo, A_Temp "\MegaEzik\LOEvent\bg.jpg", true)
+		LoadFile(EventLogo, configFolder "\Event\bg.jpg", true)
 	
-	showStartUI(EventName "`n" EventMsg, (EventLogo!="")?A_Temp "\MegaEzik\LOEvent\bg.jpg":"")
+	showStartUI(EventName "`n" EventMsg, (EventLogo!="")?configFolder "\Event\bg.jpg":"")
 	
 	eventDataSplit:=StrSplit(loadFastFile(EventPath), "`n")
 	For k, val in eventDataSplit
@@ -281,61 +318,58 @@ loadEvent(){
 ;Загрузить файл для события
 loadEventResourceFile(URL){
 	eventFileSplit:=strSplit(URL, "/")
-	filePath:=A_Temp "\MegaEzik\LOEvent\" eventFileSplit[eventFileSplit.MaxIndex()]
+	filePath:=configFolder "\Event\" eventFileSplit[eventFileSplit.MaxIndex()]
 	LoadFile(URL, filePath, true)
 }
 
 ;Меню события
 eventMenu(){
-	shFastMenu(A_Temp "\MegaEzik\LOEvent\event.txt", false)
+	shFastMenu(configFolder "\Event\event.txt", false)
 }
 
 ;Открыть мой файл
-shMyImage(imagename){
+shMyFile(imagename){
 	commandFastReply(configFolder "\MyFiles\" imagename)
 }
 
 ;Открыть папку с моими файлами
-openMyImagesFolder(){
+openMyFilesFolder(){
 	Run, explorer "%configFolder%\MyFiles"
 }
 
 ;Создать меню с Моими файлами
-myImagesMenuCreate(expandMenu=true){
+myFilesMenuCreate(expandMenu=true){
+	Menu, myFilesMenu, Add
+	Menu, myFilesMenu, DeleteAll
 	If expandMenu {
 		Loop, %configFolder%\MyFiles\*.*, 1
-			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt|fmenu)$")
-				Menu, mainMenu, Add, %A_LoopFileName%, shMyImage
-		Menu, mainMenu, Add
+			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt|fmenu|lnk)$")
+				Menu, mainMenu, Add, %A_LoopFileName%, shMyFile
 	} Else {
-		Menu, myImagesMenu, Add
-		Menu, myImagesMenu, DeleteAll
-		
 		Loop, %configFolder%\MyFiles\*.*, 1
-			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt|fmenu)$")
-				Menu, myImagesMenu, Add, %A_LoopFileName%, shMyImage
-		Menu, myImagesMenu, Add
-		myImagesActions()
-		Menu, myImagesMenu, Add, Действия, :myImagesSubMenu
-		Menu, mainMenu, Add, Мои файлы, :myImagesMenu
+			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt|fmenu|lnk)$")
+				Menu, myFilesMenu, Add, %A_LoopFileName%, shMyFile
+		Menu, myFilesMenu, Add
 	}
+	Menu, myFilesSubMenu1, Add
+	Menu, myFilesSubMenu1, DeleteAll
+	Menu, myFilesSubMenu1, Add, Ярлык, createNewLink
+	Menu, myFilesSubMenu1, Add, Заметку, createNewNote
+	Menu, myFilesSubMenu1, Add, Меню команд, createNewMenu
+	Menu, myFilesMenu, Add, Создать, :myFilesSubMenu1
+	Menu, myFilesMenu, Add, Развернуть, myFilesMenuChangeMode
+	If expandMenu
+		Menu, myFilesMenu, Check, Развернуть
+	Menu, myFilesMenu, Add, Открыть 'Мои файлы', openMyFilesFolder
 }
 
-;Меню действий для Моих файлов
-myImagesActions(){
-	Menu, myImagesSubMenu, Add
-	Menu, myImagesSubMenu, DeleteAll
-	Menu, myImagesSubMenu, Add, Добавить 'Заметку', createNewNote
-	Menu, myImagesSubMenu, Add, Добавить 'Меню команд', createNewMenu
-	Menu, myImagesSubMenu, Add
-	Menu, myImagesSubMenu, Add, Открыть папку, openMyImagesFolder
-}
-
-;Открыть меню действий для моих файлов
-sMenuImagesActions(){
-	;Gui, Settings:Destroy
-	myImagesActions()
-	Menu, myImagesSubMenu, Show
+myFilesMenuChangeMode(){
+	IniRead, expandMyFiles, %configFile%, settings, expandMyFiles, 1
+	If expandMyFiles {
+		IniWrite, 0, %configFile%, settings, expandMyFiles
+	} Else {
+		IniWrite, 1, %configFile%, settings, expandMyFiles
+	}
 }
 
 ;Окно с текстом
@@ -449,6 +483,16 @@ createNewMenu(){
 		return
 	}
 	textFileWindow("", filePath, false, "Список команд>>|>https://www.poewiki.net/wiki/Chat_console#Commands`n---`n@<last> sure`n/global 820`n/whois <last>`n/deaths`n/passives`n/atlaspassives`n/recheck_achievements`n/remaining`n/kills`n/dance")
+}
+
+;Создание нового ярлыка
+createNewLink(){
+	FileSelectFile, TargetPath,,, Укажите путь к файлу
+		If (TargetPath="")
+			Return
+	SplitPath, TargetPath, NameLink
+	InputBox, NameLink, Введите название набора,,, 300, 100,,,,, %NameLink%
+	FileCreateShortcut, %TargetPath%, %configFolder%\MyFiles\%NameLink%.lnk
 }
 
 ;История изменений
@@ -570,6 +614,9 @@ showSettings(){
 	IniRead, dInfo2, %buildConfig%, Donation, Info2, %A_Space%
 	dMsg:=StrReplace(dMsg, "/n", "`n")
 	
+	RegRead, AutoStartLine, HKEY_CURRENT_USER, SOFTWARE\Microsoft\Windows\CurrentVersion\Run, %prjName%
+	autoStartEnabled:=(InStr(AutoStartLine, A_ScriptFullPath))?True:False
+	
 	;Настройки первой вкладки
 	IniRead, OverlayPosition, %configFile%, settings, overlayPosition, %A_Space%
 	splitOverlayPosition:=strSplit(OverlayPosition, "/")
@@ -578,7 +625,7 @@ showSettings(){
 	posW:=splitOverlayPosition[3]
 	posH:=splitOverlayPosition[4]
 	
-	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
+	IniRead, expandMyFiles, %configFile%, settings, expandMyFiles, 1
 	IniRead, preset, %configFile%, settings, preset, PoE_Russian
 	IniRead, mouseDistance, %configFile%, settings, mouseDistance, 500
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
@@ -586,7 +633,7 @@ showSettings(){
 	IniRead, hotkeyGamepad, %configFile%, hotkeys, hotkeyGamepad, %A_Space%
 	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, !c
 	
-	IniRead, league, %configFile%, settings, league, %A_Space%
+	IniRead, league, %configFile%, settings, league, Standard
 	IniRead, hotkeyPrediction, %configFile%, hotkeys, hotkeyPrediction, %A_Space%
 	IniRead, hotkeyHeistScanner, %configFile%, hotkeys, hotkeyHeistScanner, %A_Space%
 	
@@ -596,6 +643,7 @@ showSettings(){
 	IniRead, ct, %configFile%, curl, connect-timeout, 3
 	IniRead, showCurl, %configFile%, curl, showCurl, 0
 	IniRead, update, %configFile%, settings, update, 1
+	IniRead, updateAHK, %configFile%, settings, updateAHK, 0
 	IniRead, useEvent, %configFile%, settings, useEvent, 1
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	
@@ -621,7 +669,9 @@ showSettings(){
 	Gui, Settings:Font, s8 normal
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
-	Gui, Settings:Add, Text, x12 y80 w345, Отслеживаемые окна:
+	Gui, Settings:Add, Checkbox, vautoStartEnabled x12 y80 w480 Checked%autoStartEnabled%, Запустить %prjName% при запуске Windows
+	
+	Gui, Settings:Add, Text, x12 yp+22 w345, Отслеживаемые окна:
 	Gui, Settings:Add, Button, x+1 yp-3 w132 h23 gsetWindowsList, Изменить
 	
 	Gui, Settings:Add, Text, x12 yp+26 w185, Позиция изображений(пиксели):
@@ -654,8 +704,7 @@ showSettings(){
 	Gui, Settings:Add, Edit, vmouseDistance x+2 yp-2 w130 h18 Number, %mouseDistance%
 	Gui, Settings:Add, UpDown, Range5-99999 0x80, %mouseDistance%
 	
-	Gui, Settings:Add, Checkbox, vexpandMyImages x12 yp+24 w345 Checked%expandMyImages%, Развернуть 'Мои файлы'
-	Gui, Settings:Add, Button, x+1 yp-4 w132 h23 gsMenuImagesActions, Действия
+	;Gui, Settings:Add, Checkbox, vexpandMyFiles x12 yp+24 w345 Checked%expandMyFiles%, Развернуть 'Мои файлы'
 	
 	Gui, Settings:Add, Text, x10 y+2 w480 h1 0x12
 	
@@ -707,6 +756,10 @@ showSettings(){
 	
 	
 	Gui, Settings:Add, Checkbox, vupdate x12 y+5 w480 Checked%update%, Автоматическая проверка обновлений
+	
+	Gui, Settings:Add, Checkbox, vupdateAHK x27 yp+20 w465 Checked%updateAHK% disabled, Предлагать обновления для AutoHotkey
+	If update
+		GuiControl, Settings:Enable, updateAHK
 	
 	Gui, Settings:Add, Checkbox, vuseEvent x12 yp+20 w480 Checked%useEvent%, Разрешить события
 	
@@ -771,9 +824,14 @@ saveSettings(){
 	sleep 100
 	Gui, Settings:Submit
 	
+	If autoStartEnabled
+		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\Microsoft\Windows\CurrentVersion\Run, %prjName%, "%A_ScriptFullPath%" %args%
+	If !autoStartEnabled
+		RegDelete, HKEY_CURRENT_USER, SOFTWARE\Microsoft\Windows\CurrentVersion\Run, %prjName%
+	
 	;Настройки первой вкладки
 	IniWrite, %posX%/%posY%/%posW%/%posH%, %configFile%, settings, overlayPosition
-	IniWrite, %expandMyImages%, %configFile%, settings, expandMyImages
+	IniWrite, %expandMyFiles%, %configFile%, settings, expandMyFiles
 	IniWrite, %preset%, %configFile%, settings, preset
 	IniWrite, %mouseDistance%, %configFile%, settings, mouseDistance
 	IniWrite, %hotkeyLastImg%, %configFile%, hotkeys, hotkeyLastImg
@@ -791,6 +849,7 @@ saveSettings(){
 	IniWrite, %ct%, %configFile%, curl, connect-timeout
 	IniWrite, %showCurl%, %configFile%, curl, showCurl
 	IniWrite, %update%, %configFile%, settings, update
+	IniWrite, %updateAHK%, %configFile%, settings, updateAHK
 	IniWrite, %useEvent%, %configFile%, settings, useEvent
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
 	
@@ -836,6 +895,26 @@ setHotkeys(){
 	If (hotkeyGamepad!="")
 		Hotkey, % hotkeyGamepad, shGamepadMenu, On
 }
+
+;Проверка обновления AHK
+updateAutoHotkey(){
+	IniRead, updateAHK, %configFile%, settings, updateAHK, 0
+	If !updateAHK
+		return
+	filePath:=A_Temp "\MegaEzik\ahkver.txt"
+	LoadFile("https://www.autohotkey.com/download/1.1/version.txt", filePath, true)
+	;FileDelete, %filePath%
+	;UrlDownloadToFile, https://www.autohotkey.com/download/1.1/version.txt, %filePath%
+	FileReadLine, AHKRelVer, %filePath%, 1
+	If !RegExMatch(AHKRelVer, "^(\d+.\d+.\d+.\d+)$", res)
+		return
+	If (A_AhkVersion<AHKRelVer){
+		SplitPath, A_AhkPath,,AHKDir
+		If FileExist(AHKDir "\Installer.ahk")
+			Run *RunAs "%AhkDir%\Installer.ahk"
+	}
+}
+
 
 ;Меню управления наборами
 presetMenuCfgShow(){
@@ -888,8 +967,9 @@ presetCreate(){
 	}
 	FileCreateDir, %PresetFolder%
 	InputBox, wline, Укажите окно отслеживания,,, 300, 100,,,,, ahk_exe notepad.exe
-	FileAppend, %wline%, %PresetFolder%\windows.list, UTF-8
-	ReadMeFullText:="Вы создали шаблон для набора '" PresetName "'!`n`nПоместите в папку набора желаемые файлы.`nДля корректного открытия текстовых файлов требуется кодировка UTF-8-BOM!`n`nЕсли вам потребуется изменить 'Окна отслеживания', то вы можете сделать это отредактировав файл 'windows.list'."
+	;FileAppend, %wline%, %PresetFolder%\windows.list, UTF-8
+	IniWrite, %wline%, %PresetFolder%\PresetConfig.ini, Settings, Window
+	ReadMeFullText:="Вы создали шаблон для набора '" PresetName "'!`n`nПоместите в папку набора желаемые файлы.`nДля корректного открытия текстовых файлов требуется кодировка UTF-8-BOM!`n`nЕсли вам потребуется изменить 'Окна отслеживания', то вы можете сделать это отредактировав файл 'PresetConfig.ini'."
 	FileAppend, %ReadMeFullText%, %PresetFolder%\ReadMe.txt, UTF-8
 	presetFolderOpen(PresetName)
 	textFileWindow("", PresetFolder "\ReadMe.txt", false)
@@ -925,14 +1005,24 @@ loadPreset(){
 		If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt|fmenu)$")
 			Menu, mainMenu, Add, %A_LoopFileName%, shPreset
 	Menu, mainMenu, Add
+	
+	IniRead, SpecialNamesList, %Path%\PresetConfig.ini, SpecialNames
+	;MsgBox, %SpecialNamesList%
+	SpecialNamesSplit:=StrSplit(SpecialNamesList, "`n")
+	For k, val in SpecialNamesSplit {
+		SplitName:=StrSplit(SpecialNamesSplit[k], "=")
+		NewName:=SplitName[1]
+		OldName:=SplitName[2]
+		If FileExist(Path "\" OldName)
+			Menu, mainMenu, Rename, %OldName%, %NewName%
+	}
 }
 
 ;Открыть файл набора
-shPreset(FileName){
-	IniRead, preset, %configFile%, settings, preset, %A_Space%
-	FilePath:=Globals.Get("presetFolder") "\" FileName
-	
-	commandFastReply(FilePath)
+shPreset(TargetName){
+	PresetPath:=Globals.Get("presetFolder")
+	IniRead, FileName, %PresetPath%\PresetConfig.ini, SpecialNames, %TargetName%, %TargetName%
+	commandFastReply(PresetPath "\" FileName)
 }
 
 ;Сформировать и открыть основное меню
@@ -950,15 +1040,19 @@ shMainMenu(Gamepad=false){
 	
 	loadPreset()
 	
-	IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
-	myImagesMenuCreate((expandMyImages || Gamepad)?true:false)
+	IniRead, expandMyFiles, %configFile%, settings, expandMyFiles, 1
+	myFilesMenuCreate(expandMyFiles || Gamepad)
 	
 	IniRead, sMenu, %configFile%, settings, sMenu, MyMenu.fmenu
-	If (expandMyImages || Gamepad) && (sMenu!="") && FileExist(configFolder "\MyFiles\" sMenu){
-		fastMenu(configFolder "\MyFiles\" sMenu)
+	If (expandMyFiles || Gamepad) && (sMenu!="") && FileExist(configFolder "\MyFiles\" sMenu){
+		fastMenu(configFolder "\MyFiles\" sMenu, !Gamepad)
 		Menu, mainMenu, Add, %sMenu%, :fastMenu
 		Menu, mainMenu, Rename, %sMenu%, Избранные команды
 	}
+	
+	If !Gamepad
+		Menu, mainMenu, Add, Мои файлы, :myFilesMenu
+	Menu, mainMenu, Add
 	
 	Menu, mainMenu, Add, Область уведомлений, :Tray
 	sleep 5
@@ -1015,7 +1109,7 @@ timerToolTip() {
 }
 
 ;Скачивание файла из сети
-LoadFile(URL, FilePath, CheckDate=false, MD5="") {	
+LoadFile(URL, FilePath, CheckDate=false) {	
 	;Сверим дату
 	If CheckDate {
 		FormatTime, CurrentDate, %A_Now%, yyyyMMdd
@@ -1024,14 +1118,14 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 		IfNotExist, %FilePath%
 			LoadDate:=0
 		If (LoadDate=CurrentDate)
-			return false
+			Return false
 	}
 	
 	SplitPath, FilePath,, DirPath
 	FileCreateDir, %DirPath%
 	
 	FileDelete, %FilePath%
-	Sleep 100
+	Sleep 50
 	
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	If (UserAgent="")
@@ -1055,7 +1149,7 @@ LoadFile(URL, FilePath, CheckDate=false, MD5="") {
 	} Else {
 		UrlDownloadToFile, %URL%, %FilePath%
 	}
-	Return 
+	Return true
 }
 
 ;Использование системной темы
