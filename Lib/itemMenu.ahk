@@ -184,16 +184,6 @@ ItemMenu_OpenOnTrade(Line){
 	return
 }
 
-/*
-ItemMenu_OpenOnTradeUnique(Line){
-	Line:=searchName(Line)
-	IniRead, league, %configFile%, settings, league, Standard
-	url:="https://ru.pathofexile.com/trade/search/" league "?q={%22query%22:{%22type%22:%22" Line "%22}}"
-	run,"%url%"
-	return
-}
-*/
-
 ItemMenu_CopyInBuffer(Line){
 	Clipboard:=Line
 	showToolTip("Скопировано в буфер обмена!`n-----------------------------------`n" Line, 5000)
@@ -236,7 +226,7 @@ ItemMenu_IDCLInit(){
 }
 
 ItemMenu_LoadDataFile(URL, Path){
-	return false ;Отключение обновления данных
+	;return false ;Отключение обновления данных
 	FormatTime, CurrentDate, %A_Now%, yyyyMMdd
 	FileGetTime, LoadDate, %Path%, M
 	FormatTime, LoadDate, %LoadDate%, yyyyMMdd
