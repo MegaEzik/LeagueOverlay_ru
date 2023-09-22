@@ -3,4 +3,3 @@ ruPrediction.zip|https://cdn.discordapp.com/attachments/500698157336887358/11371
 LutTools.ahk|http://lutbot.com/ahk/macro.ahk
 Catalysts.jpg|https://cdn.discordapp.com/attachments/500698157336887358/1137113610318000239/Catalysts.jpg
 DevTools.upd.zip|https://cdn.discordapp.com/attachments/500698157336887358/1137114222619283527/DevTools.upd.zip
-;230825.upd.zip|https://cdn.discordapp.com/attachments/500698157336887358/1144400003842986015/230825.upd.zip

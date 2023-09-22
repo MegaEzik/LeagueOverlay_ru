@@ -12,7 +12,6 @@
 		*fastReply.ahk - Библиотека с функциями для команд
 		*ItemDataConverterLib.ahk - Библиотека для конвертирования описания предмета
 		*itemMenu.ahk - Библиотека для формирования меню предмета
-		*MD5.ahk - Подсчет контрольной суммы файла
 		*Gamepad.ahk - Отвечает за игровой контроллер
 		*pkgsMgr.ahk - Управление дополнениями
 	
@@ -482,7 +481,7 @@ createNewMenu(){
 		traytip, %prjName%, Что-то пошло не так(
 		return
 	}
-	textFileWindow("", filePath, false, "Список команд>>|>https://www.poewiki.net/wiki/Chat_console#Commands`n---`n@<last> sure`n/global 820`n/whois <last>`n/deaths`n/passives`n/atlaspassives`n/recheck_achievements`n/remaining`n/kills`n/dance")
+	textFileWindow("", filePath, false, "/global 820`n/whois <last>`n/deaths`n/passives`n/atlaspassives`n/remaining`n/autoreply <inputbox>`n/autoreply`n---`n>calc`n>https://siveran.github.io/calc.html`n>https://poe.re/#/expedition`n>https://www.poewiki.net/wiki/Chat")
 }
 
 ;Создание нового ярлыка
@@ -781,7 +780,7 @@ showSettings(){
 			If A_Index=3
 				tempVar:="/invite <last>"
 			If A_Index=4
-				tempVar:="/kick <last>"
+				tempVar:="/leave"
 			If A_Index=5
 				tempVar:="/tradewith <last>"
 			If A_Index=6
@@ -807,8 +806,8 @@ showSettings(){
 		Gui, Settings:Add, Hotkey, vhotkeyCmd%TwoColumn% x+2 w90 h17, %tempVar%
 	}
 	
-	helptext:="/dance - простая команда`n/whois <last> - команда к последнему игроку`n@<last> ty, gl) - сообщение последнему игроку`n_ty, gl) - сообщение в чат области`n%ty, gl) - сообщение в групповой чат`n>calc.exe - выполнить`nmy.jpg - изображение/набор/текст`n!текст - всплывающая подсказка"
-	helptext2:="--- - разделитель`n;/dance - комментарий`n<configFolder> - папка настроек`n<time> - время UTC`n<inputbox> - поле ввода"
+	helptext:="/dance - простая команда`n/whois <last> - команда к последнему игроку`n@<last> ty, gl) - сообщение последнему игроку`n_ty, gl) - сообщение в чат области`n%ty, gl) - сообщение в чат группы`n>calc - выполнить`nmy.jpg - изображение/набор/текст`n!текст - всплывающая подсказка"
+	helptext2:="--- - разделитель`n;/kick player - комментарий`n<configFolder> - папка настроек`n<presetFolder> - папка набора`n<eventFolder> - папка события`n<time> - время UTC`n<inputbox> - поле ввода"
 	Gui, Settings:Add, Text, x12 y+2 w237 c7F3208, %helptext%
 	Gui, Settings:Add, Text, x+2 w237 c7F3208, %helptext2%
 	

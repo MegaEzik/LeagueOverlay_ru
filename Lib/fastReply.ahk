@@ -81,7 +81,7 @@ fastCmd20(){
 
 /*
 customCmdsEdit() {
-	textFileWindow("", configFolder "\cmds.preset", false, "Список команд>>|>https://pathofexile.fandom.com/wiki/Chat_console#Commands`n---`n@<last> sure`n/global 820`n/whois <last>`n/deaths`n/passives`n/atlaspassives`n/remaining`n/kills`n/dance")
+	textFileWindow("", configFolder "\cmds.preset", false, "Список команд>>|/global 820`n/whois <last>`n/deaths`n/passives`n/atlaspassives`n/remaining`n/autoreply <inputbox>`n/autoreply`n---`n>calc`n>https://siveran.github.io/calc.html`n>https://poe.re/#/expedition`n>https://www.poewiki.net/wiki/Chat")
 }
 */
 
