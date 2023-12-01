@@ -1,5 +1,5 @@
 ﻿HeistScanner.ahk|https://raw.githubusercontent.com/MegaEzik/PoE_HeistScanner_ru/main/HeistScanner.ahk
-ruPrediction.zip|https://cdn.discordapp.com/attachments/500698157336887358/1137114390685040772/ruPrediction.zip
+;ruPrediction.zip|https://cdn.discordapp.com/attachments/500698157336887358/1137114390685040772/ruPrediction.zip
 LutTools.ahk|http://lutbot.com/ahk/macro.ahk
-Catalysts.jpg|https://cdn.discordapp.com/attachments/500698157336887358/1137113610318000239/Catalysts.jpg
+;Catalysts.jpg|https://cdn.discordapp.com/attachments/500698157336887358/1137113610318000239/Catalysts.jpg
 DevTools.upd.zip|https://cdn.discordapp.com/attachments/500698157336887358/1137114222619283527/DevTools.upd.zip

@@ -256,7 +256,7 @@ LeaguesList(){
 	
 	htmlSplit:=StrSplit(html, "`n")
 	For k, val in htmlSplit {
-		If !RegExMatch(htmlSplit[k], "SSF") && RegExMatch(htmlSplit[k], "id"":""(.*)"",""realm", res)
+		If !RegExMatch(htmlSplit[k], "i)SSF") && RegExMatch(htmlSplit[k], "id"":""(.*)"",""realm", res)
 			leagues_list.="|" res1
 	}
 	
@@ -731,8 +731,10 @@ showSettings(){
 	Gui, Settings:Add, Text, x12 yp+25 w345, Сканер витрин Кражи(HeistScanner):
 	Gui, Settings:Add, Hotkey, vhotkeyHeistScanner x+2 yp-2 w130 h17, %hotkeyHeistScanner%
 	
-	Gui, Settings:Add, Text, x12 yp+21 w345, Оценка с помощью poeprices.info(ruPrediction):
-	Gui, Settings:Add, Hotkey, vhotkeyPrediction x+2 yp-2 w130 h17, %hotkeyPrediction%
+	If FileExist(configFolder "/ruPrediction.ahk"){
+		Gui, Settings:Add, Text, x12 yp+21 w345, Оценка с помощью poeprices.info(ruPrediction):
+		Gui, Settings:Add, Hotkey, vhotkeyPrediction x+2 yp-2 w130 h17, %hotkeyPrediction%
+	}
 	
 	Gui, Settings:Tab, 2 ;Вторая вкладка
 	
