@@ -27,14 +27,8 @@ ItemMenu_Show(){
 		devAddInList(ItemClass1) ;Временная функция разработчика для сбора классов предметов
 		;Пункты для открытия на сетевых ресурсах 
 		If (Rarity1!="Волшебный") {
-			ItemMenu_AddPoEDB(RegExReplace(ItemName, "(Аномальный|Искривлённый|Фантомный): ", ""))
-			/*
-			If RegExMatch(ItemClass1, "(Камни умений|Камни поддержки)") {
-				ItemMenu_AddPoEDB(RegExReplace(ItemName, "(Аномальный|Искривлённый|Фантомный): ", ""))
-			} else {
-				ItemMenu_AddPoEDB(ItemName)
-			}
-			*/
+			;ItemMenu_AddPoEDB(RegExReplace(ItemName, "(Аномальный|Искривлённый|Фантомный): ", ""))
+			ItemMenu_AddPoEDB(ItemName)
 			If RegExMatch(Rarity1, "(Уникальный|Валюта|Гадальная карта)")
 				ItemMenu_AddTrade(ItemName)
 			Menu, itemMenu, Add
@@ -50,7 +44,6 @@ ItemMenu_Show(){
 			ItemMenu_AddCopyInBuffer(ItemName_En)
 		
 		;Пункт копирования жертвы в ультиматумах
-		/*
 		If (ItemName="Начертанный Ультиматум") {
 			Menu, itemMenu, Add
 			If (RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*) x\d+", findtext) || RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*)", findtext))
@@ -59,7 +52,6 @@ ItemMenu_Show(){
 				If !RegExMatch(findtext1, "Удваивает")
 					ItemMenu_AddCopyInBuffer(findtext1)
 		}
-		*/
 		
 		;Пункт меню для конвертирования описания
 		Menu, itemMenu, Add
@@ -86,8 +78,8 @@ ItemMenu_Show(){
 					ItemMenu_AddHightlight(splitItemName[k])
 		}
 		
-		If (RegExMatch(ItemClass1, "Камни") && RegExMatch(ItemName, "(Пробужденный|Аномальный|Искривлённый|Фантомный): ", findtext))
-			ItemMenu_AddHightlight(findtext1)
+		;If (RegExMatch(ItemClass1, "Камни") && RegExMatch(ItemName, "(Пробужденный|Аномальный|Искривлённый|Фантомный): ", findtext))
+			;ItemMenu_AddHightlight(findtext1)
 		If (ItemClass1="Кольца" && RegExMatch(ItemData, "Редкость: Уникальный"))
 			ItemMenu_AddHightlight("""Кольца""" " " """Уник""")
 		If (RegExMatch(ItemClass1, "Камни") && RegExMatch(ItemData, "Качество: "))
@@ -100,8 +92,8 @@ ItemMenu_Show(){
 				ItemMenu_AddHightlight(findtext)
 			If RegExMatch(ItemDataSplit[k], "Уровень карты: (.*)", findtext)
 				ItemMenu_AddHightlight("tier:" findtext1)
-			If (ItemClass1="Чертежи" && RegExMatch(ItemDataSplit[k], "Предмет кражи: (.*)", findtext))
-				ItemMenu_AddHightlight(findtext1)
+			;If (ItemClass1="Чертежи" && RegExMatch(ItemDataSplit[k], "Предмет кражи: (.*)", findtext))
+				;ItemMenu_AddHightlight(findtext1)
 			If ((ItemClass1="Чертежи" || ItemClass1="Контракты") && RegExMatch(ItemDataSplit[k], "Требуется (.*) \(\d+", findtext))
 				ItemMenu_AddHightlight(findtext1)
 			If (ItemClass1="Журналы экспедиции" && RegExMatch(ItemDataSplit[k], "(Друиды Разомкнутого круга|Наёмники Чёрной косы|Рыцари Солнца|Орден Чаши)", findtext)=1)
