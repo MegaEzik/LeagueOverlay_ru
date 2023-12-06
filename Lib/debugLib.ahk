@@ -2,7 +2,7 @@
 ;Инициализация и создание меню разработчика
 devInit(){
 	devSpecialUpdater()
-	devRename()
+	;devRename()
 	
 	If RegExMatch(args, "i)/DebugMode")
 		debugMode:=1
@@ -148,6 +148,7 @@ devSpecialUpdater(){
 	}
 }
 
+/*
 devRename(){
 	Return
 	
@@ -164,6 +165,7 @@ devRename(){
 	
 	Return
 }
+*/
 
 devVoid(){
 }
