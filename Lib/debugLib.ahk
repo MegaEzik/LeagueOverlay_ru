@@ -4,10 +4,9 @@ devInit(){
 	devSpecialUpdater()
 	devRename()
 	
-	If !RegExMatch(args, "i)/DebugMode")
-		Return
+	If RegExMatch(args, "i)/DebugMode")
+		debugMode:=1
 	
-	debugMode:=1
 	;traytip, %prjName%, Режим отладки активен!
 	
 	Menu, devMenu, Add, Файл отладки, devOpenLog
