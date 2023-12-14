@@ -116,6 +116,7 @@ commandFastReply(Line:="/dance"){
 			BlockInput On
 			SendInput, ^{Enter}{Home}{Delete}^{v}{Enter}
 			BlockInput Off
+			Sleep 1500
 			return
 		}
 		If (InStr(Line, "_")=1)
@@ -125,6 +126,7 @@ commandFastReply(Line:="/dance"){
 		BlockInput On
 		SendInput, {Enter}^{a}^{v}{Enter}
 		BlockInput Off
+		Sleep 1500
 		return
 	}
 	
@@ -159,6 +161,7 @@ commandFastReply(Line:="/dance"){
 		;SendInput, ^{Enter}%Line%{Enter}
 		SendInput, ^{Enter}^{v}{Enter}
 		BlockInput Off
+		Sleep 1500
 		return
 	}
 	
