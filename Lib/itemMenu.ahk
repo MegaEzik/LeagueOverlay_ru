@@ -18,6 +18,14 @@ ItemMenu_Show(){
 	ItemData:=IDCL_CleanerItem(Globals.Get("ItemDataFullText"))
 	ItemDataSplit:=StrSplit(ItemData, "`n")
 	
+	;Если установлен кастомный файл для 'Избранных команд', то продублируем его в 'Меню предмета'
+	IniRead, sMenu, %configFile%, settings, sMenu, MyMenu.fmenu
+	If ((ItemData="") && (sMenu!="MyMenu.fmenu") && FileExist(configFolder "\MyFiles\" sMenu)) {
+		fastMenu(configFolder "\MyFiles\" sMenu, !Gamepad)
+		Menu, itemMenu, Add, Избранные команды, :fastMenu
+		Menu, itemMenu, Add
+	}
+	
 	;Определим имя предмета
 	ItemName:=ItemDataSplit[3]
 	If ((ItemDataSplit[2]="Редкость: Редкий") && !RegExMatch(ItemData, "Неопознано"))
@@ -29,8 +37,22 @@ ItemMenu_Show(){
 		If (Rarity1!="Волшебный") {
 			;ItemMenu_AddPoEDB(RegExReplace(ItemName, "(Аномальный|Искривлённый|Фантомный): ", ""))
 			ItemMenu_AddPoEDB(ItemName)
+			
 			If RegExMatch(Rarity1, "(Уникальный|Валюта|Гадальная карта)")
 				ItemMenu_AddTrade(ItemName)
+				
+			If (ItemName="Начертанный Ультиматум") {
+				If (RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*) x\d+", findtext) || RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*)", findtext))
+					ItemMenu_AddTrade(findtext1)
+				If RegExMatch(ItemDataSplit[8], "Награда: (.*)", findtext)
+					If !RegExMatch(findtext1, "Удваивает")
+						ItemMenu_AddTrade(findtext1)
+			}
+			
+			If (ItemDataSplit[6]="Уровень карты: 17")
+				If RegExMatch(ItemDataSplit[7], "Награда: Особ(ая|ый|ое|ые) (.*)", findtext)
+					ItemMenu_AddTrade(findtext2)
+			
 			Menu, itemMenu, Add
 		}
 		
@@ -43,6 +65,7 @@ ItemMenu_Show(){
 		If (ItemName_En!="" && !RegExMatch(ItemName_En, "Undefined Name"))
 			ItemMenu_AddCopyInBuffer(ItemName_En)
 		
+		/*
 		;Пункт копирования жертвы в ультиматумах
 		If (ItemName="Начертанный Ультиматум") {
 			Menu, itemMenu, Add
@@ -52,6 +75,7 @@ ItemMenu_Show(){
 				If !RegExMatch(findtext1, "Удваивает")
 					ItemMenu_AddCopyInBuffer(findtext1)
 		}
+		*/
 		
 		;Пункт меню для конвертирования описания
 		Menu, itemMenu, Add
@@ -61,6 +85,10 @@ ItemMenu_Show(){
 		Menu, itemMenu, Add	
 		
 		;Создадим меню для подсветки
+		If (ItemName="Начертанный Ультиматум") {
+			If (RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*) x\d+", findtext) || RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*)", findtext))
+				ItemMenu_AddHightlight(findtext1)
+		}
 		ItemMenu_AddHightlight(ItemName)
 		If (ItemName_En!="" && !RegExMatch(ItemName_En, "Undefined Name"))
 			ItemMenu_AddHightlight(ItemName_En)
@@ -86,7 +114,7 @@ ItemMenu_Show(){
 			ItemMenu_AddHightlight("""Камни""" " " """Качество""")
 		
 		For k, val in ItemDataSplit {
-			If RegExMatch(ItemDataSplit[k], "(Предмет Создателя|Древний предмет|Расколотый предмет|Синтезированный предмет|Предмет Вождя|Предмет Избавительницы|Предмет Крестоносца|Предмет Охотника|Завуалированный|Качество|Область находится под влиянием Древнего|Область находится под влиянием Создателя|Предмет Пожирателя миров|Предмет Пламенного экзарха)", findtext)
+			If RegExMatch(ItemDataSplit[k], "(Предмет Создателя|Древний предмет|Расколотый предмет|Синтезированный предмет|Предмет Вождя|Предмет Избавительницы|Предмет Крестоносца|Предмет Охотника|Завуалированный|Качество|Область находится под влиянием Древнего|Область находится под влиянием Создателя|Предмет Пожирателя миров|Предмет Пламенного экзарха|Осквернено|Отражено|Разделено)", findtext)
 				ItemMenu_AddHightlight(findtext)
 			If RegExMatch(ItemDataSplit[k], "Уровень предмета: (.*)", findtext)
 				ItemMenu_AddHightlight(findtext)
@@ -170,7 +198,7 @@ ItemMenu_OpenOnTrade(Line){
 	Line:=searchName(Line)
 	IniRead, league, %configFile%, settings, league, Standard
 	ItemData:=Globals.Get("ItemDataFullText")
-	urltype:=RegExMatch(Globals.Get("ItemDataFullText"), "Редкость: Уникальный")?"name":"type"
+	urltype:=RegExMatch(Globals.Get("ItemDataFullText"), "Редкость: Уникальный") || RegExMatch(Globals.Get("ItemDataFullText"), "Уровень карты: 17") || (RegExMatch(Globals.Get("ItemDataFullText"), "Начертанный Ультиматум") && !RegExMatch(Globals.Get("ItemDataFullText"), "Требуется жертвоприношение: (.*) x\d+"))?"name":"type"
 	url:="https://ru.pathofexile.com/trade/search/" league "?q={%22query%22:{%22" urltype "%22:%22" Line "%22}}"
 	run,"%url%"
 	return
