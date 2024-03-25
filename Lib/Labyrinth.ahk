@@ -54,7 +54,7 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false) {
 	
 	;Запишем дату загрузки лабиринта
 	IniWrite, %CurrentDate%, %configFile%, info, labLoadDate
-	sleep 100
+	sleep 50
 }
 
 initLab(){

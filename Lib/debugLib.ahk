@@ -50,7 +50,7 @@ devClSD(){
 	FileDelete, Data\JSON\leagues.json
 	FileRemoveDir, %A_Temp%\MegaEzik, 1
 	FileRemoveDir, %configFolder%\Event, 1
-	Sleep 100
+	Sleep 50
 	ReStart()
 }
 

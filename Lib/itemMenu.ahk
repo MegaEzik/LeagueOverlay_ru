@@ -2,13 +2,13 @@
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
 ItemMenu_ConvertFromGame() {
 	ItemData:=IDCL_ConvertMain(Globals.Get("ItemDataFullText"))
-	Sleep 100
+	Sleep 50
 	Clipboard:=ItemData
 	showToolTip("Скопировано в буфер обмена!`n-----------------------------------`n" ItemData, 15000)
 }
 
 ItemMenu_Show(){
-	sleep 100
+	sleep 50
 	ToolTip
 	Menu, itemMenu, Add
 	Menu, itemMenu, DeleteAll
@@ -234,7 +234,7 @@ ItemMenu_IDCLInit(){
 	FileCreateDir, Data\JSON
 	ResultNames:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/Data/JSON/names.json", "Data\JSON\names.json")
 	ResultStats:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/Data/JSON/stats.json", "Data\JSON\stats.json")
-	sleep 500
+	sleep 100
 	
 	FileRead, stats_list, Data\JSON\stats.json
 	Globals.Set("item_stats", JSON.Load(stats_list))
@@ -264,7 +264,7 @@ ItemMenu_LoadDataFile(URL, Path){
 	If (RegExMatch(NewFileData, "{") && RegExMatch(NewFileData, "}") && !RegExMatch(NewFileData, "<") && !RegExMatch(NewFileData, ">")) {
 		If (NewFileData!=CurrentFileData) {
 			FileDelete, %Path%
-			Sleep 100
+			Sleep 50
 			FileCopy, %tmpPath%, %Path%, 1
 			return true
 		}

@@ -40,10 +40,8 @@ shOverlay(ImgPath, MultImg=1, winPosition=""){
 		
 		If !pBitmapImg{
 			Gdip_DisposeImage(pBitmapImg)
-			SplashTextOn, 300, 20, %prjName%, Некорректный файл изображения!
-			Sleep 1500
-			SplashTextOff
-			return
+			TrayTip, %prjName%, Некорректный файл изображения!
+			Return
 		}
 		
 		WidthImg:=Gdip_GetImageWidth(pBitmapImg)

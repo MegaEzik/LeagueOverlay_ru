@@ -103,7 +103,7 @@ commandFastReply(Line:="/dance"){
 	}
 	If InStr(Line, "<inputbox>") {
 		InputBox, inputLine, Введите текст,,, 300, 100
-		sleep 250
+		sleep 50
 		Line:=StrReplace(Line, "<inputbox>", inputLine)
 	}
 	

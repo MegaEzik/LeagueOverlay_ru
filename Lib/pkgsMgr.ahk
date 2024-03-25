@@ -24,18 +24,15 @@ pkgsMgr_packagesMenu(){
 	
 	Menu, packagesMenu, Add
 	Loop, %configFolder%\*.ahk, 1
-		Menu, packagesMenu, Add, Выполнить '%A_LoopFileName%', pkgsMgr_runPackage
-	
-	Menu, packagesMenu, Add
-	Loop, %configFolder%\*.ahk, 1
-	{
-		Menu, packagesMenu, Add, Автозапуск '%A_LoopFileName%', pkgMgr_permissionsCustomScript
-		
-		IniRead, AutoStart, %configFolder%\pkgsMgr.ini, pkgsMgr, %A_LoopFileName%, 0
-		If AutoStart
-			Menu, packagesMenu, Check, Автозапуск '%A_LoopFileName%'
-	}
-	
+		If GetKeyState("Ctrl", P)
+			Menu, packagesMenu, Add, Выполнить '%A_LoopFileName%', pkgsMgr_runPackage
+		Else {
+			Menu, packagesMenu, Add, Автозапуск '%A_LoopFileName%', pkgMgr_permissionsCustomScript
+			IniRead, AutoStart, %configFolder%\pkgsMgr.ini, pkgsMgr, %A_LoopFileName%, 0
+			If AutoStart
+				Menu, packagesMenu, Check, Автозапуск '%A_LoopFileName%'
+		}
+			
 	Menu, packagesMenu, Add
 	Loop, %configFolder%\*.ahk, 1
 		Menu, packagesMenu, Add, Удалить '%A_LoopFileName%', pkgsMgr_delPackage

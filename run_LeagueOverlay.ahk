@@ -94,7 +94,7 @@ If update {
 migrateConfig()
 
 ;Загрузка события, лабиринта, и данных для IDCL
-LoadFile("http://api.pathofexile.com/leagues?type=main", A_ScriptDir "\Data\JSON\leagues.json", true)
+;LoadFile("http://api.pathofexile.com/leagues?type=main", A_ScriptDir "\Data\JSON\leagues.json", true)
 loadEvent()
 initLab()
 ItemMenu_IDCLInit()
@@ -129,8 +129,10 @@ checkRequirementsAndArgs() {
 		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/DebugMode - режим отладки`n/NoCurl - запрещает использование 'curl.exe'
 		ExitApp
 	}
+	/*
 	If !DllCall("Wininet\InternetCheckConnection", Str, "https://ya.ru/", UInt, FLAG_ICC_FORCE_CONNECTION := 1, UInt, 0)
 		MsgBox, 0x1010, %prjName%, Не удалось проверить доступность сети интернет!`n`nОтсутствие доступа к сети не позволит обновить данные и может негативно сказаться на работе %prjName%!, 10
+	*/
 	If !FileExist(A_WinDir "\System32\curl.exe") {
 		msgtext:="В вашей системе не найдена утилита " A_WinDir "\System32\curl.exe, без нее могут возникнуть проблемы в работе " prjName "!"
 		MsgBox, 0x1010, %prjName%, %msgtext%, 7
@@ -141,7 +143,7 @@ checkRequirementsAndArgs() {
 	}
 	;Запуск gdi+
 	If !pToken:=Gdip_Startup()
-		   MsgBox, 48, %prjName%, Не удалось запустить gdi+! Пожалуйста, убедитесь, что в вашей системе он есть!
+		TrayTip, %prjName%, Ошибка инициализации GDI+!
 	OnExit, Exit
 }
 
@@ -173,8 +175,7 @@ migrateConfig() {
 				FileDelete, %configFolder%\curl.exe
 				FileDelete, %configFolder%\curl-ca-bundle.crt
 				FileMove, %configFolder%\highlight.txt, %configFolder%\highlight.list, 1
-			}
-			If (verConfig<221010.8) {
+				
 				FileMove, %configFolder%\cmds.preset, %configFolder%\MyFiles\MyMenu.preset, 1
 				FileMove, %configFolder%\Presets\*.preset, %configFolder%\MyFiles\*.fmenu, 1
 				FileMove, %configFolder%\MyFiles\*.preset, %configFolder%\MyFiles\*.fmenu, 1
@@ -193,16 +194,6 @@ migrateConfig() {
 			If (verConfig<230701.2) {
 				IniWrite, %expandMyImages%, %configFile%, settings, expandMyFiles
 				FileDelete, %configFolder%\pkgsMgr.ini
-			}
-			If (verConfig<230805.1) {
-				FileDelete, Lib\MD5.ahk
-				FileDelete, Data\presets\PoE_English\windows.list
-				FileDelete, Data\presets\PoE_Russian\windows.list
-				FileDelete, Data\presets\PoE_Russian\Альва - Храм Ацоатль.jpg
-				FileDelete, Data\presets\PoE_Russian\Джун - Бессмертный Синдикат.jpg
-				FileDelete, Data\presets\PoE_Russian\Кассия - Масла.jpg
-				FileDelete, Data\presets\PoE_Russian\Кураи - Кража.jpg
-				FileDelete, Data\presets\PoE_Russian\Нико - Азуритовая шахта.jpg
 			}
 		}
 		
@@ -248,7 +239,7 @@ shLastImage(){
 ;Формирование списка лиг
 LeaguesList(){
 	File:=A_ScriptDir "\Data\JSON\leagues.json"
-	;LoadFile("http://api.pathofexile.com/leagues?type=main", File, true)
+	LoadFile("http://api.pathofexile.com/leagues?type=main", File, true)
 	FileRead, html, %File%
 	html:=StrReplace(html, "},{", "},`n{")
 	
@@ -309,7 +300,7 @@ loadEvent(){
 			
 	Globals.Set("eventName", EventName)
 	
-	Sleep 1500
+	Sleep 1000
 	
 	return
 }
@@ -448,7 +439,7 @@ tfwSave(){
 	Gui, tfwGui:Submit
 	Globals.Set("tfwLast", tfwFilePath)
 	FileDelete, %tfwFilePath%
-	sleep 100
+	sleep 50
 	FileAppend, %tfwContentFile%, %tfwFilePath%, UTF-8
 	Gui, tfwGui:Destroy
 }
@@ -590,7 +581,7 @@ showStartUI(SpecialText="", LogoPath=""){
 
 ;Закрыть окно запуска
 closeStartUI(){
-	sleep 200
+	sleep 50
 	Gui, StartUI:Destroy
 	IniRead, showHistory, %configFile%, info, showHistory, 1
 	If showHistory {
@@ -728,8 +719,10 @@ showSettings(){
 	Gui, Settings:Add, DropDownList, vleague x+2 yp-3 w130, %LeaguesList%
 	GuiControl,Settings:ChooseString, league, %league%
 	
-	Gui, Settings:Add, Text, x12 yp+25 w345, Сканер витрин Кражи(HeistScanner):
-	Gui, Settings:Add, Hotkey, vhotkeyHeistScanner x+2 yp-2 w130 h17, %hotkeyHeistScanner%
+	If FileExist(configFolder "/HeistScanner.ahk"){
+		Gui, Settings:Add, Text, x12 yp+25 w345, Сканер витрин Кражи(HeistScanner):
+		Gui, Settings:Add, Hotkey, vhotkeyHeistScanner x+2 yp-2 w130 h17, %hotkeyHeistScanner%
+	}
 	
 	If FileExist(configFolder "/ruPrediction.ahk"){
 		Gui, Settings:Add, Text, x12 yp+21 w345, Оценка с помощью poeprices.info(ruPrediction):
@@ -821,7 +814,7 @@ showSettings(){
 saveSettings(){
 	global
 	DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", 0x50, "UInt", 0x4090409, "UInt", 0x4090409)
-	sleep 100
+	sleep 50
 	Gui, Settings:Submit
 	
 	If autoStartEnabled
@@ -1071,7 +1064,7 @@ openScriptFolder(){
 ;Перезапуск
 ReStart(){
 	Gdip_Shutdown(pToken)
-	sleep 250
+	sleep 50
 	Run *RunAs "%A_AhkPath%" "%A_ScriptFullPath%" %args%
 	ExitApp
 }
@@ -1165,7 +1158,7 @@ systemTheme(){
 Exit:
 ; gdi+ may now be shutdown on exiting the program
 	Gdip_Shutdown(pToken)
-	sleep 250
+	sleep 50
 	ExitApp
 Return
 
