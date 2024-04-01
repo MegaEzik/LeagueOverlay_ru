@@ -61,7 +61,7 @@ initLab(){
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	If loadLab {
 		downloadLabLayout(,true)
-		SetTimer, downloadLabLayout, 1800000
+		;SetTimer, downloadLabLayout, 1800000
 	}
 }
 

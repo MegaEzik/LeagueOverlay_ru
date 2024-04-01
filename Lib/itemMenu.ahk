@@ -18,7 +18,7 @@ ItemMenu_Show(){
 	ItemData:=IDCL_CleanerItem(Globals.Get("ItemDataFullText"))
 	ItemDataSplit:=StrSplit(ItemData, "`n")
 	
-	;Если установлен кастомный файл для 'Избранных команд', то продублируем его в 'Меню предмета'
+	;Если установлен свой файл для 'Избранных команд', то продублируем его в 'Меню предмета'
 	IniRead, sMenu, %configFile%, settings, sMenu, MyMenu.fmenu
 	If ((ItemData="") && (sMenu!="MyMenu.fmenu") && FileExist(configFolder "\MyFiles\" sMenu)) {
 		fastMenu(configFolder "\MyFiles\" sMenu, !Gamepad)
@@ -31,14 +31,18 @@ ItemMenu_Show(){
 	If ((ItemDataSplit[2]="Редкость: Редкий") && !RegExMatch(ItemData, "Неопознано"))
 		ItemName:=ItemDataSplit[4]
 	
-	If (RegExMatch(ItemDataSplit[1], "Класс предмета: (.*)", ItemClass) && RegExMatch(ItemDataSplit[2], "Редкость: (.*)", Rarity)) {
+	;Уголья Всепламени
+	If (ItemDataSplit[1]="Класс предмета: Уголья Всепламени")
+		ItemName:=ItemDataSplit[2]
+	
+	If (RegExMatch(ItemDataSplit[1], "Класс предмета: (.*)", ItemClass) && (RegExMatch(ItemDataSplit[2], "Редкость: (.*)", Rarity) || (ItemClass1="Уголья Всепламени")))  {
 		devAddInList(ItemClass1) ;Временная функция разработчика для сбора классов предметов
 		;Пункты для открытия на сетевых ресурсах 
 		If (Rarity1!="Волшебный") {
 			;ItemMenu_AddPoEDB(RegExReplace(ItemName, "(Аномальный|Искривлённый|Фантомный): ", ""))
 			ItemMenu_AddPoEDB(ItemName)
 			
-			If RegExMatch(Rarity1, "(Уникальный|Валюта|Гадальная карта)")
+			If RegExMatch(ItemClass1, "(Валюта|Гадальные карты|Обрывки карт|Уголья Всепламени)") || RegExMatch(Rarity1, "Уникальный")
 				ItemMenu_AddTrade(ItemName)
 				
 			If (ItemName="Начертанный Ультиматум") {

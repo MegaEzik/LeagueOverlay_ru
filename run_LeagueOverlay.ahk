@@ -195,6 +195,8 @@ migrateConfig() {
 				IniWrite, %expandMyImages%, %configFile%, settings, expandMyFiles
 				FileDelete, %configFolder%\pkgsMgr.ini
 			}
+			If (verConfig<230701.3)
+				IniWrite, 0, %configFile%, settings, loadLab
 		}
 		
 		showSettings()
