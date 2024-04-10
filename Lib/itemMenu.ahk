@@ -89,15 +89,23 @@ ItemMenu_Show(){
 		Menu, itemMenu, Add	
 		
 		;Создадим меню для подсветки
+		ItemMenu_AddHightlight(ItemName)
+		;If (ItemName_En!="" && !RegExMatch(ItemName_En, "Undefined Name"))
+		;	ItemMenu_AddHightlight(ItemName_En)
+		;Menu, itemMenu, Add	
+		
+		If (ItemName="Заполненный гроб") {
+			ItemMenu_AddHightlight(ItemDataSplit[7])
+			ItemMenu_AddHightlight(StrReplace(ItemDataSplit[9], " (implicit)", ""))
+		}
 		If (ItemName="Начертанный Ультиматум") {
 			If (RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*) x\d+", findtext) || RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*)", findtext))
 				ItemMenu_AddHightlight(findtext1)
 		}
-		ItemMenu_AddHightlight(ItemName)
-		If (ItemName_En!="" && !RegExMatch(ItemName_En, "Undefined Name"))
-			ItemMenu_AddHightlight(ItemName_En)
+		
 		ItemMenu_AddHightlight(ItemClass1)
-		ItemMenu_AddHightlight(Rarity1)
+		If (Rarity1!="")
+			ItemMenu_AddHightlight(Rarity1)
 		
 		If RegExMatch(ItemClass1, "Валюта") {
 			tempItemName:=ItemName
@@ -116,6 +124,8 @@ ItemMenu_Show(){
 			ItemMenu_AddHightlight("""Кольца""" " " """Уник""")
 		If (RegExMatch(ItemClass1, "Камни") && RegExMatch(ItemData, "Качество: "))
 			ItemMenu_AddHightlight("""Камни""" " " """Качество""")
+		If (RegExMatch(ItemName, "флакон") && RegExMatch(ItemData, "Качество: "))
+			ItemMenu_AddHightlight("""Флакон""" " " """Качество""")
 		
 		For k, val in ItemDataSplit {
 			If RegExMatch(ItemDataSplit[k], "(Предмет Создателя|Древний предмет|Расколотый предмет|Синтезированный предмет|Предмет Вождя|Предмет Избавительницы|Предмет Крестоносца|Предмет Охотника|Завуалированный|Качество|Область находится под влиянием Древнего|Область находится под влиянием Создателя|Предмет Пожирателя миров|Предмет Пламенного экзарха|Осквернено|Отражено|Разделено)", findtext)
@@ -186,6 +196,7 @@ ItemMenu_AddCopyInBuffer(Line){
 }
 
 ItemMenu_AddHightlight(Line){
+	Line:=SubStr(Line, 1, 50)
 	Menu, itemMenu, Add, *%Line%, ItemMenu_Hightlight
 	If FileExist("Data\imgs\highlight.png")
 		Menu, itemMenu, Icon, *%Line%, Data\imgs\highlight.png
@@ -214,7 +225,7 @@ ItemMenu_CopyInBuffer(Line){
 }
 
 ItemMenu_Hightlight(Line){
-	Line:=SubStr(Line, 2)
+	Line:=SubStr(Line, 2, 50)
 	;DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", 0x50, "UInt", 0x4090409, "UInt", 0x4090409)
 	;sleep 25
 	clipboard:=Line

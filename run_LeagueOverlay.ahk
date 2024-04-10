@@ -195,8 +195,6 @@ migrateConfig() {
 				IniWrite, %expandMyImages%, %configFile%, settings, expandMyFiles
 				FileDelete, %configFolder%\pkgsMgr.ini
 			}
-			If (verConfig<230701.3)
-				IniWrite, 0, %configFile%, settings, loadLab
 		}
 		
 		showSettings()
@@ -1123,7 +1121,7 @@ LoadFile(URL, FilePath, CheckDate=false) {
 	
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	If (UserAgent="")
-		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:115.0) Gecko/20100101 Firefox/115.0"
+		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
 	
 	If FileExist(A_WinDir "\System32\curl.exe") && !RegExMatch(args, "i)/NoCurl") {
 		IniRead, showCurl, %configFile%, curl, showCurl, 0
