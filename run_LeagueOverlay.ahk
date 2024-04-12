@@ -161,16 +161,13 @@ migrateConfig() {
 			FileDelete, Data\Packages.txt
 			FileDelete, Data\JSON\leagues.json
 			IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
-			If (verConfig<210823.1) {
+			If (verConfig<221028) {
 				FileRemoveDir, %A_MyDocuments%\LeagueOverlay_ru, 1
 				FileRemoveDir, %configFolder%\cache, 1
 				FileDelete, %configFolder%\Lab.jpg
 				FileDelete, %configFolder%\notes.txt
 				FileDelete, %configFolder%\trials.ini
 				FileMoveDir, %configFolder%\images, %configFolder%\MyFiles, 2
-				IniWrite, 1000, %configFile%, curl, limit-rate
-				IniWrite, 3, %configFile%, curl, connect-timeout
-				IniWrite, 0, %configFile%, settings, loadLab
 				FileMove, %configFolder%\commands.txt, %configFolder%\cmds.preset, 1
 				FileDelete, %configFolder%\curl.exe
 				FileDelete, %configFolder%\curl-ca-bundle.crt
@@ -179,17 +176,6 @@ migrateConfig() {
 				FileMove, %configFolder%\cmds.preset, %configFolder%\MyFiles\MyMenu.preset, 1
 				FileMove, %configFolder%\Presets\*.preset, %configFolder%\MyFiles\*.fmenu, 1
 				FileMove, %configFolder%\MyFiles\*.preset, %configFolder%\MyFiles\*.fmenu, 1
-				IniRead, hotkeyToCharacterSelection, %configFile%, hotkeys, hotkeyToCharacterSelection, %A_Space%
-				If (hotkeyToCharacterSelection!="") {
-					IniWrite, %hotkeyToCharacterSelection%, %configFile%, fastReply, hotkeyCmd9
-					IniWrite, /exit, %configFile%, fastReply, textCmd9
-				}
-				IniRead, hotkeyForceSync, %configFile%, hotkeys, hotkeyForceSync, %A_Space%
-				If (hotkeyForceSync!="") {
-					IniWrite, %hotkeyForceSync%, %configFile%, fastReply, hotkeyCmd10
-					IniWrite, /oos, %configFile%, fastReply, textCmd10
-				}
-				IniWrite, PoE_Russian, %configFile%, settings, preset
 			}
 			If (verConfig<230701.2) {
 				IniWrite, %expandMyImages%, %configFile%, settings, expandMyFiles
@@ -629,7 +615,7 @@ showSettings(){
 	;Настройки второй вкладки
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	IniRead, lr, %configFile%, curl, limit-rate, 1000
-	IniRead, ct, %configFile%, curl, connect-timeout, 3
+	IniRead, ct, %configFile%, curl, connect-timeout, 5
 	IniRead, showCurl, %configFile%, curl, showCurl, 0
 	IniRead, update, %configFile%, settings, update, 1
 	IniRead, updateAHK, %configFile%, settings, updateAHK, 0

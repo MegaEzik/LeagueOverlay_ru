@@ -32,6 +32,8 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false) {
 			break
 		If RegExMatch(LabDataSplit[k], "<img id=""light-notesImg"" style=""width: margin: 0 auto; display: inline-block; cursor: zoom-in;"" src=""(.*)"" /", URL)
 			break
+		If RegExMatch(LabDataSplit[k], "<img decoding=""async"" id=""notesImg"" style=""margin: 0 auto; display: inline-block; cursor: zoom-in;"" src=""(.*)"">", URL)
+			break
 	}
 	FileDelete, %A_Temp%\MegaEzik\labpage.html
 	If (StrLen(URL1)<23 || StrLen(URL1)>100) {
