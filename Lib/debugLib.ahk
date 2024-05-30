@@ -2,23 +2,21 @@
 ;Инициализация и создание меню разработчика
 devInit(){
 	devSpecialUpdater()
-	;devRename()
 	
 	If RegExMatch(args, "i)/DebugMode")
 		debugMode:=1
 	
 	;traytip, %prjName%, Режим отладки активен!
 	
-	Menu, devMenu, Add, Файл отладки, devOpenLog
-	Menu, devMenu, Add, Экран запуска, devStartUI
-	Menu, devMenu, Add, Изменить конфиг, editConfig
+	Menu, devMenu, Add, Открыть 'Файл отладки', devOpenLog
+	Menu, devMenu, Add, Экран запуска(5 секунд), devStartUI
+	Menu, devMenu, Add, Задать файл 'Меню команд', devFavoriteList
 	Menu, devMenu, Add
 	Menu, devMenu, Add, Папка макроса, openScriptFolder	
 	Menu, devMenu, Add, Папка настроек, openConfigFolder
 	Menu, devMenu, Add
-	Menu, devMenu, Add, Восстановить релиз, devRestoreRelease
+	Menu, devMenu, Add, Откатиться на последнюю версию, devRestoreRelease
 	Menu, devMenu, Add, Перезагрузить данные, devClSD
-	;Menu, devMenu, Add, Избранные команды, devFavoriteList
 	Menu, devSubMenu1, Add, https://poelab.com/gtgax, reloadLab
 	Menu, devSubMenu1, Add, https://poelab.com/r8aws, reloadLab
 	Menu, devSubMenu1, Add, https://poelab.com/riikv, reloadLab
@@ -49,6 +47,7 @@ devClSD(){
 	;FileDelete, Data\JSON\*
 	FileDelete, Data\JSON\leagues.json
 	FileRemoveDir, %A_Temp%\MegaEzik, 1
+	FileRemoveDir, %tempDir%, 1
 	FileRemoveDir, %configFolder%\Event, 1
 	Sleep 50
 	ReStart()
@@ -78,11 +77,6 @@ devAddInList(Line){
 		If DataListSplit[k]=Line
 			return
 	FileAppend, %Line%`n, %FilePath%, UTF-8
-}
-
-editConfig(){
-	RunWait, notepad.exe "%configFile%"
-	ReStart()
 }
 
 devStartUI(){
@@ -148,24 +142,29 @@ devSpecialUpdater(){
 	}
 }
 
-/*
-devRename(){
-	Return
-	
-	IniRead, preset, %configFile%, settings, preset, PoE_Russian
-	
-	If (preset!="PoE_Russian") || !FileExist("Data\presets\" preset "\Alva.jpg")
+updateLib(libName){
+	IniRead, updateLib, %configFile%, settings, updateLib, 0
+	If !updateLib
 		Return
+	libPath:=A_ScriptDir "\Lib\" libName
+	tempLibPath:=tempDir "\Lib\" libName
+	LoadFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/Lib/" libName, tempLibPath, true)
+	IniRead, currentVerLib, %libPath%, info, version, %A_Space%
+	IniRead, newVerLib, %tempLibPath%, info, version, %A_Space%
 	
-	FileMove, Data\presets\%preset%\Alva.jpg, Data\presets\%preset%\Альва - Храм Ацоатль.jpg, 1
-	FileMove, Data\presets\%preset%\Cassia.jpg, Data\presets\%preset%\Кассия - Масла.jpg, 1
-	FileMove, Data\presets\%preset%\Jun.jpg, Data\presets\%preset%\Джун - Бессмертный Синдикат.jpg, 1
-	FileMove, Data\presets\%preset%\Kurai.jpg, Data\presets\%preset%\Кураи - Кража.jpg, 1
-	FileMove, Data\presets\%preset%\Niko.jpg, Data\presets\%preset%\Нико - Азуритовая шахта.jpg, 1
-	
-	Return
+	If (newVerLib="") || (Floor(verScript)<Floor(newVerLib)) {
+		Return
+	}
+	If (newVerLib>currentVerLib) {
+		FileCopy, %tempLibPath%, %libPath%, 1
+		MsgBox,  0x1040, %prjName%, Обновлена библиотека '%libName%'`n`t%currentVerLib% >> %newVerLib%, 2
+		ReStart()
+	}
 }
-*/
+
+showArgsInfo(){
+	Msgbox, 0x1040, Список доступных параметров запуска, /DebugMode - режим отладки`n/NoCurl - запрещать использование 'curl.exe'`n/ShowCurl - отображать выполнение 'curl.exe'`n/NoUseTheme - не применять системную тему
+}
 
 devVoid(){
 }

@@ -22,13 +22,13 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false) {
 		run, %LabURL%
 		
 	;Очистка файлов
-	FileDelete, %A_Temp%\MegaEzik\labpage.html
+	FileDelete, %tempDir%\labpage.html
 	FileDelete, %configFolder%\MyFiles\Labyrinth.jpg
 	
 	;Загружаем страницу с убер-лабой и извлекаем ссылку на изображение
-	LoadFile(LabURL, A_Temp "\MegaEzik\labpage.html")
+	LoadFile(LabURL, tempDir "\labpage.html")
 	
-	FileRead, LabData, %A_Temp%\MegaEzik\labpage.html
+	FileRead, LabData, %tempDir%\labpage.html
 	LabDataSplit:=StrSplit(LabData, "`n")
 	For k, val in LabDataSplit {
 		If RegExMatch(LabDataSplit[k], "<img id=""notesImg"" style=""margin: 0 auto; display: inline-block; cursor: zoom-in;"" src=""(.*)"">", URL)
@@ -40,7 +40,7 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false) {
 		If RegExMatch(LabDataSplit[k], "<img decoding=""async"" id=""notesImg"" style=""margin: 0 auto; display: inline-block; cursor: zoom-in;"" src=""(.*)"">", URL)
 			break
 	}
-	FileDelete, %A_Temp%\MegaEzik\labpage.html
+	FileDelete, %tempDir%\labpage.html
 	If (StrLen(URL1)<23 || StrLen(URL1)>100) {
 		TrayTip, Labyrinth.ahk, Не удалось скачать страницу с раскладкой!
 		devLog("Не удалось скачать страницу с раскладкой!")

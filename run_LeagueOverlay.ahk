@@ -47,6 +47,9 @@ If InStr(FileExist(A_ScriptDir "\..\Profile"), "D") {
 	SplitPath, A_ScriptDir,, configFolder
 	configFolder.="\Profile"
 }
+global tempDir:=configFolder "\Temp"
+If !FileExist(tempDir)
+	FileCreateDir, %tempDir%
 global configFile:=configFolder "\settings.ini"
 global buildConfig:=A_ScriptDir "\Data\Build.ini"
 global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, textCmd11, textCmd12, textCmd13, textCmd14, textCmd15, textCmd16, textCmd17, textCmd18, textCmd19, textCmd20, cmdNum=20
@@ -88,6 +91,9 @@ IniRead, update, %configFile%, settings, update, 1
 If update {
 	CheckUpdate()
 	updateAutoHotkey()
+	updateLib("Labyrinth.ahk")
+	updateLib("ItemDataConverterLib.ahk")
+	updateLib("itemMenu.ahk")
 }
 
 ;Проверка версии и перенос настроек
@@ -125,9 +131,12 @@ checkRequirementsAndArgs() {
 		args.=" /DebugMode"
 		ReStart()
 	}
-	If RegExMatch(args, "i)/Help") {
-		Msgbox, 0x1040, Список доступных параметров запуска, /Help - вывод данного сообщения`n/DebugMode - режим отладки`n/NoCurl - запрещает использование 'curl.exe'
-		ExitApp
+	IniRead, startArgs, %configFile%, settings, startArgs, %A_Space%
+	If (startArgs!="") && !InStr(startArgs, "  ") {
+		If !RegExMatch(args, Trim(startArgs)) {
+			args.=" " StartArgs
+			ReStart()
+		}
 	}
 	/*
 	If !DllCall("Wininet\InternetCheckConnection", Str, "https://ya.ru/", UInt, FLAG_ICC_FORCE_CONNECTION := 1, UInt, 0)
@@ -589,10 +598,10 @@ showSettings(){
 	IniRead, dInfo2, %buildConfig%, Donation, Info2, %A_Space%
 	dMsg:=StrReplace(dMsg, "/n", "`n")
 	
+	;Настройки первой вкладки
 	RegRead, AutoStartLine, HKEY_CURRENT_USER, SOFTWARE\Microsoft\Windows\CurrentVersion\Run, %prjName%
 	autoStartEnabled:=(InStr(AutoStartLine, A_ScriptFullPath))?True:False
 	
-	;Настройки первой вкладки
 	IniRead, OverlayPosition, %configFile%, settings, overlayPosition, %A_Space%
 	splitOverlayPosition:=strSplit(OverlayPosition, "/")
 	posX:=splitOverlayPosition[1]
@@ -600,7 +609,8 @@ showSettings(){
 	posW:=splitOverlayPosition[3]
 	posH:=splitOverlayPosition[4]
 	
-	IniRead, expandMyFiles, %configFile%, settings, expandMyFiles, 1
+	IniRead, startArgs, %configFile%, settings, startArgs, %A_Space%
+	oldStartArgs:=startArgs
 	IniRead, preset, %configFile%, settings, preset, PoE_Russian
 	IniRead, mouseDistance, %configFile%, settings, mouseDistance, 500
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
@@ -616,13 +626,14 @@ showSettings(){
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	IniRead, lr, %configFile%, curl, limit-rate, 1000
 	IniRead, ct, %configFile%, curl, connect-timeout, 5
-	IniRead, showCurl, %configFile%, curl, showCurl, 0
 	IniRead, update, %configFile%, settings, update, 1
+	IniRead, updateLib, %configFile%, settings, updateLib, 1
 	IniRead, updateAHK, %configFile%, settings, updateAHK, 0
 	IniRead, useEvent, %configFile%, settings, useEvent, 1
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	
 	;Скрытые настройки
+	IniRead, expandMyFiles, %configFile%, settings, expandMyFiles, 1
 	IniRead, sMenu, %configFile%, settings, sMenu, MyMenu.fmenu
 	IniRead, tfwFontSize, %configFile%, settings, tfwFontSize, 12
 	
@@ -645,6 +656,10 @@ showSettings(){
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
 	Gui, Settings:Add, Checkbox, vautoStartEnabled x12 y80 w480 Checked%autoStartEnabled%, Запустить %prjName% при запуске Windows
+	
+	Gui, Settings:Add, Text, x12 yp+20 w110, Параметры запуска:
+	Gui, Settings:Add, Edit, vstartArgs x+2 yp-2 w346 h17, %startArgs%
+	Gui, Settings:Add, Button, x+1 yp-1 w19 h19 gshowArgsInfo, ?
 	
 	Gui, Settings:Add, Text, x12 yp+22 w345, Отслеживаемые окна:
 	Gui, Settings:Add, Button, x+1 yp-3 w132 h23 gsetWindowsList, Изменить
@@ -683,17 +698,15 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x10 y+2 w480 h1 0x12
 	
-	Gui, Settings:Add, Text, x12 yp+6 w345, Последнее изображение:
-	Gui, Settings:Add, Hotkey, vhotkeyLastImg x+2 yp-2 w130 h17, %hotkeyLastImg%
+	Gui, Settings:Add, Text, x12 yp+6 w145, Быстрый доступ:
+		Gui, Settings:Add, Button, x+1 yp-3 w200 h19 gcfgGamepad, Геймпад - Удерживайте [%hotkeyGamepad%]
+	Gui, Settings:Add, Hotkey, vhotkeyMainMenu x+1 yp+1 w130 h17, %hotkeyMainMenu%
 	
-	Gui, Settings:Add, Text, x12 yp+21 w345, Меню быстрого доступа:
-	Gui, Settings:Add, Hotkey, vhotkeyMainMenu x+2 yp-2 w130 h17, %hotkeyMainMenu%
+	Gui, Settings:Add, Text, x12 yp+21 w345, Последнее изображение:
+	Gui, Settings:Add, Hotkey, vhotkeyLastImg x+2 yp-2 w130 h17, %hotkeyLastImg%
 	
 	Gui, Settings:Add, Text, x12 yp+21 w345, Меню предмета:
 	Gui, Settings:Add, Hotkey, vhotkeyItemMenu x+2 yp-2 w130 h17, %hotkeyItemMenu%
-	
-	Gui, Settings:Add, Text, x12 yp+21 w345, Геймпад - Удерживайте [%hotkeyGamepad%] для использования
-	Gui, Settings:Add, Button, x+1 yp-3 w132 h23 gcfgGamepad, Изменить
 	
 	Gui, Settings:Add, Text, x10 y+2 w480 h1 0x12
 	
@@ -717,9 +730,7 @@ showSettings(){
 	
 	Gui, Settings:Tab, 2 ;Вторая вкладка
 	
-	Gui, Settings:Add, Checkbox, vshowCurl x12 y80 w480 Checked%showCurl%, Отображать выполнение curl.exe(не рекомендуется)
-	
-	Gui, Settings:Add, Text, x12 yp+20 w120, cURL | User-Agent:
+		Gui, Settings:Add, Text, x12 y80 w120, cURL | User-Agent:
 	Gui, Settings:Add, Edit, vUserAgent x+2 yp-2 w355 h17, %UserAgent%
 	
 	Gui, Settings:Add, Text, x12 yp+20 w345, cURL | Ограничение загрузки(Кб/с, 0 - без лимита):
@@ -736,9 +747,12 @@ showSettings(){
 	
 	Gui, Settings:Add, Checkbox, vupdate x12 y+5 w480 Checked%update%, Автоматическая проверка обновлений
 	
+	Gui, Settings:Add, Checkbox, vupdateLib x27 yp+20 w465 Checked%updateLib% disabled, Автоматически обновлять библиотеки, если это возможно
 	Gui, Settings:Add, Checkbox, vupdateAHK x27 yp+20 w465 Checked%updateAHK% disabled, Предлагать обновления для AutoHotkey
-	If update
+	If update {
+		GuiControl, Settings:Enable, updateLib
 		GuiControl, Settings:Enable, updateAHK
+	}
 	
 	Gui, Settings:Add, Checkbox, vuseEvent x12 yp+20 w480 Checked%useEvent%, Разрешить события
 	
@@ -778,19 +792,19 @@ showSettings(){
 		Gui, Settings:Add, Edit, vtextCmd%A_Index% x12 y+1 w145 h17, %tempVar%
 		
 		IniRead, tempVar, %configFile%, fastReply, hotkeyCmd%A_Index%, %A_Space%
-		Gui, Settings:Add, Hotkey, vhotkeyCmd%A_Index% x+2 w90 h17, %tempVar%
+		Gui, Settings:Add, Hotkey, vhotkeyCmd%A_Index% x+1 w90 h17, %tempVar%
 		
 		TwoColumn:=Round(LoopVar+A_Index)
 		IniRead, tempVar, %configFile%, fastReply, textCmd%TwoColumn%, %A_Space%
-		Gui, Settings:Add, Edit, vtextCmd%TwoColumn% x+4 w145 h17, %tempVar%
+		Gui, Settings:Add, Edit, vtextCmd%TwoColumn% x+6 w145 h17, %tempVar%
 		IniRead, tempVar, %configFile%, fastReply, hotkeyCmd%TwoColumn%, %A_Space%
-		Gui, Settings:Add, Hotkey, vhotkeyCmd%TwoColumn% x+2 w90 h17, %tempVar%
+		Gui, Settings:Add, Hotkey, vhotkeyCmd%TwoColumn% x+1 w90 h17, %tempVar%
 	}
 	
 	helptext:="/dance - простая команда`n/whois <last> - команда к последнему игроку`n@<last> ty, gl) - сообщение последнему игроку`n_ty, gl) - сообщение в чат области`n%ty, gl) - сообщение в чат группы`n>calc - выполнить`nmy.jpg - изображение/набор/текст`n!текст - всплывающая подсказка"
 	helptext2:="--- - разделитель`n;/kick player - комментарий`n<configFolder> - папка настроек`n<presetFolder> - папка набора`n<eventFolder> - папка события`n<time> - время UTC`n<inputbox> - поле ввода"
 	Gui, Settings:Add, Text, x12 y+2 w237 c7F3208, %helptext%
-	Gui, Settings:Add, Text, x+2 w237 c7F3208, %helptext2%
+	Gui, Settings:Add, Text, x+6 w237 c7F3208, %helptext2%
 	
 	Gui, Settings:-MinimizeBox -MaximizeBox
 	Gui, Settings:Show, w500 h415, %prjName% %verScript% | AHK %A_AhkVersion% - Информация и настройки ;Отобразить окно настроек
@@ -804,13 +818,13 @@ saveSettings(){
 	Gui, Settings:Submit
 	
 	If autoStartEnabled
-		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\Microsoft\Windows\CurrentVersion\Run, %prjName%, "%A_ScriptFullPath%" %args%
+		RegWrite, REG_SZ, HKEY_CURRENT_USER, SOFTWARE\Microsoft\Windows\CurrentVersion\Run, %prjName%, "%A_ScriptFullPath%"
 	If !autoStartEnabled
 		RegDelete, HKEY_CURRENT_USER, SOFTWARE\Microsoft\Windows\CurrentVersion\Run, %prjName%
 	
 	;Настройки первой вкладки
 	IniWrite, %posX%/%posY%/%posW%/%posH%, %configFile%, settings, overlayPosition
-	IniWrite, %expandMyFiles%, %configFile%, settings, expandMyFiles
+	IniWrite, %startArgs%, %configFile%, settings, startArgs
 	IniWrite, %preset%, %configFile%, settings, preset
 	IniWrite, %mouseDistance%, %configFile%, settings, mouseDistance
 	IniWrite, %hotkeyLastImg%, %configFile%, hotkeys, hotkeyLastImg
@@ -826,13 +840,14 @@ saveSettings(){
 	IniWrite, %UserAgent%, %configFile%, curl, user-agent
 	IniWrite, %lr%, %configFile%, curl, limit-rate
 	IniWrite, %ct%, %configFile%, curl, connect-timeout
-	IniWrite, %showCurl%, %configFile%, curl, showCurl
 	IniWrite, %update%, %configFile%, settings, update
+	IniWrite, %updateLib%, %configFile%, settings, updateLib
 	IniWrite, %updateAHK%, %configFile%, settings, updateAHK
 	IniWrite, %useEvent%, %configFile%, settings, useEvent
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
 	
 	;Скрытые настройки
+	IniWrite, %expandMyFiles%, %configFile%, settings, expandMyFiles
 	IniWrite, %sMenu%, %configFile%, settings, sMenu
 	IniWrite, %tfwFontSize%, %configFile%, settings, tfwFontSize
 
@@ -843,7 +858,10 @@ saveSettings(){
 		
 		tempVar:=textCmd%A_Index%
 		IniWrite, %tempVar%, %configFile%, fastReply, textCmd%A_Index%
-	}	
+	}
+	
+	If (oldStartArgs!=StartArgs)
+		args:=""
 	
 	ReStart()
 }
@@ -880,7 +898,7 @@ updateAutoHotkey(){
 	IniRead, updateAHK, %configFile%, settings, updateAHK, 0
 	If !updateAHK
 		return
-	filePath:=A_Temp "\MegaEzik\ahkver.txt"
+	filePath:=tempDir "\ahkver.txt"
 	LoadFile("https://www.autohotkey.com/download/1.1/version.txt", filePath, true)
 	;FileDelete, %filePath%
 	;UrlDownloadToFile, https://www.autohotkey.com/download/1.1/version.txt, %filePath%
@@ -962,6 +980,7 @@ menuCreate(){
 	Menu, Tray, Add
 	Menu, Tray, Add, Настройки, showSettings
 	Menu, Tray, Default, Настройки
+	Menu, Tray, Add, Открыть 'Мои файлы', openMyFilesFolder
 	Menu, Tray, Add, Очистить кэш PoE, clearPoECache
 	Menu, Tray, Add, Дополнения, pkgsMgr_packagesMenu
 	Menu, Tray, Add, Меню отладки, :devMenu
@@ -1110,7 +1129,6 @@ LoadFile(URL, FilePath, CheckDate=false) {
 		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
 	
 	If FileExist(A_WinDir "\System32\curl.exe") && !RegExMatch(args, "i)/NoCurl") {
-		IniRead, showCurl, %configFile%, curl, showCurl, 0
 		IniRead, lr, %configFile%, curl, limit-rate, 1000
 		IniRead, ct, %configFile%, curl, connect-timeout, 10
 		
@@ -1119,7 +1137,7 @@ LoadFile(URL, FilePath, CheckDate=false) {
 			CurlLine.=" --connect-timeout " ct
 		If lr>0
 			CurlLine.=" --limit-rate " lr "K"
-		If showCurl
+		If RegExMatch(args, "i)/ShowCurl")
 			RunWait, %CurlLine%
 		Else
 			RunWait, %CurlLine%, , hide
@@ -1132,6 +1150,8 @@ LoadFile(URL, FilePath, CheckDate=false) {
 
 ;Использование системной темы
 systemTheme(){
+	If RegExMatch(args, "i)/NoUseTheme")
+		Return
 	uxtheme:=DllCall("GetModuleHandle", "str", "uxtheme", "ptr")
 	SetPreferredAppMode:=DllCall("GetProcAddress", "ptr", uxtheme, "ptr", 135, "ptr")
 	FlushMenuThemes:=DllCall("GetProcAddress", "ptr", uxtheme, "ptr", 136, "ptr")

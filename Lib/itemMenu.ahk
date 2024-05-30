@@ -25,7 +25,7 @@ ItemMenu_Show(){
 	
 	;Если установлен свой файл для 'Избранных команд', то продублируем его в 'Меню предмета'
 	IniRead, sMenu, %configFile%, settings, sMenu, MyMenu.fmenu
-	If ((ItemData="") && (sMenu!="MyMenu.fmenu") && FileExist(configFolder "\MyFiles\" sMenu)) {
+	If ((ItemData="") && FileExist(configFolder "\MyFiles\" sMenu)) {
 		fastMenu(configFolder "\MyFiles\" sMenu, !Gamepad)
 		Menu, itemMenu, Add, Избранные команды, :fastMenu
 		Menu, itemMenu, Add
@@ -277,7 +277,7 @@ ItemMenu_LoadDataFile(URL, Path){
 	If (LoadDate=CurrentDate)
 		return false
 	
-	tmpPath:=A_Temp "\MegaEzik\file.tmp"
+	tmpPath:=tempDir "\file.tmp"
 	LoadFile(URL, tmpPath)
 	FileRead, CurrentFileData, %Path%
 	FileRead, NewFileData, %tmpPath%
