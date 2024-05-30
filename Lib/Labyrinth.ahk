@@ -1,4 +1,9 @@
 ﻿
+/*
+[info]
+version=240107.5
+*/
+
 ;Загрузка изображения с раскладкой лабиринта соответствующего уровня
 downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false) {
 	;Сравним текущую дату UTC с датой загрузки лабиринта 

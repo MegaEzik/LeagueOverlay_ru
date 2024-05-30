@@ -1,4 +1,9 @@
 ﻿
+/*
+[info]
+version=240107.5
+*/
+
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
 ItemMenu_ConvertFromGame() {
 	ItemData:=IDCL_ConvertMain(Globals.Get("ItemDataFullText"))
