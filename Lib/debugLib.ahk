@@ -2,6 +2,7 @@
 ;Инициализация и создание меню разработчика
 devInit(){
 	devSpecialUpdater()
+	devLoadTrackingFiles()
 	
 	If RegExMatch(args, "i)/DebugMode")
 		debugMode:=1
@@ -11,6 +12,7 @@ devInit(){
 	Menu, devMenu, Add, Открыть 'Файл отладки', devOpenLog
 	Menu, devMenu, Add, Экран запуска(5 секунд), devStartUI
 	Menu, devMenu, Add, Задать файл 'Меню команд', devFavoriteList
+	Menu, devMenu, Add, Отслеживаемые ссылки, devShowTrackingList
 	Menu, devMenu, Add
 	Menu, devMenu, Add, Папка макроса, openScriptFolder	
 	Menu, devMenu, Add, Папка настроек, openConfigFolder
@@ -112,6 +114,21 @@ devFavoriteList(){
 
 devFavoriteSetFile(Name){
 	IniWrite, %Name%, %configFile%, settings, sMenu
+}
+
+devShowTrackingList(){
+	textFileWindow("Список прямых ссылок на файлы в интернете для автоматического отслеживания и загрузки в 'Мои файлы'", configFolder "\TrackingURLs.txt", false)
+}
+
+devLoadTrackingFiles(){
+	FileRead, Data, %configFolder%\TrackingURLs.txt
+	DataSplit:=strSplit(StrReplace(Data, "`r", ""), "`n")
+		For k, val in DataSplit
+			If (RegExMatch(DataSplit[k], "i)https://(.*).(png|jpg|jpeg|bmp|txt|fmenu)$")=1){
+				FileURL:=DataSplit[k]
+				SplitPath, FileURL, FileName
+				LoadFile(FileURL, configFolder "\MyFiles\" FileName, CheckDate=true)
+			}
 }
 
 devSpecialUpdater(){
