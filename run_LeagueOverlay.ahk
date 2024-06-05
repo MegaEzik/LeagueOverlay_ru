@@ -14,6 +14,7 @@
 		*itemMenu.ahk - Библиотека для формирования меню предмета
 		*Gamepad.ahk - Отвечает за игровой контроллер
 		*pkgsMgr.ahk - Управление дополнениями
+		*event.ahk - Библиотека отвечающая за события
 	
 	Управление:
 		[Alt+F1] - Последнее изображение
@@ -35,6 +36,7 @@ SetWorkingDir %A_ScriptDir%
 #Include <Updater>
 #Include <fastReply>
 #Include <debugLib>
+#Include <event>
 #Include <ItemDataConverterLib>
 #Include <itemMenu>
 #Include <Gamepad>
@@ -53,7 +55,7 @@ If !FileExist(tempDir)
 global configFile:=configFolder "\settings.ini"
 global buildConfig:=A_ScriptDir "\Data\Build.ini"
 global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, textCmd11, textCmd12, textCmd13, textCmd14, textCmd15, textCmd16, textCmd17, textCmd18, textCmd19, textCmd20, cmdNum=20
-global verScript, args, LastImg, globalOverlayPosition, OverlayStatus=0, debugMode=0
+global verScript, args, LastImg, globalOverlayPosition, OverlayStatus=0
 
 Loop, %0%
 	args.=" " %A_Index%
@@ -91,7 +93,9 @@ IniRead, update, %configFile%, settings, update, 1
 If update {
 	CheckUpdate()
 	updateAutoHotkey()
+	updateLib("debugLib.ahk")
 	updateLib("Labyrinth.ahk")
+	updateLib("event.ahk")
 	updateLib("ItemDataConverterLib.ahk")
 	updateLib("itemMenu.ahk")
 }
@@ -127,16 +131,16 @@ Return
 checkRequirementsAndArgs() {
 	If !A_IsAdmin
 		ReStart()
-	If GetKeyState("Ctrl", P) && !RegExMatch(args, "i)/DebugMode") {
-		args.=" /DebugMode"
-		ReStart()
-	}
 	IniRead, startArgs, %configFile%, settings, startArgs, %A_Space%
 	If (startArgs!="") && !InStr(startArgs, "  ") {
 		If !RegExMatch(args, Trim(startArgs)) {
 			args.=" " StartArgs
 			ReStart()
 		}
+	}
+	If GetKeyState("Ctrl", P) && !RegExMatch(args, "i)/DebugMode") {
+		args.=" /DebugMode"
+		ReStart()
 	}
 	/*
 	If !DllCall("Wininet\InternetCheckConnection", Str, "https://ya.ru/", UInt, FLAG_ICC_FORCE_CONNECTION := 1, UInt, 0)
@@ -249,67 +253,6 @@ LeaguesList(){
 	leagues_list:=subStr(leagues_list, 2)
 	
 	return leagues_list
-}
-
-;Загрузить событие
-loadEvent(){
-	IniRead, EventURL, %buildConfig%, settings, EventURL, %A_Space%
-	IniRead, useEvent, %configFile%, settings, useEvent, 1
-	If !useEvent || (EventURL="")
-		return
-	
-	;EventPath:=A_Temp "\MegaEzik\LOEvent\event.txt"
-	EventPath:=configFolder "\Event\event.txt"
-	LoadFile(eventURL, EventPath, true)
-	FormatTime, CurrentDate, %A_Now%, yyyyMMdd
-	
-	IniRead, EventName, %EventPath%, Event, EventName, %A_Space%
-	IniRead, EventLogo, %EventPath%, Event, EventLogo, %A_Space%
-	IniRead, EventMsg, %EventPath%, Event, EventMsg, %A_Space%
-	IniRead, Require, %EventPath%, Event, Require, %A_Space%
-	
-	IniRead, StartDate, %EventPath%, Event, StartDate, %A_Space%
-	IniRead, EndDate, %EventPath%, Event, EndDate, %A_Space%
-	IniRead, MinVersion, %EventPath%, Event, MinVersion, %A_Space%
-	
-	If (EventName="" || MinVersion>verScript || StartDate="" || EndDate="" || CurrentDate<StartDate || CurrentDate>EndDate)
-		return
-	
-	If (Require!="") {
-		IniRead, preset, %configFile%, settings, preset, %A_Space%
-		If !RegExMatch(preset, Require)
-			return
-	}
-	
-	EventName.="(" SubStr(EndDate, 7, 2) "." SubStr(EndDate, 5, 2) ")"
-	
-	If (EventLogo!="")
-		LoadFile(EventLogo, configFolder "\Event\bg.jpg", true)
-	
-	showStartUI(EventName "`n" EventMsg, (EventLogo!="")?configFolder "\Event\bg.jpg":"")
-	
-	eventDataSplit:=StrSplit(loadFastFile(EventPath), "`n")
-	For k, val in eventDataSplit
-		If RegExMatch(eventDataSplit[k], "ResourceFile=(.*)$", rURL)=1
-			loadEventResourceFile(rURL1)
-			
-	Globals.Set("eventName", EventName)
-	
-	Sleep 1000
-	
-	return
-}
-
-;Загрузить файл для события
-loadEventResourceFile(URL){
-	eventFileSplit:=strSplit(URL, "/")
-	filePath:=configFolder "\Event\" eventFileSplit[eventFileSplit.MaxIndex()]
-	LoadFile(URL, filePath, true)
-}
-
-;Меню события
-eventMenu(){
-	shFastMenu(configFolder "\Event\event.txt", false)
 }
 
 ;Открыть мой файл
@@ -1126,7 +1069,7 @@ LoadFile(URL, FilePath, CheckDate=false) {
 	
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	If (UserAgent="")
-		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
+		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
 	
 	If FileExist(A_WinDir "\System32\curl.exe") && !RegExMatch(args, "i)/NoCurl") {
 		IniRead, lr, %configFile%, curl, limit-rate, 1000

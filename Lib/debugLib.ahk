@@ -1,18 +1,20 @@
 ﻿
+/*
+[info]
+version=240530.1
+*/
+
 ;Инициализация и создание меню разработчика
 devInit(){
 	devSpecialUpdater()
 	devLoadTrackingFiles()
 	
-	If RegExMatch(args, "i)/DebugMode")
-		debugMode:=1
-	
 	;traytip, %prjName%, Режим отладки активен!
 	
 	Menu, devMenu, Add, Открыть 'Файл отладки', devOpenLog
 	Menu, devMenu, Add, Экран запуска(5 секунд), devStartUI
-	Menu, devMenu, Add, Задать файл 'Меню команд', devFavoriteList
 	Menu, devMenu, Add, Отслеживаемые ссылки, devShowTrackingList
+	Menu, devMenu, Add, Задать файл 'Меню команд', devFavoriteList
 	Menu, devMenu, Add
 	Menu, devMenu, Add, Папка макроса, openScriptFolder	
 	Menu, devMenu, Add, Папка настроек, openConfigFolder
@@ -57,7 +59,7 @@ devClSD(){
 
 ;Запись отладочной информации
 devLog(msg){
-	If !debugMode
+	If !RegExMatch(args, "i)/DebugMode")
 		return
 	FormatTime, Time, dddd MMMM, dd.MM HH:mm:ss
 	FileAppend, %Time% v%verScript% - %msg%`n, %configFolder%\%prjName%.log, UTF-8
@@ -70,7 +72,7 @@ devOpenLog(){
 
 ;Добавление в отслеживаемый список
 devAddInList(Line){
-	If !debugMode
+	If !RegExMatch(args, "i)/DebugMode")
 		return
 	FilePath:=configFolder "\devList.txt"
 	FileRead, DataList, %FilePath%
