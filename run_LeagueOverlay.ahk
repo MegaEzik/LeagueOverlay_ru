@@ -14,7 +14,6 @@
 		*itemMenu.ahk - Библиотека для формирования меню предмета
 		*Gamepad.ahk - Отвечает за игровой контроллер
 		*pkgsMgr.ahk - Управление дополнениями
-		*event.ahk - Библиотека отвечающая за события
 	
 	Управление:
 		[Alt+F1] - Последнее изображение
@@ -36,7 +35,6 @@ SetWorkingDir %A_ScriptDir%
 #Include <Updater>
 #Include <fastReply>
 #Include <debugLib>
-#Include <event>
 #Include <ItemDataConverterLib>
 #Include <itemMenu>
 #Include <Gamepad>
@@ -54,8 +52,7 @@ If !FileExist(tempDir)
 	FileCreateDir, %tempDir%
 global configFile:=configFolder "\settings.ini"
 global buildConfig:=A_ScriptDir "\Data\Build.ini"
-global textCmd1, textCmd2, textCmd3, textCmd4, textCmd5, textCmd6, textCmd7, textCmd8, textCmd9, textCmd10, textCmd11, textCmd12, textCmd13, textCmd14, textCmd15, textCmd16, textCmd17, textCmd18, textCmd19, textCmd20, cmdNum=20
-global verScript, args, LastImg, globalOverlayPosition, OverlayStatus=0
+global verScript, args, LastImg, globalOverlayPosition, OverlayStatus=0, cmdNum=20
 
 Loop, %0%
 	args.=" " %A_Index%
@@ -78,11 +75,6 @@ For k, val in splitWinList
 	
 ;Проверка требований и параметров запуска
 checkRequirementsAndArgs()
-	
-;Установка иконки и описания в области уведомлений
-If FileExist("Data\imgs\icon.png")
-	Menu, Tray, Icon, Data\imgs\icon.png
-Menu, Tray, Tip, %prjName% %verScript% | AHK %A_AhkVersion%
 
 ;UI загрузки и загрузка инструментов разработчика
 showStartUI()
@@ -95,7 +87,6 @@ If update {
 	updateAutoHotkey()
 	updateLib("debugLib.ahk")
 	updateLib("Labyrinth.ahk")
-	updateLib("event.ahk")
 	updateLib("ItemDataConverterLib.ahk")
 	updateLib("itemMenu.ahk")
 }
@@ -519,6 +510,9 @@ showStartUI(SpecialText="", LogoPath=""){
 
 ;Закрыть окно запуска
 closeStartUI(){
+	If FileExist("Data\imgs\icon.png")
+		Menu, Tray, Icon, Data\imgs\icon.png
+	Menu, Tray, Tip, %prjName% %verScript% | AHK %A_AhkVersion%
 	sleep 50
 	Gui, StartUI:Destroy
 	IniRead, showHistory, %configFile%, info, showHistory, 1
@@ -533,6 +527,13 @@ closeStartUI(){
 showSettings(){
 	global
 	Gui, Settings:Destroy
+	
+	Menu, settingsMenuBar, Add
+	Menu, settingsMenuBar, DeleteAll
+	Menu, settingsMenuBar, Add, Применить и перезапустить, saveSettings
+	Menu, settingsMenuBar, Default, Применить и перезапустить
+	Menu, settingsMenuBar, Add, Мои файлы, openMyFilesFolder
+	Gui, Settings:Menu, settingsMenuBar
 	
 	IniRead, dMsg, %buildConfig%, Donation, Msg, %A_Space%
 	IniRead, dEdit1, %buildConfig%, Donation, Edit1, %A_Space%
@@ -590,15 +591,15 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x12 y8 w300 BackgroundTrans, %dMsg%
 	
-	Gui, Settings:Font, s11
-	Gui, Settings:Add, Button, x320 y392 w180 h23 gsaveSettings, Применить
+	;Gui, Settings:Font, s11
+	;Gui, Settings:Add, Button, x320 y392 w180 h23 gsaveSettings disabled, Применить
 	
-	Gui, Settings:Add, Tab3, x0 y70 w500 h345 Bottom, Основные|Загрузки|Команды
+	Gui, Settings:Add, Tab3, x0 y70 w500 h345, Основные|Загрузки|Быстрые команды
 	;Gui, Settings:Add, Tab, x0 y75 w640 h385 Bottom, Основные|Загрузки|Команды ;Вкладки
 	Gui, Settings:Font, s8 normal
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
-	Gui, Settings:Add, Checkbox, vautoStartEnabled x12 y80 w480 Checked%autoStartEnabled%, Запустить %prjName% при запуске Windows
+	Gui, Settings:Add, Checkbox, vautoStartEnabled x12 y100 w480 Checked%autoStartEnabled%, Запустить %prjName% при запуске Windows
 	
 	Gui, Settings:Add, Text, x12 yp+20 w110, Параметры запуска:
 	Gui, Settings:Add, Edit, vstartArgs x+2 yp-2 w346 h17, %startArgs%
@@ -673,7 +674,7 @@ showSettings(){
 	
 	Gui, Settings:Tab, 2 ;Вторая вкладка
 	
-		Gui, Settings:Add, Text, x12 y80 w120, cURL | User-Agent:
+		Gui, Settings:Add, Text, x12 y100 w120, cURL | User-Agent:
 	Gui, Settings:Add, Edit, vUserAgent x+2 yp-2 w355 h17, %UserAgent%
 	
 	Gui, Settings:Add, Text, x12 yp+20 w345, cURL | Ограничение загрузки(Кб/с, 0 - без лимита):
@@ -704,7 +705,7 @@ showSettings(){
 	
 	Gui, Settings:Tab, 3 ; Третья вкладка
 	
-	Gui, Settings:Add, Text, x12 y80 w0 h0
+	Gui, Settings:Add, Text, x12 y100 w0 h0
 	
 	;Настраиваемые команды fastReply
 	LoopVar:=cmdNum/2
@@ -824,9 +825,10 @@ setHotkeys(){
 	;Инициализация настраиваемых команд fastReply
 	Loop %cmdNum% {
 		IniRead, tempvar, %configFile%, fastReply, textCmd%A_Index%, %A_Space%
-		textCmd%A_Index%:=tempvar
+		;textCmd%A_Index%:=tempvar
+		Globals.Set("fR" A_Index, tempvar)
 		IniRead, tempVar, %configFile%, fastReply, hotkeyCmd%A_Index%, %A_Space%
-		If (textCmd%A_Index%!="")  && (RegExMatch(textCmd%A_Index%, ";")!=1) && (tempVar!="")
+		If (tempVar!="")
 			Hotkey, % tempVar, fastCmd%A_Index%, On
 	}
 	
@@ -923,7 +925,6 @@ menuCreate(){
 	Menu, Tray, Add
 	Menu, Tray, Add, Настройки, showSettings
 	Menu, Tray, Default, Настройки
-	Menu, Tray, Add, Открыть 'Мои файлы', openMyFilesFolder
 	Menu, Tray, Add, Очистить кэш PoE, clearPoECache
 	Menu, Tray, Add, Дополнения, pkgsMgr_packagesMenu
 	Menu, Tray, Add, Меню отладки, :devMenu

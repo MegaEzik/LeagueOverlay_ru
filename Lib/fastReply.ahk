@@ -1,82 +1,82 @@
 ﻿
 fastCmd1(){
-	commandFastReply(textCmd1)
+	commandFastReply(Globals.Get("fR" 1))
 }
 
 fastCmd2(){
-	commandFastReply(textCmd2)
+	commandFastReply(Globals.Get("fR" 2))
 }
 
 fastCmd3(){
-	commandFastReply(textCmd3)
+	commandFastReply(Globals.Get("fR" 3))
 }
 
 fastCmd4(){
-	commandFastReply(textCmd4)
+	commandFastReply(Globals.Get("fR" 4))
 }
 
 fastCmd5(){
-	commandFastReply(textCmd5)
+	commandFastReply(Globals.Get("fR" 5))
 }
 
 fastCmd6(){
-	commandFastReply(textCmd6)
+	commandFastReply(Globals.Get("fR" 6))
 }
 
 fastCmd7(){
-	commandFastReply(textCmd7)
+	commandFastReply(Globals.Get("fR" 7))
 }
 
 fastCmd8(){
-	commandFastReply(textCmd8)
+	commandFastReply(Globals.Get("fR" 8))
 }
 
 fastCmd9(){
-	commandFastReply(textCmd9)
+	commandFastReply(Globals.Get("fR" 9))
 }
 
 fastCmd10(){
-	commandFastReply(textCmd10)
+	commandFastReply(Globals.Get("fR" 10))
 }
 
 fastCmd11(){
-	commandFastReply(textCmd11)
+	commandFastReply(Globals.Get("fR" 11))
 }
 
 fastCmd12(){
-	commandFastReply(textCmd12)
+	commandFastReply(Globals.Get("fR" 12))
 }
 
 fastCmd13(){
-	commandFastReply(textCmd13)
+	commandFastReply(Globals.Get("fR" 13))
 }
 
 fastCmd14(){
-	commandFastReply(textCmd14)
+	commandFastReply(Globals.Get("fR" 14))
 }
 
 fastCmd15(){
-	commandFastReply(textCmd15)
+	commandFastReply(Globals.Get("fR" 15))
 }
 
 fastCmd16(){
-	commandFastReply(textCmd16)
+	commandFastReply(Globals.Get("fR" 16))
 }
 
 fastCmd17(){
-	commandFastReply(textCmd17)
+	commandFastReply(Globals.Get("fR" 17))
 }
 
 fastCmd18(){
-	commandFastReply(textCmd18)
+	commandFastReply(Globals.Get("fR" 18))
 }
 
 fastCmd19(){
-	commandFastReply(textCmd19)
+	commandFastReply(Globals.Get("fR" 19))
 }
 
 fastCmd20(){
-	commandFastReply(textCmd20)
+	commandFastReply(Globals.Get("fR" 20))
 }
 
 /*
@@ -87,6 +87,8 @@ customCmdsEdit() {
 
 ;Обработка команды
 commandFastReply(Line:="/dance"){
+	If (Line="") || RegExMatch(Line, ";")=1
+		return
 	;DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", 0x50, "UInt", 0x4090409, "UInt", 0x4090409)
 	;sleep 25
 	
