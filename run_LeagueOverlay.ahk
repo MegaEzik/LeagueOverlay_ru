@@ -76,6 +76,11 @@ For k, val in splitWinList
 ;Проверка требований и параметров запуска
 checkRequirementsAndArgs()
 
+;Установка иконки и описания в области уведомлений
+Menu, Tray, Tip, %prjName% %verScript% | AHK %A_AhkVersion%
+If FileExist("Data\imgs\icon.png")
+	Menu, Tray, Icon, Data\imgs\icon.png
+	
 ;UI загрузки и загрузка инструментов разработчика
 showStartUI()
 devInit()
@@ -83,12 +88,14 @@ devInit()
 ;Проверка обновлений
 IniRead, update, %configFile%, settings, update, 1
 If update {
-	CheckUpdate()
+	CheckUpdate(True)
+	SetTimer, CheckUpdate, 7200000
 	updateAutoHotkey()
 	updateLib("debugLib.ahk")
 	updateLib("Labyrinth.ahk")
 	updateLib("ItemDataConverterLib.ahk")
 	updateLib("itemMenu.ahk")
+	LeaguesList()
 }
 
 ;Проверка версии и перенос настроек
@@ -510,8 +517,6 @@ showStartUI(SpecialText="", LogoPath=""){
 
 ;Закрыть окно запуска
 closeStartUI(){
-	If FileExist("Data\imgs\icon.png")
-		Menu, Tray, Icon, Data\imgs\icon.png
 	Menu, Tray, Tip, %prjName% %verScript% | AHK %A_AhkVersion%
 	sleep 50
 	Gui, StartUI:Destroy
@@ -527,13 +532,6 @@ closeStartUI(){
 showSettings(){
 	global
 	Gui, Settings:Destroy
-	
-	Menu, settingsMenuBar, Add
-	Menu, settingsMenuBar, DeleteAll
-	Menu, settingsMenuBar, Add, Применить и перезапустить, saveSettings
-	Menu, settingsMenuBar, Default, Применить и перезапустить
-	Menu, settingsMenuBar, Add, Мои файлы, openMyFilesFolder
-	Gui, Settings:Menu, settingsMenuBar
 	
 	IniRead, dMsg, %buildConfig%, Donation, Msg, %A_Space%
 	IniRead, dEdit1, %buildConfig%, Donation, Edit1, %A_Space%
@@ -559,7 +557,7 @@ showSettings(){
 	IniRead, mouseDistance, %configFile%, settings, mouseDistance, 500
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
-	IniRead, hotkeyGamepad, %configFile%, hotkeys, hotkeyGamepad, %A_Space%
+	IniRead, hotkeyGamepad, %configFile%, hotkeys, hotkeyGamepad, vk07
 	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, !c
 	
 	IniRead, league, %configFile%, settings, league, Standard
@@ -584,6 +582,8 @@ showSettings(){
 	If FileExist("Data\imgs\bg.jpg")
 		Gui, Settings:Add, Picture, x0 y0 w500 h70, Data\imgs\bg.jpg
 	
+	Gui, Settings:Font, s8 normal
+	
 	Gui, Settings:Add, Text, x320 y2 w170 +Right BackgroundTrans, %dInfo1%: 
 	Gui, Settings:Add, Edit, x320 y+1 w170 h18 +ReadOnly +Right, %dEdit1%
 	Gui, Settings:Add, Text, x320 y+2 w170 +Right BackgroundTrans, %dInfo2%: 
@@ -592,14 +592,14 @@ showSettings(){
 	Gui, Settings:Add, Text, x12 y8 w300 BackgroundTrans, %dMsg%
 	
 	;Gui, Settings:Font, s11
-	;Gui, Settings:Add, Button, x320 y392 w180 h23 gsaveSettings disabled, Применить
+	Gui, Settings:Add, Button, x320 y392 w180 h23 gsaveSettings, Применить и перезапустить
 	
-	Gui, Settings:Add, Tab3, x0 y70 w500 h345, Основные|Загрузки|Быстрые команды
+	Gui, Settings:Add, Tab3, x0 y70 w500 h345 Bottom, Основные|Загрузки|Быстрые команды
 	;Gui, Settings:Add, Tab, x0 y75 w640 h385 Bottom, Основные|Загрузки|Команды ;Вкладки
-	Gui, Settings:Font, s8 normal
+	;Gui, Settings:Font, s8 normal
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
-	Gui, Settings:Add, Checkbox, vautoStartEnabled x12 y100 w480 Checked%autoStartEnabled%, Запустить %prjName% при запуске Windows
+	Gui, Settings:Add, Checkbox, vautoStartEnabled x12 y80 w480 Checked%autoStartEnabled%, Запустить %prjName% при запуске Windows
 	
 	Gui, Settings:Add, Text, x12 yp+20 w110, Параметры запуска:
 	Gui, Settings:Add, Edit, vstartArgs x+2 yp-2 w346 h17, %startArgs%
@@ -642,7 +642,7 @@ showSettings(){
 	
 	Gui, Settings:Add, Text, x10 y+2 w480 h1 0x12
 	
-	Gui, Settings:Add, Text, x12 yp+6 w145, Быстрый доступ:
+	Gui, Settings:Add, Text, x12 yp+6 w145, Меню быстрого доступа:
 		Gui, Settings:Add, Button, x+1 yp-3 w200 h19 gcfgGamepad, Геймпад - Удерживайте [%hotkeyGamepad%]
 	Gui, Settings:Add, Hotkey, vhotkeyMainMenu x+1 yp+1 w130 h17, %hotkeyMainMenu%
 	
@@ -674,7 +674,7 @@ showSettings(){
 	
 	Gui, Settings:Tab, 2 ;Вторая вкладка
 	
-		Gui, Settings:Add, Text, x12 y100 w120, cURL | User-Agent:
+		Gui, Settings:Add, Text, x12 y80 w120, cURL | User-Agent:
 	Gui, Settings:Add, Edit, vUserAgent x+2 yp-2 w355 h17, %UserAgent%
 	
 	Gui, Settings:Add, Text, x12 yp+20 w345, cURL | Ограничение загрузки(Кб/с, 0 - без лимита):
@@ -705,7 +705,7 @@ showSettings(){
 	
 	Gui, Settings:Tab, 3 ; Третья вкладка
 	
-	Gui, Settings:Add, Text, x12 y100 w0 h0
+	Gui, Settings:Add, Text, x12 y80 w0 h0
 	
 	;Настраиваемые команды fastReply
 	LoopVar:=cmdNum/2
@@ -926,6 +926,7 @@ menuCreate(){
 	Menu, Tray, Add, Настройки, showSettings
 	Menu, Tray, Default, Настройки
 	Menu, Tray, Add, Очистить кэш PoE, clearPoECache
+	Menu, Tray, Add, Открыть 'Мои файлы', openMyFilesFolder
 	Menu, Tray, Add, Дополнения, pkgsMgr_packagesMenu
 	Menu, Tray, Add, Меню отладки, :devMenu
 	Menu, Tray, Add

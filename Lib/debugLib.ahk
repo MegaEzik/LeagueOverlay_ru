@@ -1,8 +1,37 @@
 ﻿
 /*
 [info]
-version=240612
+version=240612.1
 */
+
+;Инициализация и создание меню разработчика
+devInit(){
+	devSpecialUpdater()
+	devLoadTrackingFiles()
+	
+	;traytip, %prjName%, Режим отладки активен!
+	
+	Menu, devMenu, Add, Открыть 'Файл отладки', devOpenLog
+	Menu, devMenu, Add, Экран запуска(5 секунд), devStartUI
+	Menu, devMenu, Add, Отслеживаемые ссылки, devShowTrackingList
+	Menu, devMenu, Add, Задать файл 'Меню команд', devFavoriteList
+	Menu, devMenu, Add
+	Menu, devMenu, Add, Папка макроса, openScriptFolder	
+	Menu, devMenu, Add, Папка настроек, openConfigFolder
+	Menu, devMenu, Add
+	Menu, devMenu, Add, Откатиться на последнюю версию, devRestoreRelease
+	Menu, devMenu, Add, Перезагрузить данные, devClSD
+	Menu, devSubMenu1, Add, https://poelab.com/gtgax, reloadLab
+	Menu, devSubMenu1, Add, https://poelab.com/r8aws, reloadLab
+	Menu, devSubMenu1, Add, https://poelab.com/riikv, reloadLab
+	Menu, devSubMenu1, Add, https://poelab.com/wfbra, reloadLab
+	;Menu, devMenu, Add, Лабиринт, :devSubMenu1
+	If FileExist("CreaterRuToEnLines\_Creater.ahk")
+		Menu, devMenu, Add, Инструмент для 'Файлов соответствий', devCreaterRuToEnLines
+	Menu, devMenu, Add
+	Menu, devSubMenu2, Standard
+	Menu, devMenu, Add, AutoHotkey, :devSubMenu2
+}
 
 ;Загрузить событие
 loadEvent(){
@@ -84,35 +113,6 @@ updateLib(libName){
 		MsgBox,  0x1040, %prjName%, Обновлена библиотека '%libName%'`n`t%currentVerLib% >> %newVerLib%, 2
 		ReStart()
 	}
-}
-
-;Инициализация и создание меню разработчика
-devInit(){
-	devSpecialUpdater()
-	devLoadTrackingFiles()
-	
-	;traytip, %prjName%, Режим отладки активен!
-	
-	Menu, devMenu, Add, Открыть 'Файл отладки', devOpenLog
-	Menu, devMenu, Add, Экран запуска(5 секунд), devStartUI
-	Menu, devMenu, Add, Отслеживаемые ссылки, devShowTrackingList
-	Menu, devMenu, Add, Задать файл 'Меню команд', devFavoriteList
-	Menu, devMenu, Add
-	Menu, devMenu, Add, Папка макроса, openScriptFolder	
-	Menu, devMenu, Add, Папка настроек, openConfigFolder
-	Menu, devMenu, Add
-	Menu, devMenu, Add, Откатиться на последнюю версию, devRestoreRelease
-	Menu, devMenu, Add, Перезагрузить данные, devClSD
-	Menu, devSubMenu1, Add, https://poelab.com/gtgax, reloadLab
-	Menu, devSubMenu1, Add, https://poelab.com/r8aws, reloadLab
-	Menu, devSubMenu1, Add, https://poelab.com/riikv, reloadLab
-	Menu, devSubMenu1, Add, https://poelab.com/wfbra, reloadLab
-	;Menu, devMenu, Add, Лабиринт, :devSubMenu1
-	If FileExist("CreaterRuToEnLines\_Creater.ahk")
-		Menu, devMenu, Add, Инструмент для 'Файлов соответствий', devCreaterRuToEnLines
-	Menu, devMenu, Add
-	Menu, devSubMenu2, Standard
-	Menu, devMenu, Add, AutoHotkey, :devSubMenu2
 }
 
 devCreaterRuToEnLines(){

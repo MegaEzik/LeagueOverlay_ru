@@ -1,14 +1,22 @@
 ﻿
 ;Проверка обновлений
-CheckUpdate() {
+StatusUpdate() {
 	releaseinfo:=DownloadToVar("https://api.github.com/repos/" githubUser "/" prjName "/releases/latest")
 	parsedJSON:=JSON.Load(releaseinfo)
 	verRelease:=parsedJSON.tag_name
 	If (verRelease="" || verScript="" || verRelease<=verScript)
-		return
-	MsgBox, 0x1024, Обновление %prjName%, Установлена версия: %verScript%`nДоступна версия: %verRelease%`n`nХотите выполнить обновление до версии %verRelease%?
+		Return False
+	TrayTip, %prjName%, Доступно обновление %verRelease%!
+	Return verRelease
+}
+
+CheckUpdate(onStart=False){
+	ReadyUpdate:=StatusUpdate()
+	If (ReadyUpdate && onStart) {
+		MsgBox, 0x1024, %prjName%, Установлена версия: %verScript%`nДоступна версия: %ReadyUpdate%`n`nХотите выполнить обновление до версии %ReadyUpdate%?
 		IfMsgBox Yes
-			StartUpdate(verRelease)
+			StartUpdate(ReadyUpdate)
+	}
 }
 
 ;Запуск процесса обновления
