@@ -52,7 +52,7 @@ If !FileExist(tempDir)
 	FileCreateDir, %tempDir%
 global configFile:=configFolder "\settings.ini"
 global buildConfig:=A_ScriptDir "\Data\Build.ini"
-global verScript, args, LastImg, globalOverlayPosition, OverlayStatus=0, cmdNum=20
+global verScript, args, LastImg, globalOverlayPosition, startProgress, OverlayStatus=0, cmdNum=20
 
 Loop, %0%
 	args.=" " %A_Index%
@@ -90,25 +90,35 @@ IniRead, update, %configFile%, settings, update, 1
 If update {
 	CheckUpdate(True)
 	SetTimer, CheckUpdate, 7200000
+	suip(15)
 	updateAutoHotkey()
+	suip(20)
 	updateLib("debugLib.ahk")
+	suip(22)
 	updateLib("Labyrinth.ahk")
+	suip(24)
 	updateLib("ItemDataConverterLib.ahk")
+	suip(26)
 	updateLib("itemMenu.ahk")
+	suip(28)
 	LeaguesList()
+	suip(30)
 }
 
 ;Проверка версии и перенос настроек
 migrateConfig()
-
 ;Загрузка события, лабиринта, и данных для IDCL
 ;LoadFile("http://api.pathofexile.com/leagues?type=main", A_ScriptDir "\Data\JSON\leagues.json", true)
 loadEvent()
+suip(60)
 initLab()
+suip(75)
 ItemMenu_IDCLInit()
+suip(85)
 
 ;Выполним все файлы с окончанием .ahk, передав им папку расположения скрипта
 pkgsMgr_startCustomScripts()
+suip(97)
 
 ;Назначим управление и создадим меню
 menuCreate()
@@ -492,17 +502,25 @@ showStartUI(SpecialText="", LogoPath=""){
 		Gui, StartUI:Add, Picture, x0 y0 w500 h70, %LogoPath%
 	
 	BGTitle:="7F3208"
+	
+	;Gui StartUI:Add, Progress, x0 y24 w500 h4 cFDBD75 BackgroundFFFFFF vstartProgress
+	Gui StartUI:Add, Progress, x0 y22 w500 h4 c%BGTitle% BackgroundFFFFFF vstartProgress
+	If (SpecialText="") {
+		Globals.Set("vProgress", 0)
+		suip(5)
+	}
+	SetTimer, updStartProgress, 25
 
 	Gui, StartUI:Font, s12 c%BGTitle% bold
 	
 	Gui, StartUI:Add, Text, x5 y2 h20 w490 +Center BackgroundTrans, %prjName% %verScript% | AHK %A_AhkVersion%
 	
-	Gui, StartUI:Add, Text, x-5 y+2 w510 h1 0x12
+	;Gui, StartUI:Add, Text, x-5 y+2 w510 h1 0x12
 	
 	Gui, StartUI:Font, c000000
 	
 	Gui, StartUI:Font, s10 bold italic
-	Gui, StartUI:Add, Text, x0 y+2 h30 w500 +Center BackgroundTrans, %initMsg%
+	Gui, StartUI:Add, Text, x0 y+5 h30 w500 +Center BackgroundTrans, %initMsg%
 	
 	Gui, StartUI:Font, s8 norm
 	Gui, StartUI:Add, Text, x4 y55 w150 BackgroundTrans, %dName%
@@ -518,7 +536,9 @@ showStartUI(SpecialText="", LogoPath=""){
 ;Закрыть окно запуска
 closeStartUI(){
 	Menu, Tray, Tip, %prjName% %verScript% | AHK %A_AhkVersion%
-	sleep 50
+	suip(100)
+	sleep 100
+	SetTimer, updStartProgress, Delete
 	Gui, StartUI:Destroy
 	IniRead, showHistory, %configFile%, info, showHistory, 1
 	If showHistory {
@@ -527,6 +547,21 @@ closeStartUI(){
 	}
 	traytip, %prjName%, Поддержи %githubUser% <3
 }
+
+;Текущее значение прогресса
+suip(num){
+	Globals.Set("pProgress", num)
+}
+
+;Обновление прогресс бара запуска
+updStartProgress(){
+	If(Globals.Get("pProgress")>Globals.Get("vProgress")) {
+		Globals.Set("vProgress", Globals.Get("vProgress")+2)
+	}
+	ProgressNum:=Globals.Get("vProgress")
+	GuiControl StartUI:, startProgress, %ProgressNum%
+}
+
 
 ;Настройки
 showSettings(){
@@ -561,7 +596,6 @@ showSettings(){
 	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, !c
 	
 	IniRead, league, %configFile%, settings, league, Standard
-	IniRead, hotkeyPrediction, %configFile%, hotkeys, hotkeyPrediction, %A_Space%
 	IniRead, hotkeyHeistScanner, %configFile%, hotkeys, hotkeyHeistScanner, %A_Space%
 	
 	;Настройки второй вкладки
@@ -665,11 +699,6 @@ showSettings(){
 	If FileExist(configFolder "/HeistScanner.ahk"){
 		Gui, Settings:Add, Text, x12 yp+25 w345, Сканер витрин Кражи(HeistScanner):
 		Gui, Settings:Add, Hotkey, vhotkeyHeistScanner x+2 yp-2 w130 h17, %hotkeyHeistScanner%
-	}
-	
-	If FileExist(configFolder "/ruPrediction.ahk"){
-		Gui, Settings:Add, Text, x12 yp+21 w345, Оценка с помощью poeprices.info(ruPrediction):
-		Gui, Settings:Add, Hotkey, vhotkeyPrediction x+2 yp-2 w130 h17, %hotkeyPrediction%
 	}
 	
 	Gui, Settings:Tab, 2 ;Вторая вкладка
@@ -777,7 +806,6 @@ saveSettings(){
 	IniWrite, %hotkeyItemMenu%, %configFile%, hotkeys, hotkeyItemMenu
 	
 	IniWrite, %league%, %configFile%, settings, league
-	IniWrite, %hotkeyPrediction%, %configFile%, hotkeys, hotkeyPrediction
 	IniWrite, %hotkeyHeistScanner%, %configFile%, hotkeys, hotkeyHeistScanner
 	
 	;Настройки второй вкладки

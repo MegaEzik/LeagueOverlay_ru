@@ -167,7 +167,9 @@ devAddInList(Line){
 
 devStartUI(){
 	InputBox, inputLine, Введите текст,,, 300, 100
-	showStartUI(inputLine)
+	Globals.Set("vProgress", 0)
+	Globals.Set("pProgress", 90)
+	showStartUI((inputLine="")?"Здесь могла быть ваша реклама...":inputLine)
 	sleep 5000
 	closeStartUI()
 }
