@@ -88,37 +88,37 @@ devInit()
 ;Проверка обновлений
 IniRead, update, %configFile%, settings, update, 1
 If update {
+	suip(15)
 	CheckUpdate(True)
 	SetTimer, CheckUpdate, 7200000
-	suip(15)
-	updateAutoHotkey()
 	suip(20)
-	updateLib("debugLib.ahk")
+	updateAutoHotkey()
 	suip(22)
-	updateLib("Labyrinth.ahk")
+	updateLib("debugLib.ahk")
 	suip(24)
-	updateLib("ItemDataConverterLib.ahk")
+	updateLib("Labyrinth.ahk")
 	suip(26)
-	updateLib("itemMenu.ahk")
+	updateLib("ItemDataConverterLib.ahk")
 	suip(28)
-	LeaguesList()
+	updateLib("itemMenu.ahk")
 	suip(30)
+	LeaguesList()
 }
 
 ;Проверка версии и перенос настроек
 migrateConfig()
 ;Загрузка события, лабиринта, и данных для IDCL
 ;LoadFile("http://api.pathofexile.com/leagues?type=main", A_ScriptDir "\Data\JSON\leagues.json", true)
-loadEvent()
 suip(60)
-initLab()
+loadEvent()
 suip(75)
-ItemMenu_IDCLInit()
+initLab()
 suip(85)
+ItemMenu_IDCLInit()
 
 ;Выполним все файлы с окончанием .ahk, передав им папку расположения скрипта
-pkgsMgr_startCustomScripts()
 suip(97)
+pkgsMgr_startCustomScripts()
 
 ;Назначим управление и создадим меню
 menuCreate()
@@ -509,7 +509,7 @@ showStartUI(SpecialText="", LogoPath=""){
 		Globals.Set("vProgress", 0)
 		suip(5)
 	}
-	SetTimer, updStartProgress, 25
+	SetTimer, updStartProgress, 15
 
 	Gui, StartUI:Font, s12 c%BGTitle% bold
 	
@@ -556,7 +556,7 @@ suip(num){
 ;Обновление прогресс бара запуска
 updStartProgress(){
 	If(Globals.Get("pProgress")>Globals.Get("vProgress")) {
-		Globals.Set("vProgress", Globals.Get("vProgress")+2)
+		Globals.Set("vProgress", Globals.Get("vProgress")+1)
 	}
 	ProgressNum:=Globals.Get("vProgress")
 	GuiControl StartUI:, startProgress, %ProgressNum%
