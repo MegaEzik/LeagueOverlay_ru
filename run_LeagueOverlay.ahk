@@ -536,8 +536,9 @@ showStartUI(SpecialText="", LogoPath=""){
 ;Закрыть окно запуска
 closeStartUI(){
 	Menu, Tray, Tip, %prjName% %verScript% | AHK %A_AhkVersion%
+	Globals.Set("vProgress", 100)
 	suip(100)
-	sleep 100
+	sleep 150
 	SetTimer, updStartProgress, Delete
 	Gui, StartUI:Destroy
 	IniRead, showHistory, %configFile%, info, showHistory, 1
