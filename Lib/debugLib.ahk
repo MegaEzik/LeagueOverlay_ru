@@ -123,7 +123,7 @@ devCreaterRuToEnLines(){
 devRestoreRelease() {
 	IniWrite, 0, %configFile%, info, verConfig
 	verScript:=0
-	CheckUpdate()
+	CheckUpdate(True)
 }
 
 ;Перезагрузка данных
