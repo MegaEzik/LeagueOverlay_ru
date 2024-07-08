@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240107.5
+version=240612.2
 */
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
@@ -262,7 +262,7 @@ ItemMenu_IDCLInit(){
 	Globals.Set("item_names", JSON.Load(names_list))
 	
 	If (ResultNames || ResultStats)
-		TrayTip, %prjName%, Списки соответствий обновлены)
+		MsgBox,  0x1040, %prjName%, Обновлены списки соответствий, 2
 }
 
 ItemMenu_LoadDataFile(URL, Path){
