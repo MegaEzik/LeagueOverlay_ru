@@ -291,7 +291,7 @@ srCreateItems(){
 	ResultContent:="`r`n"
 	FileLines:=StrSplit(FileContent, "`r`n")
 	For k, val in FileLines {
-		If (RegExMatch(FileLines[k], "[А-Яа-яЁё]+") && !RegExMatch(FileLines[k], "Изменённая карта") && !RegExMatch(FileLines[k], "Пробужденный: ") && !RegExMatch(FileLines[k], "Захваченная душа ") && !RegExMatch(FileLines[k],"(Заряженный|Обогащённый|Очищенный) камень Разлома ") && !(InStr(FileLines[k], "скарабей") && RegExMatch(FileLines[k], "(Ржавый|Гладкий|Золочёный|Крылатый)"))) {
+		If (RegExMatch(FileLines[k], "[А-Яа-яЁё]+") && !RegExMatch(FileLines[k], "Пробужд(е|ё)нный: ") && !RegExMatch(FileLines[k], "Захваченная душа ")) {
 			ResultContent.=FileLines[k] "`r`n"
 		}
 	}

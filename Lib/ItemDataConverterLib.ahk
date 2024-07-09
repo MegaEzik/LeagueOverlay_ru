@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240107.5
+version=240612.2
 */
 
 /*
@@ -70,7 +70,7 @@ IDCL_lvlRarity(itemdata) {
 	rlvl:=inStr(itemdata, "Редкость: Камень")?11:rlvl
 	rlvl:=(inStr(itemdata, "Редкость: Камень")&&inStr(itemdata, " ваал`n"))?11.1:rlvl
 	rlvl:=inStr(itemdata, "Редкость: Гадальная карта")?12:rlvl
-	rlvl:=(inStr(itemdata, "Редкость: Уникальный")&&inStr(itemdata, "Объедините эту часть с четырьмя другими в Лаборатории Танэ."))?13:rlvl
+	;rlvl:=(inStr(itemdata, "Редкость: Уникальный")&&inStr(itemdata, "Объедините эту часть с четырьмя другими в Лаборатории Танэ."))?13:rlvl
 	
 	return %rlvl%
 }
@@ -160,24 +160,28 @@ IDCL_ConvertName(name, rlvl){
 	;Если в строке имени есть скобки, то извлекем имя из них
 	if RegExMatch(new_name, "\((.*)\)", result)
 		return result1
+	/*
 	;Конвертирование Копий уникальных предметов 3.12
 	if (rlvl=4 && inStr(new_name, "Копия ")) {
 		replicaName:=Trim(strReplace(new_name, "Копия ", ""))
 		If names[replicaName]
 			return "Replica " names[replicaName]
 	}
+	*/
 	;Конвертирование имен альтернативных камней
-	if (rlvl=11 && RegExMatch(new_name, "(Пробужденный|Аномальный|Искривлённый|Фантомный):", tGem)) {
-		typeGemsRuToEn:={"Пробужденный:":"Awakened","Аномальный:":"Anomalous","Искривлённый:":"Divergent","Фантомный:":"Phantasmal"}
+	if (rlvl=11 && RegExMatch(new_name, "(Пробужденный|Пробуждённый|Аномальный|Искривлённый|Фантомный):", tGem)) {
+		typeGemsRuToEn:={"Пробужденный:":"Awakened","Пробуждённый:":"Awakened","Аномальный:":"Anomalous","Искривлённый:":"Divergent","Фантомный:":"Phantasmal"}
 		gemBaseRu:=Trim(strReplace(new_name, tGem, ""))
 		If names[gemBaseRu]
 			return typeGemsRuToEn[tGem] " " names[gemBaseRu]
 	}
+	/*
 	;Обработаем органы метаморфов
 	if (rlvl=13 && RegExMatch(new_name, "(Лёгкое|Печень|Сердце|Мозг|Глаз)", organ)) {
 		metamorphRuToEn := {"Лёгкое":"Lung","Печень":"Liver","Сердце":"Heart","Мозг":"Brain","Глаз":"Eye"}
 		return metamorphRuToEn[organ]
 	}
+	*/
 	;Измененные, древние и зараженные карты
 	if RegExMatch(new_name, "(Древняя|Изменённая|Заражённая|Разорённая Скверной|Преображённая)", mapre) and inStr(new_name, "Карта") {
 		mapres:={"Древняя":"Elder", "Изменённая":"Shaped", "Заражённая":"Blighted", "Разорённая Скверной":"Blight-ravaged", "Преображённая":"Scourged"}
