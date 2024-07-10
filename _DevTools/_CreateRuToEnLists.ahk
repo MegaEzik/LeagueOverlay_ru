@@ -133,11 +133,11 @@ createTrayMenu(){
 	Menu, Tray, Add, sClean
 	Menu, Tray, Add, sLoadOlds
 	Menu, Tray, Add, rBaseItem_new
-	Menu, Tray, Add, rStatsRuToEn
 	Menu, Tray, Add, sStartCopy
-	Menu, Tray, Add, srNewStats
 	Menu, Tray, Add, srCreateItems
 	Menu, Tray, Add, r_LoadItems_v2
+	Menu, Tray, Add, rStatsRuToEn
+	Menu, Tray, Add, srNewStats
 	Menu, Tray, Add
 	Menu, Tray, Add, Перезапустить UI, Configuration
 	Menu, Tray, Add, Открыть папку скрипта, OpenScriptFolder
@@ -185,13 +185,13 @@ CreaterRun(){
 		sLoadOlds()
 	rBaseItem_new()
 	sStartCopy()
-	If GVar_CreateStats {
-		rStatsRuToEn()
-		srNewStats()
-	}
 	If GVar_CreateNames {
 		srCreateItems()
 		r_LoadItems_v2()
+	}
+	If GVar_CreateStats {
+		rStatsRuToEn()
+		srNewStats()
 	}
 	If GVar_OpenFolder
 		OpenScriptFolder()
