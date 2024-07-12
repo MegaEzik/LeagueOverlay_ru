@@ -85,6 +85,9 @@ If FileExist("Data\imgs\icon.png")
 showStartUI()
 devInit()
 
+;Проверка версии и перенос настроек
+migrateConfig()
+
 ;Проверка обновлений
 IniRead, update, %configFile%, settings, update, 1
 If update {
@@ -105,8 +108,6 @@ If update {
 	LeaguesList()
 }
 
-;Проверка версии и перенос настроек
-migrateConfig()
 ;Загрузка события, лабиринта, и данных для IDCL
 ;LoadFile("http://api.pathofexile.com/leagues?type=main", A_ScriptDir "\Data\JSON\leagues.json", true)
 suip(60)
@@ -478,7 +479,8 @@ showStartUI(SpecialText="", LogoPath=""){
 				,"Поиск NPC 'Борис Бритва'"
 				,"Удаляем Зеркало Каландры из вашего фильтра предметов"
 				,"Удаляем Волшебную кровь из вашего фильтра предметов"
-				,"Ломаем многопоточный режим в 3.21.2"]
+				,"Ломаем многопоточный режим в 3.21.2"
+				,"Здесь могла быть ваша реклама"]
 	
 	Random, randomNum, 1, initMsgs.MaxIndex()
 	initMsg:=initMsgs[randomNum] "..."

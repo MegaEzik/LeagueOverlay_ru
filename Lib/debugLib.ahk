@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240612.1
+version=240612.2
 */
 
 ;Инициализация и создание меню разработчика
@@ -26,8 +26,8 @@ devInit(){
 	Menu, devSubMenu1, Add, https://poelab.com/riikv, reloadLab
 	Menu, devSubMenu1, Add, https://poelab.com/wfbra, reloadLab
 	;Menu, devMenu, Add, Лабиринт, :devSubMenu1
-	If FileExist("CreaterRuToEnLines\_Creater.ahk")
-		Menu, devMenu, Add, Инструмент для 'Файлов соответствий', devCreaterRuToEnLines
+	If FileExist("_DevTools\_CreateRuToEnLists.ahk")
+		Menu, devMenu, Add, Инструмент для 'Файлов соответствий', devCreateRuToEnLists
 	Menu, devMenu, Add
 	Menu, devSubMenu2, Standard
 	Menu, devMenu, Add, AutoHotkey, :devSubMenu2
@@ -115,8 +115,8 @@ updateLib(libName){
 	}
 }
 
-devCreaterRuToEnLines(){
-	Run *RunAs "%A_AhkPath%" "%A_ScriptDir%\CreaterRuToEnLines\_Creater.ahk"
+devCreateRuToEnLists(){
+	Run *RunAs "%A_AhkPath%" "%A_ScriptDir%\_DevTools\_CreateRuToEnLists.ahk"
 }
 
 ;Откатиться на релизную версию
