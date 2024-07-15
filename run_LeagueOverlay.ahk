@@ -113,7 +113,7 @@ If update {
 suip(55)
 loadEvent()
 suip(65)
-devLoadTrackingFiles()
+loadTrackingFiles()
 suip(75)
 initLab()
 suip(90)
@@ -299,6 +299,7 @@ myFilesMenuCreate(expandMenu=true){
 	Menu, myFilesMenu, Add, Развернуть, myFilesMenuChangeMode
 	If expandMenu
 		Menu, myFilesMenu, Check, Развернуть
+	Menu, myFilesMenu, Add, Отслеживаемые, showTrackingList
 	Menu, myFilesMenu, Add, Открыть 'Мои файлы', openMyFilesFolder
 }
 
@@ -956,10 +957,10 @@ menuCreate(){
 		Menu, Tray, Add, Лицензия, showLicense
 	Menu, Tray, Add, История изменений, showUpdateHistory
 	Menu, Tray, Add
+	Menu, Tray, Add, Мои файлы, myFilesInTrayMenu
 	Menu, Tray, Add, Настройки, showSettings
 	Menu, Tray, Default, Настройки
 	Menu, Tray, Add, Очистить кэш PoE, clearPoECache
-	Menu, Tray, Add, Открыть 'Мои файлы', openMyFilesFolder
 	Menu, Tray, Add, Дополнения, pkgsMgr_packagesMenu
 	Menu, Tray, Add, Меню отладки, :devMenu
 	Menu, Tray, Add
@@ -1032,6 +1033,26 @@ shMainMenu(Gamepad=false){
 	Menu, mainMenu, Add, Область уведомлений, :Tray
 	sleep 5
 	Menu, mainMenu, Show
+}
+
+showTrackingList(){
+	textFileWindow("Список прямых ссылок на файлы в интернете для автоматического отслеживания и загрузки в 'Мои файлы'", configFolder "\TrackingURLs.txt", false)
+}
+
+loadTrackingFiles(){
+	FileRead, Data, %configFolder%\TrackingURLs.txt
+	DataSplit:=strSplit(StrReplace(Data, "`r", ""), "`n")
+		For k, val in DataSplit
+			If (RegExMatch(DataSplit[k], "i)https://(.*).(png|jpg|jpeg|bmp|txt|fmenu)$")=1){
+				FileURL:=DataSplit[k]
+				SplitPath, FileURL, FileName
+				LoadFile(FileURL, configFolder "\MyFiles\" FileName, CheckDate=true)
+			}
+}
+
+myFilesInTrayMenu(){
+	myFilesMenuCreate(True)
+	Menu, myFilesMenu, Show
 }
 
 ;Открыть папку настроек

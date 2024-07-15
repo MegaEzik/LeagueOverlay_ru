@@ -12,7 +12,6 @@ devInit(){
 	
 	Menu, devMenu, Add, Открыть 'Файл отладки', devOpenLog
 	Menu, devMenu, Add, Экран запуска(5 секунд), devStartUI
-	Menu, devMenu, Add, Отслеживаемые ссылки, devShowTrackingList
 	Menu, devMenu, Add, Задать файл 'Меню команд', devFavoriteList
 	Menu, devMenu, Add
 	Menu, devMenu, Add, Папка макроса, openScriptFolder	
