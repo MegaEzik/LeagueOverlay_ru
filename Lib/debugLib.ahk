@@ -200,21 +200,6 @@ devFavoriteSetFile(Name){
 	IniWrite, %Name%, %configFile%, settings, sMenu
 }
 
-devShowTrackingList(){
-	textFileWindow("Список прямых ссылок на файлы в интернете для автоматического отслеживания и загрузки в 'Мои файлы'", configFolder "\TrackingURLs.txt", false)
-}
-
-devLoadTrackingFiles(){
-	FileRead, Data, %configFolder%\TrackingURLs.txt
-	DataSplit:=strSplit(StrReplace(Data, "`r", ""), "`n")
-		For k, val in DataSplit
-			If (RegExMatch(DataSplit[k], "i)https://(.*).(png|jpg|jpeg|bmp|txt|fmenu)$")=1){
-				FileURL:=DataSplit[k]
-				SplitPath, FileURL, FileName
-				LoadFile(FileURL, configFolder "\MyFiles\" FileName, CheckDate=true)
-			}
-}
-
 devSpecialUpdater(){
 	IniRead, update, %configFile%, settings, update, 0
 	If !update
