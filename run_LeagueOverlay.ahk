@@ -89,32 +89,34 @@ devInit()
 migrateConfig()
 
 ;Проверка обновлений
+suip(20)
 IniRead, update, %configFile%, settings, update, 1
 If update {
-	suip(15)
 	CheckUpdate(True)
 	SetTimer, CheckUpdate, 7200000
-	suip(20)
+	suip(25)
 	updateAutoHotkey()
-	suip(22)
+	suip(27)
 	updateLib("debugLib.ahk")
-	suip(24)
+	suip(29)
 	updateLib("Labyrinth.ahk")
-	suip(26)
+	suip(31)
 	updateLib("ItemDataConverterLib.ahk")
-	suip(28)
+	suip(33)
 	updateLib("itemMenu.ahk")
-	suip(30)
+	suip(35)
 	LeaguesList()
 }
 
 ;Загрузка события, лабиринта, и данных для IDCL
 ;LoadFile("http://api.pathofexile.com/leagues?type=main", A_ScriptDir "\Data\JSON\leagues.json", true)
-suip(60)
+suip(55)
 loadEvent()
+suip(65)
+devLoadTrackingFiles()
 suip(75)
 initLab()
-suip(85)
+suip(90)
 ItemMenu_IDCLInit()
 
 ;Выполним все файлы с окончанием .ahk, передав им папку расположения скрипта

@@ -7,7 +7,6 @@ version=240612.2
 ;Инициализация и создание меню разработчика
 devInit(){
 	devSpecialUpdater()
-	devLoadTrackingFiles()
 	
 	;traytip, %prjName%, Режим отладки активен!
 	
