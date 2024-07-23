@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240612.2
+version=240724
 */
 
 ;Инициализация и создание меню разработчика
@@ -19,11 +19,6 @@ devInit(){
 	Menu, devMenu, Add
 	Menu, devMenu, Add, Откатиться на последнюю версию, devRestoreRelease
 	Menu, devMenu, Add, Перезагрузить данные, devClSD
-	Menu, devSubMenu1, Add, https://poelab.com/gtgax, reloadLab
-	Menu, devSubMenu1, Add, https://poelab.com/r8aws, reloadLab
-	Menu, devSubMenu1, Add, https://poelab.com/riikv, reloadLab
-	Menu, devSubMenu1, Add, https://poelab.com/wfbra, reloadLab
-	;Menu, devMenu, Add, Лабиринт, :devSubMenu1
 	If FileExist("_DevTools\_CreateRuToEnLists.ahk")
 		Menu, devMenu, Add, Инструмент для 'Файлов соответствий', devCreateRuToEnLists
 	Menu, devMenu, Add
@@ -108,7 +103,7 @@ updateLib(libName){
 	}
 	If (newVerLib>currentVerLib) {
 		FileCopy, %tempLibPath%, %libPath%, 1
-		MsgBox,  0x1040, %prjName%, Обновлена библиотека '%libName%'`n`t%currentVerLib% >> %newVerLib%, 2
+		MsgBox,  0x1040, %prjName%, Обновлена библиотека '%libName%'`n`t%currentVerLib% >> %newVerLib%, 3
 		ReStart()
 	}
 }

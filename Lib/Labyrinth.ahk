@@ -1,15 +1,15 @@
 ﻿
 /*
 [info]
-version=240107.5
+version=240724
 */
 
 ;Загрузка изображения с раскладкой лабиринта соответствующего уровня
-downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false) {
+downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false, fileName="Labyrinth") {
 	;Сравним текущую дату UTC с датой загрузки лабиринта 
-	IniRead, labLoadDate, %configFile%, info, labLoadDate, %A_Space%
+	IniRead, labLoadDate, %configFile%, info, labfile%fileName%, %A_Space%
 	FormatTime, CurrentDate, %A_NowUTC%, yyyyMMdd
-	If (CurrentDate==labLoadDate && FileExist(configFolder "\MyFiles\Labyrinth.jpg"))
+	If (CurrentDate==labLoadDate && FileExist(configFolder "\MyFiles\" fileName ".jpg"))
 		return
 	
 	;В это время раскладка лабиринта может быть недоступной
@@ -18,12 +18,12 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false) {
 		return
 	
 	;Отроем сайт, если загрузка осуществляется по время запуска макроса
-	If openPage && !debubMode
-		run, %LabURL%
+	If openPage
+		Run, %LabURL%
 		
 	;Очистка файлов
 	FileDelete, %tempDir%\labpage.html
-	FileDelete, %configFolder%\MyFiles\Labyrinth.jpg
+	FileDelete, %configFolder%\MyFiles\%fileName%.jpg
 	
 	;Загружаем страницу с убер-лабой и извлекаем ссылку на изображение
 	LoadFile(LabURL, tempDir "\labpage.html")
@@ -31,6 +31,10 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false) {
 	FileRead, LabData, %tempDir%\labpage.html
 	LabDataSplit:=StrSplit(LabData, "`n")
 	For k, val in LabDataSplit {
+		If RegExMatch(LabDataSplit[k], "U)https://www.poelab.com/wp-content/labfiles/(.*).jpg", URL) {
+			URL1:=URL
+			break
+		}
 		If RegExMatch(LabDataSplit[k], "<img id=""notesImg"" style=""margin: 0 auto; display: inline-block; cursor: zoom-in;"" src=""(.*)"">", URL)
 			break
 		If RegExMatch(LabDataSplit[k], "<img id=""notesImg"" style=""width: margin: 0 auto; display: inline-block; cursor: zoom-in;"" src=""(.*)"" />", URL)
@@ -40,27 +44,26 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false) {
 		If RegExMatch(LabDataSplit[k], "<img decoding=""async"" id=""notesImg"" style=""margin: 0 auto; display: inline-block; cursor: zoom-in;"" src=""(.*)"">", URL)
 			break
 	}
-	FileDelete, %tempDir%\labpage.html
 	If (StrLen(URL1)<23 || StrLen(URL1)>100) {
 		TrayTip, Labyrinth.ahk, Не удалось скачать страницу с раскладкой!
 		devLog("Не удалось скачать страницу с раскладкой!")
 		return
 	}
+	FileDelete, %tempDir%\labpage.html
 	
 	;Загружаем изображение убер-лабы
-	LoadFile(URL1, configFolder "\MyFiles\Labyrinth.jpg")
+	LoadFile(URL1, configFolder "\MyFiles\" fileName ".jpg")
 	
 	;Проверим изображение, чтобы оно не было пустым файлом или веб-страницей
-	FileReadLine, Line, %configFolder%\MyFiles\Labyrinth.jpg, 1
+	FileReadLine, Line, %configFolder%\MyFiles\%fileName%.jpg, 1
 	If (Line="" || (InStr(Line, "<") && InStr(Line, ">")) || InStr(Line, "ban") || InStr(Line, "error")) {
-		FileDelete, %configFolder%\MyFiles\Labyrinth.jpg
+		FileDelete, %configFolder%\MyFiles\%fileName%.jpg
 		TrayTip, Labyrinth.ahk, Получен некорректный файл лабиринта!
 		devLog("Получен некорректный файл лабиринта!")
 		return
 	}
 	
-	;Запишем дату загрузки лабиринта
-	IniWrite, %CurrentDate%, %configFile%, info, labLoadDate
+	IniWrite, %CurrentDate%, %configFile%, info, labfile%fileName%
 	sleep 50
 }
 
@@ -72,10 +75,3 @@ initLab(){
 	}
 }
 
-reloadLab(LabURL){
-	SplashTextOn, 400, 20, %prjName%, Загрузка лабиринта, пожалуйста подождите...
-	FileDelete, %configFolder%\MyFiles\Labyrinth.jpg
-	sleep 25
-	downloadLabLayout(LabURL, true)
-	SplashTextOff
-}

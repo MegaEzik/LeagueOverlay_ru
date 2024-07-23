@@ -482,7 +482,7 @@ showStartUI(SpecialText="", LogoPath=""){
 				,"Поиск NPC 'Борис Бритва'"
 				,"Удаляем Зеркало Каландры из вашего фильтра предметов"
 				,"Удаляем Волшебную кровь из вашего фильтра предметов"
-				,"Ломаем многопоточный режим в 3.21.2"
+				,"Усугубляем проблему с C-States в 3.21.2"
 				,"Здесь могла быть ваша реклама"]
 	
 	Random, randomNum, 1, initMsgs.MaxIndex()
@@ -514,7 +514,7 @@ showStartUI(SpecialText="", LogoPath=""){
 		Globals.Set("vProgress", 0)
 		suip(5)
 	}
-	SetTimer, updStartProgress, 15
+	SetTimer, updStartProgress, 10
 
 	Gui, StartUI:Font, s12 c%BGTitle% bold
 	
@@ -1125,7 +1125,7 @@ LoadFile(URL, FilePath, CheckDate=false) {
 	
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	If (UserAgent="")
-		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
 	
 	If FileExist(A_WinDir "\System32\curl.exe") && !RegExMatch(args, "i)/NoCurl") {
 		IniRead, lr, %configFile%, curl, limit-rate, 1000

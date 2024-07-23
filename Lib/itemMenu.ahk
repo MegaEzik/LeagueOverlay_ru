@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240612.2
+version=240724
 */
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
@@ -37,10 +37,13 @@ ItemMenu_Show(){
 		ItemName:=ItemDataSplit[4]
 	
 	;Уголья Всепламени
+	/*
 	If (ItemDataSplit[1]="Класс предмета: Уголья Всепламени")
 		ItemName:=ItemDataSplit[2]
+	*/
 	
-	If (RegExMatch(ItemDataSplit[1], "Класс предмета: (.*)", ItemClass) && (RegExMatch(ItemDataSplit[2], "Редкость: (.*)", Rarity) || (ItemClass1="Уголья Всепламени")))  {
+	;If (RegExMatch(ItemDataSplit[1], "Класс предмета: (.*)", ItemClass) && (RegExMatch(ItemDataSplit[2], "Редкость: (.*)", Rarity) || (ItemClass1="Уголья Всепламени")))  {
+	If (RegExMatch(ItemDataSplit[1], "Класс предмета: (.*)", ItemClass) && (RegExMatch(ItemDataSplit[2], "Редкость: (.*)", Rarity)))  {
 		devAddInList(ItemClass1) ;Временная функция разработчика для сбора классов предметов
 		;Пункты для открытия на сетевых ресурсах 
 		If (Rarity1!="Волшебный") {
@@ -99,10 +102,13 @@ ItemMenu_Show(){
 		;	ItemMenu_AddHightlight(ItemName_En)
 		;Menu, itemMenu, Add	
 		
+		/*
 		If (ItemName="Заполненный гроб") {
 			ItemMenu_AddHightlight(ItemDataSplit[7])
 			ItemMenu_AddHightlight(StrReplace(ItemDataSplit[9], " (implicit)", ""))
 		}
+		*/
+		
 		If (ItemName="Начертанный Ультиматум") {
 			If (RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*) x\d+", findtext) || RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*)", findtext))
 				ItemMenu_AddHightlight(findtext1)
@@ -262,7 +268,7 @@ ItemMenu_IDCLInit(){
 	Globals.Set("item_names", JSON.Load(names_list))
 	
 	If (ResultNames || ResultStats)
-		MsgBox,  0x1040, %prjName%, Обновлены списки соответствий, 2
+		MsgBox,  0x1040, %prjName%, Обновлены списки соответствий, 3
 }
 
 ItemMenu_LoadDataFile(URL, Path){
