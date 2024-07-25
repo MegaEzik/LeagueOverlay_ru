@@ -330,6 +330,7 @@ textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 	}
 	If ReadOnlyStatus {
 		Gui, tfwGui:Add, Edit, x0 y0 w1000 h640 +ReadOnly, %tfwContentFile%
+		Gui, tfwGui:+AlwaysOnTop -MinimizeBox -MaximizeBox
 	} Else {
 		Menu, tfwFontMenu, Add
 		Menu, tfwFontMenu, DeleteAll
@@ -351,8 +352,8 @@ textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 		Menu, tfwMenuBar, Add, Закрыть `tEsc, tfwClose
 		Gui, tfwGui:Menu, tfwMenuBar
 		Gui, tfwGui:Add, Edit, x0 y0 w1000 h640 vtfwContentFile, %tfwContentFile%
+		Gui, tfwGui:+AlwaysOnTop -MaximizeBox
 	}
-	Gui, tfwGui:+AlwaysOnTop -MinimizeBox -MaximizeBox
 	Gui, tfwGui:Show, w1000 h640, %Title%
 	
 	sleep 15
@@ -364,7 +365,7 @@ textFileWindow(Title, FilePath, ReadOnlyStatus=true, contentDefault=""){
 	}
 	BlockInput Off
 	
-	WinSet, Transparent, 215, %Title%
+	WinSet, Transparent, 220, %Title%
 }
 
 ;Закрытие окна с текстом

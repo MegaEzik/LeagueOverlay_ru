@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240724
+version=240724.01
 */
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
@@ -42,6 +42,13 @@ ItemMenu_Show(){
 		ItemName:=ItemDataSplit[2]
 	*/
 	
+	rlvl:=IDCL_lvlRarity(ItemData) ;Оценим тип предмета по его редкости и описанию
+	
+	;Попытаемся сконвертировать англоязычное название
+	ItemName_En:=IDCL_ConvertName(ItemName, rlvl)
+	If RegExMatch(ItemName_En, " Map$")
+		ItemName_En:=StrReplace(ItemName_En, " Map", "")
+	
 	;If (RegExMatch(ItemDataSplit[1], "Класс предмета: (.*)", ItemClass) && (RegExMatch(ItemDataSplit[2], "Редкость: (.*)", Rarity) || (ItemClass1="Уголья Всепламени")))  {
 	If (RegExMatch(ItemDataSplit[1], "Класс предмета: (.*)", ItemClass) && (RegExMatch(ItemDataSplit[2], "Редкость: (.*)", Rarity)))  {
 		devAddInList(ItemClass1) ;Временная функция разработчика для сбора классов предметов
@@ -49,6 +56,8 @@ ItemMenu_Show(){
 		If (Rarity1!="Волшебный") {
 			;ItemMenu_AddPoEDB(RegExReplace(ItemName, "(Аномальный|Искривлённый|Фантомный): ", ""))
 			ItemMenu_AddPoEDB(ItemName)
+			If (ItemName_En!="" && !RegExMatch(ItemName_En, "Undefined Name"))
+				ItemMenu_AddWiki(ItemName_EN)
 			
 			If RegExMatch(ItemClass1, "(Валюта|Гадальные карты|Обрывки карт|Уголья Всепламени)") || RegExMatch(Rarity1, "Уникальный")
 				ItemMenu_AddTrade(ItemName)
@@ -68,12 +77,8 @@ ItemMenu_Show(){
 			Menu, itemMenu, Add
 		}
 		
-		;Пункт для копирования имени предмета
+		;Пункты для копирования имени предмета
 		ItemMenu_AddCopyInBuffer(ItemName)
-		rlvl:=IDCL_lvlRarity(ItemData) ;Оценим тип предмета по его редкости и описанию
-		ItemName_En:=IDCL_ConvertName(ItemName, rlvl)
-		If RegExMatch(ItemName_En, " Map$")
-			ItemName_En:=StrReplace(ItemName_En, " Map", "")
 		If (ItemName_En!="" && !RegExMatch(ItemName_En, "Undefined Name"))
 			ItemMenu_AddCopyInBuffer(ItemName_En)
 		
@@ -193,6 +198,12 @@ ItemMenu_AddPoEDB(Line) {
 		Menu, itemMenu, Icon, PoEDB > '%Line%', Data\imgs\web.png
 }
 
+ItemMenu_AddWiki(Line) {
+	Menu, itemMenu, Add, PoEWiki > '%Line%', ItemMenu_OpenOnWiki
+	If FileExist("Data\imgs\web.png")
+		Menu, itemMenu, Icon, PoEWiki > '%Line%', Data\imgs\web.png
+}
+
 ItemMenu_AddTrade(Line) {
 	Menu, itemMenu, Add, PoE\trade > '%Line%', ItemMenu_OpenOnTrade
 	If FileExist("Data\imgs\web.png")
@@ -217,6 +228,12 @@ ItemMenu_OpenOnPoEDB(Line){
 	Line:=searchName(Line)
 	;run, "https://poedb.tw/ru/search.php?q=%Line%"
 	run, "https://poedb.tw/ru/search?q=%Line%"
+	return
+}
+
+ItemMenu_OpenOnWiki(Line){
+	Line:=searchName(Line)
+	run, "https://www.poewiki.net/index.php?search=%Line%"
 	return
 }
 
