@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240724
+version=240724.01
 */
 
 ;Загрузка изображения с раскладкой лабиринта соответствующего уровня
@@ -14,7 +14,7 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false, fileNam
 	
 	;В это время раскладка лабиринта может быть недоступной
 	FormatTime, Hour, %A_NowUTC%, H
-	If (Hour<1)
+	If (Hour<2)
 		return
 	
 	;Отроем сайт, если загрузка осуществляется по время запуска макроса

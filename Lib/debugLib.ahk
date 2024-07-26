@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240724
+version=240724.01
 */
 
 ;Инициализация и создание меню разработчика
@@ -10,7 +10,6 @@ devInit(){
 	
 	;traytip, %prjName%, Режим отладки активен!
 	
-	Menu, devMenu, Add, Открыть 'Файл отладки', devOpenLog
 	Menu, devMenu, Add, Экран запуска(5 секунд), devStartUI
 	Menu, devMenu, Add, Задать файл 'Меню команд', devFavoriteList
 	Menu, devMenu, Add
@@ -24,6 +23,18 @@ devInit(){
 	Menu, devMenu, Add
 	Menu, devSubMenu2, Standard
 	Menu, devMenu, Add, AutoHotkey, :devSubMenu2
+	
+	IniRead, loadLab, %configFile%, settings, loadLab, 0
+	FormatTime, CurrentDate, %A_NowUTC%, yyyyMMdd
+	If loadLab && RegExMatch(args, "i)/Dev") && (CurrentDate<20240728) {
+		downloadLabLayout("https://www.poelab.com/gtgax", true, "Lab1_Normal")
+		downloadLabLayout("https://www.poelab.com/r8aws", true, "Lab2_Cruel")
+		downloadLabLayout("https://www.poelab.com/riikv", true, "Lab3_Merciless")
+	} else {
+		FileDelete, %configFolder%\MyFiles\Lab1_Normal.jpg
+		FileDelete, %configFolder%\MyFiles\Lab2_Cruel.jpg
+		FileDelete, %configFolder%\MyFiles\Lab3_Merciless.jpg
+	}
 }
 
 ;Загрузить событие
@@ -134,20 +145,15 @@ devClSD(){
 
 ;Запись отладочной информации
 devLog(msg){
-	If !RegExMatch(args, "i)/DebugMode")
+	If !RegExMatch(args, "i)/Dev")
 		return
 	FormatTime, Time, dddd MMMM, dd.MM HH:mm:ss
 	FileAppend, %Time% v%verScript% - %msg%`n, %configFolder%\%prjName%.log, UTF-8
 }
 
-devOpenLog(){
-	filePath:=configFolder "\" prjName ".log"
-	textFileWindow(filePath, filePath, false)
-}
-
 ;Добавление в отслеживаемый список
 devAddInList(Line){
-	If !RegExMatch(args, "i)/DebugMode")
+	If !RegExMatch(args, "i)/Dev")
 		return
 	FilePath:=configFolder "\devList.txt"
 	FileRead, DataList, %FilePath%
@@ -161,26 +167,10 @@ devAddInList(Line){
 devStartUI(){
 	InputBox, inputLine, Введите текст,,, 300, 100
 	Globals.Set("vProgress", 0)
-	Globals.Set("pProgress", 90)
+	Globals.Set("pProgress", 95)
 	showStartUI((inputLine="")?"Здесь могла быть ваша реклама...":inputLine)
 	sleep 5000
 	closeStartUI()
-}
-
-devAHKLoadFile(URL, File, UserAgent:=""){
-	hObject:=comObjCreate("WinHttp.WinHttpRequest.5.1")
-	hObject.open("GET", URL)
-	If (UserAgent)
-		hObject.setRequestHeader("User-Agent",UserAgent)
-	hObject.send()
-		
-	uBytes:=hObject.responseBody,cLen:=uBytes.maxIndex()
-	fileHandle:=fileOpen(File,"w")
-	varSetCapacity(f,cLen,0)
-	Loop % cLen+1
-		numPut(uBytes[a_index-1],f,a_index-1,"UChar")
-	fileHandle.rawWrite(f,cLen+1)
-	devLog("AHKLoader > " URL " | " File " | " UserAgent )
 }
 
 devFavoriteList(){
@@ -224,7 +214,7 @@ devSpecialUpdater(){
 }
 
 showArgsInfo(){
-	Msgbox, 0x1040, Список доступных параметров запуска, /DebugMode - режим отладки`n/NoCurl - запрещать использование 'curl.exe'`n/ShowCurl - отображать выполнение 'curl.exe'`n/NoUseTheme - не применять системную тему
+	Msgbox, 0x1040, Список доступных параметров запуска, /Dev - режим разработчика`n/NoCurl - запрещает использование 'curl.exe'`n/ShowCurl - отображает выполнение 'curl.exe'`n/NoUseTheme - не применять системную тему
 }
 
 devVoid(){

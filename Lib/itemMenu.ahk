@@ -51,7 +51,7 @@ ItemMenu_Show(){
 	
 	;If (RegExMatch(ItemDataSplit[1], "Класс предмета: (.*)", ItemClass) && (RegExMatch(ItemDataSplit[2], "Редкость: (.*)", Rarity) || (ItemClass1="Уголья Всепламени")))  {
 	If (RegExMatch(ItemDataSplit[1], "Класс предмета: (.*)", ItemClass) && (RegExMatch(ItemDataSplit[2], "Редкость: (.*)", Rarity)))  {
-		devAddInList(ItemClass1) ;Временная функция разработчика для сбора классов предметов
+		;devAddInList(ItemClass1) ;Временная функция разработчика для сбора классов предметов
 		;Пункты для открытия на сетевых ресурсах 
 		If (Rarity1!="Волшебный") {
 			;ItemMenu_AddPoEDB(RegExReplace(ItemName, "(Аномальный|Искривлённый|Фантомный): ", ""))

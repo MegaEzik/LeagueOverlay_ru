@@ -81,32 +81,33 @@ Menu, Tray, Tip, %prjName% %verScript% | AHK %A_AhkVersion%
 If FileExist("Data\imgs\icon.png")
 	Menu, Tray, Icon, Data\imgs\icon.png
 	
-;UI загрузки и загрузка инструментов разработчика
+;Отображение UI загрузки, запуск инструмента переноса настроек
 showStartUI()
-devInit()
-
-;Проверка версии и перенос настроек
 migrateConfig()
 
 ;Проверка обновлений
-suip(20)
+suip(15)
 IniRead, update, %configFile%, settings, update, 1
 If update {
 	CheckUpdate(True)
 	SetTimer, CheckUpdate, 7200000
-	suip(25)
+	suip(20)
 	updateAutoHotkey()
-	suip(27)
+	suip(22)
 	updateLib("debugLib.ahk")
-	suip(29)
+	suip(24)
 	updateLib("Labyrinth.ahk")
-	suip(31)
+	suip(26)
 	updateLib("ItemDataConverterLib.ahk")
-	suip(33)
+	suip(28)
 	updateLib("itemMenu.ahk")
-	suip(35)
+	suip(30)
 	LeaguesList()
 }
+
+;Инициализация инструментов отладки
+suip(40)
+devInit()
 
 ;Загрузка события, лабиринта, и данных для IDCL
 ;LoadFile("http://api.pathofexile.com/leagues?type=main", A_ScriptDir "\Data\JSON\leagues.json", true)
@@ -149,8 +150,8 @@ checkRequirementsAndArgs() {
 			ReStart()
 		}
 	}
-	If GetKeyState("Ctrl", P) && !RegExMatch(args, "i)/DebugMode") {
-		args.=" /DebugMode"
+	If GetKeyState("Ctrl", P) && !RegExMatch(args, "i)/Dev") {
+		args.=" /Dev"
 		ReStart()
 	}
 	/*
@@ -478,13 +479,15 @@ clearPoECache(){
 showStartUI(SpecialText="", LogoPath=""){
 	Gui, StartUI:Destroy
 	
-	initMsgs := ["Поддержи " githubUser " <3"
-				,"Подготовка макроса к работе"
-				,"Поиск NPC 'Борис Бритва'"
+	initMsgs := ["Здесь могла быть ваша реклама"
+				,"Выполняется подготовка к работе"
+				,"Нанимаем NPC 'Борис Бритва'"
 				,"Удаляем Зеркало Каландры из вашего фильтра предметов"
-				,"Удаляем Волшебную кровь из вашего фильтра предметов"
+				;,"Удаляем Волшебную кровь из вашего фильтра предметов"
 				,"Усугубляем проблему с C-States в 3.21.2"
-				,"Здесь могла быть ваша реклама"]
+				,"Вас приветствуют поселенцы Калуги"
+				,"Добро пожаловать в Калугу"
+				,"Поддержи " githubUser " <3"]
 	
 	Random, randomNum, 1, initMsgs.MaxIndex()
 	initMsg:=initMsgs[randomNum] "..."
@@ -536,7 +539,7 @@ showStartUI(SpecialText="", LogoPath=""){
 	Gui, StartUI:+ToolWindow -Caption +Border +AlwaysOnTop
 	Gui, StartUI:Show, w500 h70, StartUI
 	Sleep 15
-	WinSet, Transparent, 215, StartUI
+	WinSet, Transparent, 220, StartUI
 }
 
 ;Закрыть окно запуска
