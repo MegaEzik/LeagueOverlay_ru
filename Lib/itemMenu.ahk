@@ -1,13 +1,13 @@
 ﻿
 /*
 [info]
-version=240724.01
+version=240725
 */
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
 ItemMenu_ConvertFromGame() {
-	ItemData:=IDCL_ConvertMain(Globals.Get("ItemDataFullText"))
-	Sleep 50
+	ItemData:=IDCL_ConvertMain(Globals.Get("IDCL_ItemData"))
+	Sleep 35
 	Clipboard:=ItemData
 	showToolTip("Скопировано в буфер обмена!`n-----------------------------------`n" ItemData, 15000)
 }
@@ -18,9 +18,15 @@ ItemMenu_Show(){
 	Menu, itemMenu, Add
 	Menu, itemMenu, DeleteAll
 	
-	Globals.Set("ItemDataFullText", IDCL_loadInfo())
-	sleep 25
-	ItemData:=IDCL_CleanerItem(Globals.Get("ItemDataFullText"))
+	;ItemData:=IDCL_CleanerItem(IDCL_loadInfo())
+	;Globals.Set("IDCL_ItemData", ItemData)
+	;sleep 25
+	IDCL_LoadItemInfo()
+	ItemData:=Globals.Get("IDCL_ItemData")
+	iName:=Globals.Get("IDCL_Name")
+	iClass:=Globals.Get("IDCL_Class")
+	iRarity:=Globals.Get("IDCL_Rarity")
+	
 	ItemDataSplit:=StrSplit(ItemData, "`n")
 	
 	;Если установлен свой файл для 'Избранных команд', то продублируем его в 'Меню предмета'
@@ -31,68 +37,41 @@ ItemMenu_Show(){
 		Menu, itemMenu, Add
 	}
 	
-	;Определим имя предмета
-	ItemName:=ItemDataSplit[3]
-	If ((ItemDataSplit[2]="Редкость: Редкий") && !RegExMatch(ItemData, "Неопознано"))
-		ItemName:=ItemDataSplit[4]
-	
-	;Уголья Всепламени
-	/*
-	If (ItemDataSplit[1]="Класс предмета: Уголья Всепламени")
-		ItemName:=ItemDataSplit[2]
-	*/
-	
-	rlvl:=IDCL_lvlRarity(ItemData) ;Оценим тип предмета по его редкости и описанию
-	
-	;Попытаемся сконвертировать англоязычное название
-	ItemName_En:=IDCL_ConvertName(ItemName, rlvl)
-	If RegExMatch(ItemName_En, " Map$")
-		ItemName_En:=StrReplace(ItemName_En, " Map", "")
-	
-	;If (RegExMatch(ItemDataSplit[1], "Класс предмета: (.*)", ItemClass) && (RegExMatch(ItemDataSplit[2], "Редкость: (.*)", Rarity) || (ItemClass1="Уголья Всепламени")))  {
-	If (RegExMatch(ItemDataSplit[1], "Класс предмета: (.*)", ItemClass) && (RegExMatch(ItemDataSplit[2], "Редкость: (.*)", Rarity)))  {
-		;devAddInList(ItemClass1) ;Временная функция разработчика для сбора классов предметов
+	If (iClass!=""){
 		;Пункты для открытия на сетевых ресурсах 
-		If (Rarity1!="Волшебный") {
-			;ItemMenu_AddPoEDB(RegExReplace(ItemName, "(Аномальный|Искривлённый|Фантомный): ", ""))
-			ItemMenu_AddPoEDB(ItemName)
-			If (ItemName_En!="" && !RegExMatch(ItemName_En, "Undefined Name"))
-				ItemMenu_AddWiki(ItemName_EN)
+		If (ItemData!="") {
+			ItemMenu_AddPoEDB(iName)
+			ItemMenu_AddWiki(iName)
 			
-			If RegExMatch(ItemClass1, "(Валюта|Гадальные карты|Обрывки карт|Уголья Всепламени)") || RegExMatch(Rarity1, "Уникальный")
-				ItemMenu_AddTrade(ItemName)
+			If RegExMatch(iClass, "(Валюта|Гадальные карты|Обрывки карт|Уголья Всепламени)") || (iRarity="Уникальный")
+				ItemMenu_AddTrade(iName)
 				
-			If (ItemName="Начертанный Ультиматум") {
-				If (RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*) x\d+", findtext) || RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*)", findtext))
-					ItemMenu_AddTrade(findtext1)
+			If (iName="Inscribed Ultimatum") {
+				If (RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*) x\d+", findtext) || RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*)", findtext)){
+					subName:=IDCL_ConvertName(findtext1)
+					If (subName!="Undefined Name")
+						ItemMenu_AddTrade(subName)
+				}
 				If RegExMatch(ItemDataSplit[8], "Награда: (.*)", findtext)
-					If !RegExMatch(findtext1, "Удваивает")
-						ItemMenu_AddTrade(findtext1)
+					If !RegExMatch(findtext1, "Удваивает"){
+						subName:=IDCL_ConvertName(findtext1)
+						If (subName!="Undefined Name")
+							ItemMenu_AddTrade(subName)
+					}
 			}
 			
 			If (ItemDataSplit[6]="Уровень карты: 17")
-				If RegExMatch(ItemDataSplit[7], "Награда: Особ(ая|ый|ое|ые) (.*)", findtext)
-					ItemMenu_AddTrade(findtext2)
+				If RegExMatch(ItemDataSplit[7], "Награда: Особ(ая|ый|ое|ые) (.*)", findtext) {
+					subName:=IDCL_ConvertName(findtext2)
+					If (subName!="Undefined Name")
+							ItemMenu_AddTrade(subName)
+				}
 			
 			Menu, itemMenu, Add
 		}
 		
 		;Пункты для копирования имени предмета
-		ItemMenu_AddCopyInBuffer(ItemName)
-		If (ItemName_En!="" && !RegExMatch(ItemName_En, "Undefined Name"))
-			ItemMenu_AddCopyInBuffer(ItemName_En)
-		
-		/*
-		;Пункт копирования жертвы в ультиматумах
-		If (ItemName="Начертанный Ультиматум") {
-			Menu, itemMenu, Add
-			If (RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*) x\d+", findtext) || RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*)", findtext))
-				ItemMenu_AddCopyInBuffer(findtext1)
-			If RegExMatch(ItemDataSplit[8], "Награда: (.*)", findtext)
-				If !RegExMatch(findtext1, "Удваивает")
-					ItemMenu_AddCopyInBuffer(findtext1)
-		}
-		*/
+		ItemMenu_AddCopyInBuffer(iName)
 		
 		;Пункт меню для конвертирования описания
 		Menu, itemMenu, Add
@@ -102,29 +81,16 @@ ItemMenu_Show(){
 		Menu, itemMenu, Add	
 		
 		;Создадим меню для подсветки
-		ItemMenu_AddHightlight(ItemName)
-		;If (ItemName_En!="" && !RegExMatch(ItemName_En, "Undefined Name"))
-		;	ItemMenu_AddHightlight(ItemName_En)
-		;Menu, itemMenu, Add	
+		ItemMenu_AddHightlight(iName)
 		
-		/*
-		If (ItemName="Заполненный гроб") {
-			ItemMenu_AddHightlight(ItemDataSplit[7])
-			ItemMenu_AddHightlight(StrReplace(ItemDataSplit[9], " (implicit)", ""))
-		}
-		*/
-		
-		If (ItemName="Начертанный Ультиматум") {
-			If (RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*) x\d+", findtext) || RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*)", findtext))
-				ItemMenu_AddHightlight(findtext1)
+		ItemMenu_AddHightlight(iClass)
+		If (iRarity!=""){
+			ItemMenu_AddHightlight(iRarity)
+			ItemMenu_AddHightlight("""" iClass """ """ iRarity """")
 		}
 		
-		ItemMenu_AddHightlight(ItemClass1)
-		If (Rarity1!="")
-			ItemMenu_AddHightlight(Rarity1)
-		
-		If RegExMatch(ItemClass1, "Валюта") {
-			tempItemName:=ItemName
+		If RegExMatch(iClass, "Валюта") {
+			tempItemName:=iName
 			tempItemName:=strReplace(tempItemName, ":", "")
 			tempItemName:=strReplace(tempItemName, ",", "")
 			tempItemName:=strReplace(tempItemName, ".", "")
@@ -134,37 +100,20 @@ ItemMenu_Show(){
 					ItemMenu_AddHightlight(splitItemName[k])
 		}
 		
-		;If (RegExMatch(ItemClass1, "Камни") && RegExMatch(ItemName, "(Пробужденный|Аномальный|Искривлённый|Фантомный): ", findtext))
-			;ItemMenu_AddHightlight(findtext1)
-		If (ItemClass1="Кольца" && RegExMatch(ItemData, "Редкость: Уникальный"))
-			ItemMenu_AddHightlight("""Кольца""" " " """Уник""")
-		If (RegExMatch(ItemClass1, "Камни") && RegExMatch(ItemData, "Качество: "))
-			ItemMenu_AddHightlight("""Камни""" " " """Качество""")
-		If (RegExMatch(ItemName, "флакон") && RegExMatch(ItemData, "Качество: "))
-			ItemMenu_AddHightlight("""Флакон""" " " """Качество""")
+		If (RegExMatch(iClass, "(Камни|лакон)", res) && RegExMatch(ItemData, "Качество: "))
+			ItemMenu_AddHightlight("""" res1 "" " " """Качество""")
 		
 		For k, val in ItemDataSplit {
 			If RegExMatch(ItemDataSplit[k], "(Предмет Создателя|Древний предмет|Расколотый предмет|Синтезированный предмет|Предмет Вождя|Предмет Избавительницы|Предмет Крестоносца|Предмет Охотника|Завуалированный|Качество|Область находится под влиянием Древнего|Область находится под влиянием Создателя|Предмет Пожирателя миров|Предмет Пламенного экзарха|Осквернено|Отражено|Разделено)", findtext)
 				ItemMenu_AddHightlight(findtext)
-			If RegExMatch(ItemDataSplit[k], "Уровень предмета: (.*)", findtext)
+			If RegExMatch(ItemDataSplit[k], "Уровень (предмета|карты): (.*)", findtext)
 				ItemMenu_AddHightlight(findtext)
-			If RegExMatch(ItemDataSplit[k], "Уровень карты: (.*)", findtext)
-				ItemMenu_AddHightlight("tier:" findtext1)
-			;If (ItemClass1="Чертежи" && RegExMatch(ItemDataSplit[k], "Предмет кражи: (.*)", findtext))
-				;ItemMenu_AddHightlight(findtext1)
-			If ((ItemClass1="Чертежи" || ItemClass1="Контракты") && RegExMatch(ItemDataSplit[k], "Требуется (.*) \(\d+", findtext))
+			If ((iClass="Чертежи" || iClass="Контракты") && RegExMatch(ItemDataSplit[k], "Требуется (.*) \(\d+", findtext))
 				ItemMenu_AddHightlight(findtext1)
-			If (ItemClass1="Журналы экспедиции" && RegExMatch(ItemDataSplit[k], "(Друиды Разомкнутого круга|Наёмники Чёрной косы|Рыцари Солнца|Орден Чаши)", findtext)=1)
+			If (iClass="Журналы экспедиции" && RegExMatch(ItemDataSplit[k], "(Друиды Разомкнутого круга|Наёмники Чёрной косы|Рыцари Солнца|Орден Чаши)", findtext)=1)
 				ItemMenu_AddHightlight(findtext1)
-			;If (ItemName="Хроники Ацоатля" && RegExMatch(ItemDataSplit[k], "(.*) \(Уровень 3\)", findtext))
-			If (ItemName="Хроники Ацоатля" && RegExMatch(ItemDataSplit[k], "(Аудитория Дориани|Очаг осквернения)", findtext))
+			If (iName="Chronicle of Atzoatl" && RegExMatch(ItemDataSplit[k], "(Аудитория Дориани|Очаг осквернения)", findtext))
 				ItemMenu_AddHightlight(findtext)
-			/*
-			If RegExMatch(ItemDataSplit[k], "Регион Атласа: (.*)", findtext)
-				ItemMenu_AddHightlight(findtext1)
-			If (ItemName="Зеркальная табличка" && RegExMatch(ItemDataSplit[k], "Отражение (.*) \(\d+", findtext))
-				ItemMenu_AddHightlight("Отражение " findtext1)
-			*/
 		}
 		FileRead, hightlightData, %configFolder%\highlight.list
 		hightlightDataSplit:=strSplit(StrReplace(hightlightData, "`r", ""), "`n")
@@ -175,7 +124,7 @@ ItemMenu_Show(){
 				ItemMenu_AddHightlight(findtext)
 				If FileExist("Data\imgs\favorite.png")
 					Menu, itemMenu, Icon, *%findtext%, Data\imgs\favorite.png
-				;Menu, itemMenu, Check, *%findtext%
+					;Menu, itemMenu, Check, *%findtext%
 			}
 		}
 	} Else {
@@ -241,8 +190,8 @@ ItemMenu_OpenOnTrade(Line){
 	Line:=searchName(Line)
 	IniRead, league, %configFile%, settings, league, Standard
 	ItemData:=Globals.Get("ItemDataFullText")
-	urltype:=RegExMatch(Globals.Get("ItemDataFullText"), "Редкость: Уникальный") || RegExMatch(Globals.Get("ItemDataFullText"), "Уровень карты: 17") || (RegExMatch(Globals.Get("ItemDataFullText"), "Начертанный Ультиматум") && !RegExMatch(Globals.Get("ItemDataFullText"), "Требуется жертвоприношение: (.*) x\d+"))?"name":"type"
-	url:="https://ru.pathofexile.com/trade/search/" league "?q={%22query%22:{%22" urltype "%22:%22" Line "%22}}"
+	urltype:=(Globals.Get("IDCL_Rarity")="Уникальный") || RegExMatch(Globals.Get("IDCL_ItemData"), "Уровень карты: 17") || ((Globals.Get("IDCL_Name")="Inscribed Ultimatum") && !RegExMatch(Globals.Get("IDCL_ItemData"), "Требуется жертвоприношение: (.*) x\d+"))?"name":"type"
+	url:="https://www.pathofexile.com/trade/search/" league "?q={%22query%22:{%22" urltype "%22:%22" Line "%22}}"
 	run,"%url%"
 	return
 }

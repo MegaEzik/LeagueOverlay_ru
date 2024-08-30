@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240724
+version=240724.01
 */
 
 /*
@@ -56,6 +56,42 @@ IDCL_loadInfo() {
 	BlockInput Off
 	sleep 35
 	return Clipboard
+}
+
+IDCL_LoadItemInfo(){
+	Clipboard:=""
+	Globals.Set("IDCL_Name", "")
+	Globals.Set("IDCL_RareName", "")
+	Globals.Set("IDCL_Rarity", "")
+	Globals.Set("IDCL_Class", "")
+	Globals.Set("IDCL_ItemData", "")
+	Globals.Set("IDCL_FullItem", "")
+	
+	BlockInput On
+	SendInput, ^!c
+	BlockInput Off
+	sleep 40
+	
+	If (Clipboard="")
+		return
+	
+	Globals.Set("IDCL_FullItem", Clipboard)
+	Globals.Set("IDCL_ItemData", IDCL_CleanerItem(Globals.Get("IDCL_FullItem")))
+	
+	ItemData:=Globals.Get("IDCL_ItemData")
+	If RegExMatch(ItemData, "U)Редкость: (.*)`n", res)
+		Globals.Set("IDCL_Rarity", res1)
+	If RegExMatch(ItemData, "U)Класс предмета: (.*)`n", res)
+		Globals.Set("IDCL_Class", res1)
+	
+	sid:=StrSplit(ItemData, "`n")
+	
+	Globals.Set("IDCL_Name", sid[3])
+	If ((Globals.Get("IDCL_Rarity") = "Редкий") && !RegExMatch(Globals.Get("IDCL_ItemData"), "Неопознано"))
+		Globals.Set("IDCL_Name", sid[4])
+
+	;msgtext:=Globals.Get("IDCL_Name") "`n" Globals.Get("IDCL_Rarity") "`n" Globals.Get("IDCL_Class")
+	;msgbox, 0x1040, ItemData, %msgtext%, 2
 }
 
 ;Определение уровня редкости
@@ -114,6 +150,8 @@ IDCL_CleanerItem(itemdata){
 	itemdata:=RegExReplace(itemdata, " высокого качества`n", "`n")
 	itemdata:=RegExReplace(itemdata, "Вы не можете использовать этот предмет, его параметры не будут учтены`n--------`n", "")
 	itemdata:=RegExReplace(itemdata, "<<.*>>", "")
+	itemdata:=RegExReplace(itemdata, "U)`n{.*}`n", "`n")
+	itemdata:=RegExReplace(itemdata, "U)\(\d+-\d+\)", "")
 	return itemdata
 }
 
@@ -134,10 +172,15 @@ IDCL_ConvertMain(itemdata){
 }
 
 ;Конвертация имен
-IDCL_ConvertName(name, rlvl){
+IDCL_ConvertName(name, itemdata=""){
+	If !RegExMatch(name, "[А-Яа-яЁё]+")
+		return name
+	
 	names:=Globals.Get("item_names")
 	;samename:=Globals.Get("item_samename")
 	new_name:=name
+	
+	rlvl:=IDCL_lvlRarity(itemdata)
 	/*
 	if inStr(new_name, " высокого качества")
 		new_name:=StrReplace(name, " высокого качества", "")
@@ -156,11 +199,6 @@ IDCL_ConvertName(name, rlvl){
 	Else If ((rlvl=4 || rlvl=4.1) && samename.Unique[new_name]) {
 		return samename.Unique[new_name]
 	}
-	*/
-	;Если в строке имени есть скобки, то извлекем имя из них
-	if RegExMatch(new_name, "\((.*)\)", result)
-		return result1
-	/*
 	;Конвертирование Копий уникальных предметов 3.12
 	if (rlvl=4 && inStr(new_name, "Копия ")) {
 		replicaName:=Trim(strReplace(new_name, "Копия ", ""))
@@ -185,17 +223,17 @@ IDCL_ConvertName(name, rlvl){
 	;Измененные, древние и зараженные карты
 	if RegExMatch(new_name, "(Древняя|Изменённая|Заражённая|Разорённая Скверной|Преображённая)", mapre) and inStr(new_name, "Карта") {
 		mapres:={"Древняя":"Elder", "Изменённая":"Shaped", "Заражённая":"Blighted", "Разорённая Скверной":"Blight-ravaged", "Преображённая":"Scourged"}
-		new_name:=mapres[mapre] " " IDCL_ConvertName(Trim(StrReplace(new_name, mapre)), rlvl)
+		new_name:=mapres[mapre] " " IDCL_ConvertName(Trim(StrReplace(new_name, mapre)), itemdata)
 		return new_name		
 	}
 	;Обработка и конвертация синтезированных предметов
 	if RegExMatch(new_name, "Синтезированн") {
 		if RegExMatch(new_name, "} ") {
 			sname:=StrSplit(new_name, "} ")
-			new_name:="Synthesised " IDCL_ConvertName(Trim(sname[2]), rlvl)
+			new_name:="Synthesised " IDCL_ConvertName(Trim(sname[2]), itemdata)
 		} else {
 			new_name:=RegExReplace(new_name, "Синтезированн(ый|ая|ое|ые) ")
-			new_name:="Synthesised " IDCL_ConvertName(Trim(new_name), rlvl)
+			new_name:="Synthesised " IDCL_ConvertName(Trim(new_name), itemdata)
 		}
 		new_name:=(new_name="Synthesised ")?"Synthesised Undefined Name":new_name
 		return new_name
