@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240725.01
+version=240831
 */
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
@@ -9,7 +9,7 @@ ItemMenu_ConvertFromGame() {
 	ItemData:=IDCL_ConvertItem(Globals.Get("IDCL_ItemData"))
 	Sleep 35
 	Clipboard:=ItemData
-	showToolTip("Скопировано в буфер обмена!`n-----------------------------------`n" ItemData, 15000)
+	showToolTip(ItemData, 15000)
 }
 
 ItemMenu_Show(){
@@ -81,27 +81,35 @@ ItemMenu_Show(){
 		ItemMenu_AddHightlight(iClass)
 		If (iRarity!=""){
 			ItemMenu_AddHightlight(iRarity)
-			ItemMenu_AddHightlight("""" iClass """ """ iRarity """")
+			If (iRarity!=iClass)
+				ItemMenu_AddHightlight("""" iClass """ """ iRarity """")
 		}
 		
-		If RegExMatch(iClass, "Валюта") {
-			tempItemName:=iName
-			tempItemName:=strReplace(tempItemName, ":", "")
-			tempItemName:=strReplace(tempItemName, ",", "")
-			tempItemName:=strReplace(tempItemName, ".", "")
-			splitItemName:=StrSplit(tempItemName, " ")
+		If (iClass="Валюта") &&& RegExMatch(iName, "Essence") {
+			splitItemName:=StrSplit(iName, " ")
 			For k, val in splitItemName
-				If StrLen(splitItemName[k])>=3
+				If StrLen(splitItemName[k])>2
 					ItemMenu_AddHightlight(splitItemName[k])
 		}
 		
-		If (RegExMatch(iClass, "(Камни|лакон)", res) && RegExMatch(ItemData, "Качество: "))
-			ItemMenu_AddHightlight("""" res1 "" " " """Качество""")
+		If RegExMatch(iClass, "Камни"){
+			If RegExMatch(iName, "^Awakened")
+				ItemMenu_AddHightlight("Awakened")
+			If RegExMatch(ItemData, "U)Уровень: (.*) \(макс.\)`n", res)
+				ItemMenu_AddHightlight("""" res """")
+			If RegExMatch(ItemData, "U)Качество: +(.*)% \(augmented\)`n", res)
+				If (res1>=20)
+					ItemMenu_AddHightlight("""" StrReplace(res, " (augmented)", "") """")
+		}
+		
+		If (RegExMatch(iClass, "(Камни|Микстуры|Флакон|флакон)", res) && RegExMatch(ItemData, "Качество: "))
+			ItemMenu_AddHightlight("""" res1 """ ""Качество""")
+
 		
 		For k, val in ItemDataSplit {
-			If RegExMatch(ItemDataSplit[k], "(Предмет Создателя|Древний предмет|Расколотый предмет|Синтезированный предмет|Предмет Вождя|Предмет Избавительницы|Предмет Крестоносца|Предмет Охотника|Завуалированный|Качество|Область находится под влиянием Древнего|Область находится под влиянием Создателя|Предмет Пожирателя миров|Предмет Пламенного экзарха|Осквернено|Отражено|Разделено)", findtext)
-				ItemMenu_AddHightlight(findtext)
 			If RegExMatch(ItemDataSplit[k], "Уровень (предмета|карты): (.*)", findtext)
+				ItemMenu_AddHightlight(findtext)
+			If RegExMatch(ItemDataSplit[k], "(Предмет Создателя|Древний предмет|Расколотый предмет|Синтезированный предмет|Предмет Вождя|Предмет Избавительницы|Предмет Крестоносца|Предмет Охотника|Завуалированный|Область находится под влиянием Древнего|Область находится под влиянием Создателя|Предмет Пожирателя миров|Предмет Пламенного экзарха|Неопознано|Осквернено|Отражено|Разделено)", findtext)
 				ItemMenu_AddHightlight(findtext)
 			If ((iClass="Чертежи" || iClass="Контракты") && RegExMatch(ItemDataSplit[k], "Требуется (.*) \(\d+", findtext))
 				ItemMenu_AddHightlight(findtext1)

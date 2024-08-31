@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240724.02
+version=240831
 */
 
 /*
@@ -153,8 +153,8 @@ IDCL_CleanerItem(itemdata){
 	itemdata:=RegExReplace(itemdata, " высокого качества`n", "`n")
 	itemdata:=RegExReplace(itemdata, "Вы не можете использовать этот предмет, его параметры не будут учтены`n--------`n", "")
 	itemdata:=RegExReplace(itemdata, "<<.*>>", "")
-	itemdata:=RegExReplace(itemdata, "U)`n{.*}`n", "`n")
 	itemdata:=RegExReplace(itemdata, "U)\(\d+-\d+\)", "")
+	itemdata:=RegExReplace(itemdata, " — Неизменяемое значение`n", "`n")
 	return itemdata
 }
 
@@ -267,11 +267,19 @@ IDCL_ConvertAllStats(idft) {
 	;Разбиваем строку
 	lidft:=StrSplit(idft, "`n")	
 	For k, val in lidft {
+		;Свойств начинающихся и заканчивающихся фигурными или обычными скобками не существует, их конвертацию пропустим и перейдем к следующему свойству
+		If RegExMatch(lidft[k], "^{.*}$")
+			Continue
+		If RegExMatch(lidft[k], "^\(.*\)$")
+			Continue
 		;Извлекаем часть строки не требующую перевода и препятствующую ему, при сборе вернем ее на место
-		RegExMatch(lidft[k], " \(augmented\)| \(unmet\)| \(fractured\)| \(crafted\)| \(Max\)| \(implicit\)| \(enchant\)| \(scourge\)", slidft)
+		RegExMatch(lidft[k], " (\(augmented\)|\(unmet\)|\(fractured\)|\(crafted\)|\(Max\)|\(implicit\)|\(enchant\)|\(scourge\))$", slidft)
 		lidft[k]:=StrReplace(lidft[k], slidft, "")
 		;Попытка конвертировать стат
 		lidft[k]:= IDCL_ConvertStat(lidft[k])
+		;Обработаем длительность на флаконах
+		If RegExMatch(lidft[k], "^Длится (.*) сек.$", res)
+			lidft[k]:="Lasts " res1 " Seconds"
 		;Если в строке найдены "от" и "до"(Разброс значений), то конвертируем так, иначе ищем нет ли "из" и пытаемся конвертировать, если снова нет, то конвертируем с одним значением
 		If (RegExMatch(lidft[k], " от ") and RegExMatch(lidft[k], " до ")) {
 			v:=IDCL_Value(lidft[k])

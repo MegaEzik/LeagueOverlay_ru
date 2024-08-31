@@ -108,7 +108,7 @@ Configuration(){
 	Gui, ConfigurationUI:Destroy
 	
 	GVar_LoadData:=true
-	GVar_CreateNames:=true
+	GVar_CreateNames:=false
 	GVar_CreateStats:=true
 	GVar_OpenFolder:=true
 	GVar_Exit:=true

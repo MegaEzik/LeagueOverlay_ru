@@ -22,21 +22,17 @@ pkgsMgr_packagesMenu(){
 		}
 	}
 	
-	Menu, packagesMenu, Add
 	Loop, %configFolder%\*.ahk, 1
-		If GetKeyState("Ctrl", P)
+		{
+			Menu, packagesMenu, Add
 			Menu, packagesMenu, Add, Выполнить '%A_LoopFileName%', pkgsMgr_runPackage
-		Else {
 			Menu, packagesMenu, Add, Автозапуск '%A_LoopFileName%', pkgMgr_permissionsCustomScript
 			IniRead, AutoStart, %configFolder%\pkgsMgr.ini, pkgsMgr, %A_LoopFileName%, 0
 			If AutoStart
 				Menu, packagesMenu, Check, Автозапуск '%A_LoopFileName%'
+			Menu, packagesMenu, Add, Удалить '%A_LoopFileName%', pkgsMgr_delPackage
 		}
 			
-	Menu, packagesMenu, Add
-	Loop, %configFolder%\*.ahk, 1
-		Menu, packagesMenu, Add, Удалить '%A_LoopFileName%', pkgsMgr_delPackage
-	
 	Menu, packagesMenu, Show
 }
 
@@ -102,6 +98,9 @@ pkgsMgr_installPackage(FilePath){
 
 pkgsMgr_delPackage(Name){
 	Name:=RegExReplace(searchName(Name), "i).ahk$", "")
+	msgbox, 0x1024, %prjName%, Удалить дополнение '%Name%'?
+	IfMsgBox No
+		return
 	FileDelete, %configFolder%\%Name%.ahk
 	FileRemoveDir, %configFolder%\%Name%, 1
 	Sleep 500

@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240724.01
+version=240724.02
 */
 
 ;Инициализация и создание меню разработчика
@@ -24,6 +24,7 @@ devInit(){
 	Menu, devSubMenu2, Standard
 	Menu, devMenu, Add, AutoHotkey, :devSubMenu2
 	
+	/*
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	FormatTime, CurrentDate, %A_NowUTC%, yyyyMMdd
 	If loadLab && RegExMatch(args, "i)/Dev") && (CurrentDate<20240728) {
@@ -35,6 +36,7 @@ devInit(){
 		FileDelete, %configFolder%\MyFiles\Lab2_Cruel.jpg
 		FileDelete, %configFolder%\MyFiles\Lab3_Merciless.jpg
 	}
+	*/
 }
 
 ;Загрузить событие
