@@ -55,6 +55,9 @@ IDCL_loadInfo() {
 	SendInput, ^c
 	BlockInput Off
 	sleep 35
+	Globals.Set("IDCL_ItemData", IDCL_CleanerItem(Clipboard))
+	If RegExMatch(Globals.Get("IDCL_ItemData"), "U)Редкость: (.*)`n", res)
+		Globals.Set("IDCL_Rarity", res1)
 	return Clipboard
 }
 
@@ -157,18 +160,7 @@ IDCL_CleanerItem(itemdata){
 
 ;Основная функция конвертации
 IDCL_ConvertMain(itemdata){
-	IDCL_writeLogFile(itemdata)
-	itemdata:=IDCL_CleanerItem(itemdata)	
-	;Определяем уровень редкости
-	rlvl:=IDCL_lvlRarity(itemdata)	
-	;Если предмет соответствует критериям, то выполняем попытку конвертировать его, иначе выдаем уведомление
-	if (rlvl!=0 && rlvl!=2 && rlvl!=11.1) {
-		itemdata:=IDCL_ConvertItem(itemdata, rlvl)
-		IDCL_writeLogFile(itemdata)
-	} else {
-		IDCL_splashMsg("IDCL - Уведомление!", "Библиотека IDCL не умеет работать с данным типом предметов!", 1200, false)
-	}
-	return itemdata
+	return IDCL_ConvertItem(IDCL_CleanerItem(itemdata))
 }
 
 ;Конвертация имен
@@ -180,7 +172,7 @@ IDCL_ConvertName(name, itemdata=""){
 	;samename:=Globals.Get("item_samename")
 	new_name:=name
 	
-	rlvl:=IDCL_lvlRarity(itemdata)
+	;rlvl:=IDCL_lvlRarity(itemdata)
 	/*
 	if inStr(new_name, " высокого качества")
 		new_name:=StrReplace(name, " высокого качества", "")
@@ -207,7 +199,7 @@ IDCL_ConvertName(name, itemdata=""){
 	}
 	*/
 	;Конвертирование имен альтернативных камней
-	if (rlvl=11 && RegExMatch(new_name, "(Пробужденный|Пробуждённый|Аномальный|Искривлённый|Фантомный):", tGem)) {
+	if ((Globals.Get("IDCL_Rarity")="Камень") && RegExMatch(new_name, "(Пробужденный|Пробуждённый|Аномальный|Искривлённый|Фантомный):", tGem)) {
 		typeGemsRuToEn:={"Пробужденный:":"Awakened","Пробуждённый:":"Awakened","Аномальный:":"Anomalous","Искривлённый:":"Divergent","Фантомный:":"Phantasmal"}
 		gemBaseRu:=Trim(strReplace(new_name, tGem, ""))
 		If names[gemBaseRu]
@@ -338,18 +330,13 @@ IDCL_Value(ActualValueLine)
 }
 
 ;Конвертация обычных, редких, уникальных, реликтовых предметов, гадальных карт, камней умений или валюты
-IDCL_ConvertItem(itemdata, rlvl){
+IDCL_ConvertItem(itemdata){
 	;Разобьем информацию на подстроки
 	sid:=StrSplit(itemdata, "`n")
 	;Попытаемся сконвертировать имя предмета, а так же имя базы для редких и уникальных предметов
-	sid[3]:=IDCL_ConvertName(sid[3], rlvl)
-	if (rlvl=3 || rlvl=4 || rlvl=4.1) {
-		sid[4]:=IDCL_ConvertName(sid[4], rlvl)
-	}
-	;На гадальных картах в 6ой строке иногда написан предмет, попробуем конвертировать его
-	if (rlvl=12) {
-		sid[6]:=(IDCL_ConvertName(sid[6], rlvl)="Undefined Name")?sid[6]:IDCL_ConvertName(sid[6], rlvl)
-	}
+	sid[3]:=IDCL_ConvertName(sid[3])
+	If RegExMatch(Globals.Get("IDCL_Rarity"), "(Редкий|Уникальный)")
+		sid[4]:=IDCL_ConvertName(sid[4])
 	;Соберем результат
 	For k, val in sid {
 		new_itemdata.=sid[k] "`n"
@@ -382,10 +369,9 @@ IDCL_CheckResult(idft){
 }
 
 ;Конвертирование описания с предмета из игры
-IDCL_ConvertFromGame() {
+IDCL_ConvertFromGame(itemdata) {
 	sleep 35
-	itemdata:=IDCL_loadInfo()
-	itemdata:=IDCL_ConvertMain(itemdata)
+	itemdata:=IDCL_ConvertItem(itemdata)
 	Clipboard:=itemdata
 	msgbox, 0x1040, Cкопировано в буфер обмена!, %itemdata%, 2
 }

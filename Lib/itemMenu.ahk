@@ -1,12 +1,12 @@
 ﻿
 /*
 [info]
-version=240725
+version=240725.01
 */
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
 ItemMenu_ConvertFromGame() {
-	ItemData:=IDCL_ConvertMain(Globals.Get("IDCL_ItemData"))
+	ItemData:=IDCL_ConvertItem(Globals.Get("IDCL_ItemData"))
 	Sleep 35
 	Clipboard:=ItemData
 	showToolTip("Скопировано в буфер обмена!`n-----------------------------------`n" ItemData, 15000)
@@ -43,28 +43,23 @@ ItemMenu_Show(){
 			ItemMenu_AddPoEDB(iName)
 			ItemMenu_AddWiki(iName)
 			
-			If RegExMatch(iClass, "(Валюта|Гадальные карты|Обрывки карт|Уголья Всепламени)") || (iRarity="Уникальный")
+			If RegExMatch(iClass, "(Валюта|Гадальные карты|Обрывки карт|Уголья Всепламени|Камни поддержки|Камни умений)") || (iRarity="Уникальный")
 				ItemMenu_AddTrade(iName)
 				
 			If (iName="Inscribed Ultimatum") {
-				If (RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*) x\d+", findtext) || RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*)", findtext)){
-					subName:=IDCL_ConvertName(findtext1)
-					If (subName!="Undefined Name")
-						ItemMenu_AddTrade(subName)
+				If (RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*) x\d+", findtext) || RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*)", findtext)) {
+					Menu, itemMenu, Add
+					ItemMenu_AddReward(findtext1)
+					If RegExMatch(ItemDataSplit[8], "Награда: (.*)", findtext)
+						If !RegExMatch(findtext1, "Удваивает")
+								ItemMenu_AddReward(findtext1)
 				}
-				If RegExMatch(ItemDataSplit[8], "Награда: (.*)", findtext)
-					If !RegExMatch(findtext1, "Удваивает"){
-						subName:=IDCL_ConvertName(findtext1)
-						If (subName!="Undefined Name")
-							ItemMenu_AddTrade(subName)
-					}
 			}
 			
 			If (ItemDataSplit[6]="Уровень карты: 17")
 				If RegExMatch(ItemDataSplit[7], "Награда: Особ(ая|ый|ое|ые) (.*)", findtext) {
-					subName:=IDCL_ConvertName(findtext2)
-					If (subName!="Undefined Name")
-							ItemMenu_AddTrade(subName)
+					Menu, itemMenu, Add
+					ItemMenu_AddReward(findtext2)
 				}
 			
 			Menu, itemMenu, Add
@@ -74,7 +69,7 @@ ItemMenu_Show(){
 		ItemMenu_AddCopyInBuffer(iName)
 		
 		;Пункт меню для конвертирования описания
-		Menu, itemMenu, Add
+		;Menu, itemMenu, Add
 		Menu, itemMenu, Add, Конвертировать Ru > En, ItemMenu_ConvertFromGame
 		If FileExist("Data\imgs\copy.png")
 			Menu, itemMenu, Icon, Конвертировать Ru > En, Data\imgs\copy.png
@@ -159,6 +154,12 @@ ItemMenu_AddTrade(Line) {
 		Menu, itemMenu, Icon, PoE\trade > '%Line%', Data\imgs\web.png
 }
 
+ItemMenu_AddReward(Line) {
+	Menu, itemMenu, Add, PoE\trade > '%Line%', ItemMenu_OpenRewardOnTrade
+	If FileExist("Data\imgs\web.png")
+		Menu, itemMenu, Icon, PoE\trade > '%Line%', Data\imgs\web.png
+}
+
 
 ItemMenu_AddCopyInBuffer(Line){
 	Menu, itemMenu, Add, %Line%, ItemMenu_CopyInBuffer
@@ -190,8 +191,18 @@ ItemMenu_OpenOnTrade(Line){
 	Line:=searchName(Line)
 	IniRead, league, %configFile%, settings, league, Standard
 	ItemData:=Globals.Get("ItemDataFullText")
-	urltype:=(Globals.Get("IDCL_Rarity")="Уникальный") || RegExMatch(Globals.Get("IDCL_ItemData"), "Уровень карты: 17") || ((Globals.Get("IDCL_Name")="Inscribed Ultimatum") && !RegExMatch(Globals.Get("IDCL_ItemData"), "Требуется жертвоприношение: (.*) x\d+"))?"name":"type"
+	urltype:=(Globals.Get("IDCL_Rarity")="Уникальный")?"name":"type"
 	url:="https://www.pathofexile.com/trade/search/" league "?q={%22query%22:{%22" urltype "%22:%22" Line "%22}}"
+	run,"%url%"
+	return
+}
+
+ItemMenu_OpenRewardOnTrade(Line){
+	Line:=searchName(Line)
+	IniRead, league, %configFile%, settings, league, Standard
+	ItemData:=Globals.Get("ItemDataFullText")
+	urltype:=(RegExMatch(Globals.Get("IDCL_ItemData"), "Уровень карты: 17") || ((Globals.Get("IDCL_Name")="Inscribed Ultimatum") && !RegExMatch(Globals.Get("IDCL_ItemData"), "Требуется жертвоприношение: (.*) x\d+")))?"name":"type"
+	url:="https://ru.pathofexile.com/trade/search/" league "?q={%22query%22:{%22" urltype "%22:%22" Line "%22}}"
 	run,"%url%"
 	return
 }
