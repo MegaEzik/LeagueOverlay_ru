@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240831.01
+version=240831.02
 */
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
@@ -78,10 +78,12 @@ ItemMenu_Show(){
 		;Пункт меню для конвертирования описания
 		;Menu, itemMenu, Add
 		Menu, itemMenu, Add, Ru>En Конвертер(Основной), ItemMenu_ConvertFromGame
-		Menu, itemMenu, Add, Ru>En Конвертер(Расширенный), ItemMenu_ConvertFromGamePlus
-		If FileExist("Data\imgs\copy.png"){
+		If FileExist("Data\imgs\copy.png")
 			Menu, itemMenu, Icon, Ru>En Конвертер(Основной), Data\imgs\copy.png
-			Menu, itemMenu, Icon, Ru>En Конвертер(Расширенный), Data\imgs\copy.png
+		If (iRarity="Редкий") {
+			Menu, itemMenu, Add, Ru>En Конвертер(Расширенный), ItemMenu_ConvertFromGamePlus
+			If FileExist("Data\imgs\copy.png")
+				Menu, itemMenu, Icon, Ru>En Конвертер(Расширенный), Data\imgs\copy.png
 		}
 		Menu, itemMenu, Add	
 		
