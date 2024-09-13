@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240831
+version=240831.01
 */
 
 /*
@@ -237,6 +237,55 @@ IDCL_ConvertName(name, itemdata=""){
 	return new_name
 }
 
+;Конвертация расширенного описания
+IDCL_ConvertDescription(Line){
+	FileRead, extension_data, Data\JSON\extension.json
+	extension_list:=JSON.Load(extension_data)
+	
+	;{ Prefix Modifier "Dabbler's" (Tier: 2) }
+	RegExMatch(Line, "U){ (.*) }$", res)
+	If inStr(res1, "—")
+		RegExMatch(res1, "U)(.*) —", res)
+	If inStr(res1, """")
+		RegExMatch(res1, "U)(.*) ""(.*)""",res)
+	RegExMatch(Line, "U)\(Уровень: (.*)\)",lvl)
+	RegExMatch(Line, "U)— (.*) }", tags)
+	
+	new_type:=extension_list[Trim(res1)]
+	
+	If (new_type="") {
+		devAddInList(res1, "extension.txt")
+		return Line
+	}
+	
+	new_tags:=""
+	stags:=StrSplit(tags1, ", ")
+	For k, val in stags {
+		If RegExMatch(stags[k], " — \d+% увеличение", suf) {
+			stags[k]:=Trim(StrReplace(stags[k], suf, ""))
+		}
+		new_tag:=extension_list[stags[k]]
+		If (new_tag!="") {
+			new_tags.=", " new_tag
+		} else {
+			devAddInList(stags[k], "extension.txt")
+			return Line
+		}
+	}
+	new_tags:=SubStr(new_tags, 3)
+	
+	new_line:="{ " new_type
+	If (res2!="")
+		new_line.=(res2="Сущностный")?" ""Essences""":" """""
+	If (lvl1!="")
+		new_line.=" (Tier: " lvl1 ")"
+	If (new_tags!="")
+		new_line.=" — " new_tags
+	new_line.=" }"
+	;Msgbox, %Line%`n`n%res1%`n%res2%`n%lvl1%`n%tags1%`n-------------------------------------`n%new_line%
+	return new_line
+}
+
 ;Конвертация стата
 IDCL_ConvertStat(stat){
 	stats:=Globals.Get("item_stats")
@@ -253,7 +302,7 @@ IDCL_ConvertStat(stat){
 }
 
 ;Конвертация всех статов
-IDCL_ConvertAllStats(idft) {
+IDCL_ConvertAllStats(idft, classic_mode) {
 	bidtf:=idft
 	idtfen:=""
 	idtferl:=""	
@@ -268,8 +317,11 @@ IDCL_ConvertAllStats(idft) {
 	lidft:=StrSplit(idft, "`n")	
 	For k, val in lidft {
 		;Свойств начинающихся и заканчивающихся фигурными или обычными скобками не существует, их конвертацию пропустим и перейдем к следующему свойству
-		If RegExMatch(lidft[k], "^{.*}$")
-			Continue
+		If RegExMatch(lidft[k], "^{.*}$") {
+			If classic_mode
+				Continue
+			lidft[k]:=IDCL_ConvertDescription(lidft[k])
+		}
 		If RegExMatch(lidft[k], "^\(.*\)$")
 			Continue
 		;Извлекаем часть строки не требующую перевода и препятствующую ему, при сборе вернем ее на место
@@ -338,7 +390,7 @@ IDCL_Value(ActualValueLine)
 }
 
 ;Конвертация обычных, редких, уникальных, реликтовых предметов, гадальных карт, камней умений или валюты
-IDCL_ConvertItem(itemdata){
+IDCL_ConvertItem(itemdata, classic_mode=true){
 	;Разобьем информацию на подстроки
 	sid:=StrSplit(itemdata, "`n")
 	;Попытаемся сконвертировать имя предмета, а так же имя базы для редких и уникальных предметов
@@ -350,7 +402,7 @@ IDCL_ConvertItem(itemdata){
 		new_itemdata.=sid[k] "`n"
 	}	
 	;Конвертируем статы и проверяем конвертацию
-	new_itemdata:=IDCL_ConvertAllStats(new_itemdata)
+	new_itemdata:=IDCL_ConvertAllStats(new_itemdata, classic_mode)
 	;Проверяем результат, чистим от русскоязычных строк и выдаем уведомление
 	new_itemdata:=IDCL_CheckResult(new_itemdata)
 	return new_itemdata
@@ -363,15 +415,15 @@ IDCL_CheckResult(idft){
 	For k, val in lidft {
 		;Если что-то не конвертировалось, то заменим на пустую строку.
 		If(RegExMatch(lidft[k], "[А-Яа-яЁё]+")) {
-				idtferl.=StrReplace(lidft[k], " to ", " до ") "`n"
-				lidft[k]:=""
+			idtferl.=StrReplace(lidft[k], " to ", " до ") "`n"
+			Continue
 		}
 		;Собираем результат
 		idtfen.=lidft[k] slidft "`n"
 	}
 	;Уведомление о не конвертированных строках
 	if(idtferl!="") {
-		IDCL_splashMsg("IDCL - Не удалось конвертировать!", idtferl, 1500, false)
+		IDCL_splashMsg("IDCL - Не удалось конвертировать!", idtferl, 3000, false)
 	}
 	return idtfen
 }

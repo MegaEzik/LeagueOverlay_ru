@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240724.02
+version=240831.01
 */
 
 ;Инициализация и создание меню разработчика
@@ -27,7 +27,7 @@ devInit(){
 	/*
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	FormatTime, CurrentDate, %A_NowUTC%, yyyyMMdd
-	If loadLab && RegExMatch(args, "i)/Dev") && (CurrentDate<20240728) {
+	If loadLab && RegExMatch(args, "i)/Dev"){
 		downloadLabLayout("https://www.poelab.com/gtgax", true, "Lab1_Normal")
 		downloadLabLayout("https://www.poelab.com/r8aws", true, "Lab2_Cruel")
 		downloadLabLayout("https://www.poelab.com/riikv", true, "Lab3_Merciless")
@@ -154,10 +154,10 @@ devLog(msg){
 }
 
 ;Добавление в отслеживаемый список
-devAddInList(Line){
+devAddInList(Line, File="devList.txt"){
 	If !RegExMatch(args, "i)/Dev")
 		return
-	FilePath:=configFolder "\devList.txt"
+	FilePath:=configFolder "\" File
 	FileRead, DataList, %FilePath%
 	DataListSplit:=strSplit(StrReplace(DataList, "`r", ""), "`n")
 	For k, val in DataListSplit

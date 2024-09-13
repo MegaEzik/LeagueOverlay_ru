@@ -1,12 +1,19 @@
 ﻿
 /*
 [info]
-version=240831
+version=240831.01
 */
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
 ItemMenu_ConvertFromGame() {
 	ItemData:=IDCL_ConvertItem(Globals.Get("IDCL_ItemData"))
+	Sleep 35
+	Clipboard:=ItemData
+	showToolTip(ItemData, 15000)
+}
+
+ItemMenu_ConvertFromGamePlus() {
+	ItemData:=IDCL_ConvertItem(Globals.Get("IDCL_ItemData"), False)
 	Sleep 35
 	Clipboard:=ItemData
 	showToolTip(ItemData, 15000)
@@ -70,9 +77,12 @@ ItemMenu_Show(){
 		
 		;Пункт меню для конвертирования описания
 		;Menu, itemMenu, Add
-		Menu, itemMenu, Add, Конвертировать Ru > En, ItemMenu_ConvertFromGame
-		If FileExist("Data\imgs\copy.png")
-			Menu, itemMenu, Icon, Конвертировать Ru > En, Data\imgs\copy.png
+		Menu, itemMenu, Add, Ru>En Конвертер(Основной), ItemMenu_ConvertFromGame
+		Menu, itemMenu, Add, Ru>En Конвертер(Расширенный), ItemMenu_ConvertFromGamePlus
+		If FileExist("Data\imgs\copy.png"){
+			Menu, itemMenu, Icon, Ru>En Конвертер(Основной), Data\imgs\copy.png
+			Menu, itemMenu, Icon, Ru>En Конвертер(Расширенный), Data\imgs\copy.png
+		}
 		Menu, itemMenu, Add	
 		
 		;Создадим меню для подсветки
@@ -245,6 +255,7 @@ ItemMenu_IDCLInit(){
 	FileCreateDir, Data\JSON
 	ResultNames:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/Data/JSON/names.json", "Data\JSON\names.json")
 	ResultStats:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/Data/JSON/stats.json", "Data\JSON\stats.json")
+	ResultExtension:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/Data/JSON/extension.json", "Data\JSON\extension.json")
 	sleep 100
 	
 	FileRead, stats_list, Data\JSON\stats.json
@@ -252,7 +263,7 @@ ItemMenu_IDCLInit(){
 	FileRead, names_list, Data\JSON\names.json
 	Globals.Set("item_names", JSON.Load(names_list))
 	
-	If (ResultNames || ResultStats)
+	If (ResultNames || ResultStats || ResultExtension)
 		MsgBox,  0x1040, %prjName%, Обновлены списки соответствий, 3
 }
 
