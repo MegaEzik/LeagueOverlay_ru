@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240831.04
+version=240831.05
 */
 
 /*
@@ -54,15 +54,8 @@ IDCL_Init() {
 
 ;Получение информации c предмета
 IDCL_loadInfo() {
-	Clipboard:=""
-	BlockInput On
-	SendInput, ^c
-	BlockInput Off
-	sleep 35
-	Globals.Set("IDCL_ItemData", IDCL_CleanerItem(Clipboard))
-	If RegExMatch(Globals.Get("IDCL_ItemData"), "U)Редкость: (.*)`n", res)
-		Globals.Set("IDCL_Rarity", res1)
-	return Clipboard
+	IDCL_LoadItemInfo()
+	return Globals.Get("IDCL_ItemData")
 }
 
 IDCL_LoadItemInfo(){
@@ -256,7 +249,7 @@ IDCL_ConvertDescription(Line){
 	new_type:=tag_list[Trim(res1)]
 	
 	If (new_type="") {
-		devAddInList(res1, "dev_tags.txt")
+		IDCL_devAddInList(res1, "dev_tags.txt")
 		return Line
 	}
 	
@@ -270,7 +263,7 @@ IDCL_ConvertDescription(Line){
 		If (new_tag!="") {
 			new_tags.=", " new_tag
 		} else {
-			devAddInList(stags[k], "dev_tags.txt")
+			IDCL_devAddInList(stags[k], "dev_tags.txt")
 			return Line
 		}
 	}
@@ -439,6 +432,19 @@ IDCL_ConvertFromGame(itemdata) {
 	itemdata:=IDCL_ConvertItem(itemdata)
 	Clipboard:=itemdata
 	msgbox, 0x1040, Cкопировано в буфер обмена!, %itemdata%, 2
+}
+
+;Запись отладочных списков
+IDCL_devAddInList(Line, File="devList.txt"){
+	FilePath:=A_ScriptDir "\" File
+	If (configFolder!="")
+		FilePath:=configFolder "\" File
+	FileRead, DataList, %FilePath%
+	DataListSplit:=strSplit(StrReplace(DataList, "`r", ""), "`n")
+	For k, val in DataListSplit
+		If DataListSplit[k]=Line
+			return
+	FileAppend, %Line%`n, %FilePath%, UTF-8
 }
 
 ;Обновление библиотеки
