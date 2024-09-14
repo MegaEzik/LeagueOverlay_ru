@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240831.03
+version=240831.04
 */
 
 /*
@@ -256,7 +256,7 @@ IDCL_ConvertDescription(Line){
 	new_type:=tag_list[Trim(res1)]
 	
 	If (new_type="") {
-		devAddInList(res1, "extension.txt")
+		devAddInList(res1, "dev_tags.txt")
 		return Line
 	}
 	
@@ -270,7 +270,7 @@ IDCL_ConvertDescription(Line){
 		If (new_tag!="") {
 			new_tags.=", " new_tag
 		} else {
-			devAddInList(stags[k], "extension.txt")
+			devAddInList(stags[k], "dev_tags.txt")
 			return Line
 		}
 	}
