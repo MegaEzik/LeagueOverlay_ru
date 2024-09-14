@@ -157,7 +157,7 @@ IDCL_CleanerItem(itemdata){
 	itemdata:=RegExReplace(itemdata, " высокого качества`n", "`n")
 	itemdata:=RegExReplace(itemdata, "Вы не можете использовать этот предмет, его параметры не будут учтены`n--------`n", "")
 	itemdata:=RegExReplace(itemdata, "<<.*>>", "")
-		itemdata:=RegExReplace(itemdata, " — Неизменяемое значение", "")
+	itemdata:=RegExReplace(itemdata, " — Неизменяемое значение", "")
 	return itemdata
 }
 
