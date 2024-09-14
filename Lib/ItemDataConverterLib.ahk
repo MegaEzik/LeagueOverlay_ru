@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240831.01
+version=240831.02
 */
 
 /*
@@ -153,7 +153,7 @@ IDCL_CleanerItem(itemdata){
 	itemdata:=RegExReplace(itemdata, " высокого качества`n", "`n")
 	itemdata:=RegExReplace(itemdata, "Вы не можете использовать этот предмет, его параметры не будут учтены`n--------`n", "")
 	itemdata:=RegExReplace(itemdata, "<<.*>>", "")
-	itemdata:=RegExReplace(itemdata, "U)\(\d+-\d+\)", "")
+	itemdata:=RegExReplace(itemdata, "U)\((\d+\.\d+|\d+)-(\d+\.\d+|\d+)\)", "")
 	itemdata:=RegExReplace(itemdata, " — Неизменяемое значение`n", "`n")
 	return itemdata
 }
@@ -239,8 +239,7 @@ IDCL_ConvertName(name, itemdata=""){
 
 ;Конвертация расширенного описания
 IDCL_ConvertDescription(Line){
-	FileRead, extension_data, Data\JSON\extension.json
-	extension_list:=JSON.Load(extension_data)
+	tag_list:=Globals.Get("item_tags")
 	
 	;{ Prefix Modifier "Dabbler's" (Tier: 2) }
 	RegExMatch(Line, "U){ (.*) }$", res)
@@ -251,7 +250,7 @@ IDCL_ConvertDescription(Line){
 	RegExMatch(Line, "U)\(Уровень: (.*)\)",lvl)
 	RegExMatch(Line, "U)— (.*) }", tags)
 	
-	new_type:=extension_list[Trim(res1)]
+	new_type:=tag_list[Trim(res1)]
 	
 	If (new_type="") {
 		devAddInList(res1, "extension.txt")
@@ -264,7 +263,7 @@ IDCL_ConvertDescription(Line){
 		If RegExMatch(stags[k], " — \d+% увеличение", suf) {
 			stags[k]:=Trim(StrReplace(stags[k], suf, ""))
 		}
-		new_tag:=extension_list[stags[k]]
+		new_tag:=tag_list[stags[k]]
 		If (new_tag!="") {
 			new_tags.=", " new_tag
 		} else {
@@ -276,7 +275,7 @@ IDCL_ConvertDescription(Line){
 	
 	new_line:="{ " new_type
 	If (res2!="")
-		new_line.=(res2="Сущностный")?" ""Essences""":" """""
+		new_line.=(tag_list[res2]!="")?" """ tag_list[res2] """":" """""
 	If (lvl1!="")
 		new_line.=" (Tier: " lvl1 ")"
 	If (new_tags!="")

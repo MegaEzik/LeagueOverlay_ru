@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240831.02
+version=240831.03
 */
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
@@ -257,15 +257,17 @@ ItemMenu_IDCLInit(){
 	FileCreateDir, Data\JSON
 	ResultNames:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/Data/JSON/names.json", "Data\JSON\names.json")
 	ResultStats:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/Data/JSON/stats.json", "Data\JSON\stats.json")
-	ResultExtension:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/Data/JSON/extension.json", "Data\JSON\extension.json")
+	ResultTags:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/Data/JSON/tags.json", "Data\JSON\tags.json")
 	sleep 100
 	
 	FileRead, stats_list, Data\JSON\stats.json
 	Globals.Set("item_stats", JSON.Load(stats_list))
 	FileRead, names_list, Data\JSON\names.json
 	Globals.Set("item_names", JSON.Load(names_list))
+	FileRead, tags_list, Data\JSON\tags.json
+	Globals.Set("item_tags", JSON.Load(tags_list))
 	
-	If (ResultNames || ResultStats || ResultExtension)
+	If (ResultNames || ResultStats || ResultTags)
 		MsgBox,  0x1040, %prjName%, Обновлены списки соответствий, 3
 }
 
