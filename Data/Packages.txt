@@ -1,6 +1,4 @@
 ﻿HeistScanner.ahk|https://raw.githubusercontent.com/MegaEzik/PoE_HeistScanner_ru/main/HeistScanner.ahk
-;ruPrediction.zip|https://cdn.discordapp.com/attachments/500698157336887358/1137114390685040772/ruPrediction.zip
 LutTools.ahk|http://lutbot.com/ahk/macro.ahk
-;DevTools.upd.zip|https://cdn.discordapp.com/attachments/500698157336887358/1137114222619283527/DevTools.upd.zip
-;PoE_LegacyPreset.zip|https://cdn.discordapp.com/attachments/500698157336887358/1180494874965975040/PoE_LegacyPreset.zip
+ruPrediction.zip|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/ruPrediction.zip
 ShipRewards.jpg|https://github.com/MegaEzik/LeagueOverlay_ru/releases/download/211217.6/ShipRewards.jpg
