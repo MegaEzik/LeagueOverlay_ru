@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240831.02
+version=240831.03
 */
 
 /*
@@ -35,6 +35,10 @@ IDCL_Init() {
 	IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/Data/JSON/names.json", "Data\JSON\names.json")
 	FileRead, names_list, Data\JSON\names.json
 	Globals.Set("item_names", JSON.Load(names_list))
+	
+	IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/Data/JSON/tags.json", "Data\JSON\tags.json")
+	FileRead, tags_list, Data\JSON\tags.json
+	Globals.Set("item_tags", JSON.Load(tags_list))
 	
 	/*
 	IDCL_DownloadJSONList("https://raw.githubusercontent.com/MegaEzik/LeagueOverlay_ru/master/Data/JSON/presufflask.json", "Data\JSON\presufflask.json")
@@ -153,8 +157,7 @@ IDCL_CleanerItem(itemdata){
 	itemdata:=RegExReplace(itemdata, " высокого качества`n", "`n")
 	itemdata:=RegExReplace(itemdata, "Вы не можете использовать этот предмет, его параметры не будут учтены`n--------`n", "")
 	itemdata:=RegExReplace(itemdata, "<<.*>>", "")
-	itemdata:=RegExReplace(itemdata, "U)\((\d+\.\d+|\d+)-(\d+\.\d+|\d+)\)", "")
-	itemdata:=RegExReplace(itemdata, " — Неизменяемое значение`n", "`n")
+		itemdata:=RegExReplace(itemdata, " — Неизменяемое значение", "")
 	return itemdata
 }
 
@@ -301,13 +304,14 @@ IDCL_ConvertStat(stat){
 }
 
 ;Конвертация всех статов
-IDCL_ConvertAllStats(idft, classic_mode) {
+IDCL_ConvertAllStats(idft, basic_mode) {
 	bidtf:=idft
 	idtfen:=""
 	idtferl:=""	
 	;Конвертируем, что не поддается обычным правилам конвертирования модов и уберем лишнее
 	idft:=StrReplace(idft, "Гнезда:", "Sockets:")
 	idft:=StrReplace(idft, "Физический урон:", "Physical Damage:")
+	idft:=StrReplace(idft, "Урон хаосом:", "Chaos Damage:")
 	idft:=StrReplace(idft, "Урон от стихий:", "Elemental Damage:")
 	idft:=StrReplace(idft, "Размер стопки:", "Stack Size:")
 	idft:=StrReplace(idft, "(макс.)", "(Max)")
@@ -317,12 +321,14 @@ IDCL_ConvertAllStats(idft, classic_mode) {
 	For k, val in lidft {
 		;Свойств начинающихся и заканчивающихся фигурными или обычными скобками не существует, их конвертацию пропустим и перейдем к следующему свойству
 		If RegExMatch(lidft[k], "^{.*}$") {
-			If classic_mode
+			If basic_mode
 				Continue
 			lidft[k]:=IDCL_ConvertDescription(lidft[k])
 		}
 		If RegExMatch(lidft[k], "^\(.*\)$")
 			Continue
+		;Уберем числовые значения в скобках, они нас не интересуют
+		lidft[k]:=RegExReplace(lidft[k], "U)\((\d+\.\d+|\d+)-(\d+\.\d+|\d+)\)", "")
 		;Извлекаем часть строки не требующую перевода и препятствующую ему, при сборе вернем ее на место
 		RegExMatch(lidft[k], " (\(augmented\)|\(unmet\)|\(fractured\)|\(crafted\)|\(Max\)|\(implicit\)|\(enchant\)|\(scourge\))$", slidft)
 		lidft[k]:=StrReplace(lidft[k], slidft, "")
@@ -389,7 +395,7 @@ IDCL_Value(ActualValueLine)
 }
 
 ;Конвертация обычных, редких, уникальных, реликтовых предметов, гадальных карт, камней умений или валюты
-IDCL_ConvertItem(itemdata, classic_mode=true){
+IDCL_ConvertItem(itemdata, basic_mode=true){
 	;Разобьем информацию на подстроки
 	sid:=StrSplit(itemdata, "`n")
 	;Попытаемся сконвертировать имя предмета, а так же имя базы для редких и уникальных предметов
@@ -401,7 +407,7 @@ IDCL_ConvertItem(itemdata, classic_mode=true){
 		new_itemdata.=sid[k] "`n"
 	}	
 	;Конвертируем статы и проверяем конвертацию
-	new_itemdata:=IDCL_ConvertAllStats(new_itemdata, classic_mode)
+	new_itemdata:=IDCL_ConvertAllStats(new_itemdata, basic_mode)
 	;Проверяем результат, чистим от русскоязычных строк и выдаем уведомление
 	new_itemdata:=IDCL_CheckResult(new_itemdata)
 	return new_itemdata
