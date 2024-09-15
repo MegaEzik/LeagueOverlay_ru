@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240915
+version=240915.01
 */
 
 ;Инициализация и создание меню разработчика
@@ -135,7 +135,7 @@ devRestoreRelease() {
 
 ;Перезагрузка данных
 devClSD(){
-	FileDelete, Data\Packages.txt
+	FileDelete, Data\Addons.ini
 	FileDelete, %configFolder%\MyFiles\Labyrinth.jpg
 	;FileDelete, Data\JSON\*
 	FileDelete, Data\JSON\leagues.json
