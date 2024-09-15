@@ -1,14 +1,15 @@
 ﻿
 /*
 [info]
-version=240831.01
+version=240915
 */
 
 ;Инициализация и создание меню разработчика
 devInit(){
-	devSpecialUpdater()
+	;devSpecialUpdater()
 	
-	;traytip, %prjName%, Режим отладки активен!
+	If RegExMatch(args, "i)/Dev")
+		traytip, %prjName%, Режим отладки активен!
 	
 	Menu, devMenu, Add, Экран запуска(5 секунд), devStartUI
 	Menu, devMenu, Add, Задать файл 'Меню команд', devFavoriteList
@@ -187,6 +188,7 @@ devFavoriteSetFile(Name){
 	IniWrite, %Name%, %configFile%, settings, sMenu
 }
 
+/*
 devSpecialUpdater(){
 	IniRead, update, %configFile%, settings, update, 0
 	If !update
@@ -214,6 +216,7 @@ devSpecialUpdater(){
 		Return
 	}
 }
+*/
 
 showArgsInfo(){
 	Msgbox, 0x1040, Список доступных параметров запуска, /Dev - режим разработчика`n/NoCurl - запрещает использование 'curl.exe'`n/ShowCurl - отображает выполнение 'curl.exe'`n/NoUseTheme - не применять системную тему

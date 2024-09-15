@@ -1,25 +1,25 @@
 ﻿
 pkgsMgr_packagesMenu(){
-	FilePath:="Data\Packages.txt"
-	IniRead, PackagesURL, %buildConfig%, settings, PackagesURL, %A_Space%
-	If (PackagesURL!="")
-		LoadFile(PackagesURL, FilePath, true)
-	
 	Menu, packagesMenu, Add
 	Menu, packagesMenu, DeleteAll
 	Menu, packagesMenu, Add, Установка из файла, pkgsMgr_fromFile
 	Menu, packagesMenu, Add, Загрузить по ссылке, pkgsMgr_fromURL
 	Menu, packagesMenu, Add
 	
-	FileRead, Data, %FilePath%
-	DataSplit:=strSplit(StrReplace(Data, "`r", ""), "`n")
-	For k, val in DataSplit {
-		If inStr(DataSplit[k], "|") {
-			PackInfo:=StrSplit(DataSplit[k], "|")
-			PackName:=PackInfo[1]
-			If (RegExMatch(PackName, ";")!=1)
-				Menu, packagesMenu, Add, Загрузить '%PackName%', pkgsMgr_loadPackage
-		}
+	FilePath:="Data\Addons.ini"
+	IniRead, AddonsURL, %buildConfig%, settings, AddonsURL, %A_Space%
+	If (AddonsURL!="")
+		LoadFile(AddonsURL, FilePath, true)
+	
+	IniRead, AddonsData, %FilePath%, AddonsList
+	;MsgBox, %SpecialNamesList%
+	NewAddons:=StrSplit(AddonsData, "`n")
+	For k, val in NewAddons {
+		If RegExMatch(NewAddons[k], "^;")
+			Continue
+		AddonInfo:=StrSplit(NewAddons[k], "=")
+		AddonName:=AddonInfo[1]
+		Menu, packagesMenu, Add, Установить '%AddonName%', pkgsMgr_loadAddon
 	}
 	
 	Loop, %configFolder%\*.ahk, 1
@@ -36,25 +36,31 @@ pkgsMgr_packagesMenu(){
 	Menu, packagesMenu, Show
 }
 
-pkgsMgr_loadPackage(Name){
-	;Name:=SubStr(Name, 3)
-	Name:=searchName(Name)
-	FilePath:="Data\Packages.txt"
-	FileRead, Data, %FilePath%
-	DataSplit:=strSplit(StrReplace(Data, "`r", ""), "`n")
-	For k, val in DataSplit {
-		If inStr(DataSplit[k], "|") {
-			PackInfo:=StrSplit(DataSplit[k], "|")
-			If (PackInfo[1]=Name && PackInfo[2]!="") {
-				If !LoadFile(PackInfo[2], tempDir "\" PackInfo[1]) {
-					TrayTip, %prjName%, Ошибка загрузки '%Name%'!
-					return
-				}
-				pkgsMgr_installPackage(tempDir "\" PackInfo[1])
-			}
-		}
+pkgsMgr_loadAddon(AddonName) {
+	AddonName:=searchName(AddonName)
+	AddonsListPath:="Data\Addons.ini"
+	IniRead, AddonURL, %AddonsListPath%, AddonsList, %AddonName%, %A_Space%
+	IniRead, Description, %AddonsListPath%, Description, %AddonName%, %A_Space%
+	
+	MsgText:=(Description!="")?StrReplace(Description, "/n", "`n") "`n`n":""
+	MsgText.="Установить дополнение '" AddonName "'?"
+	
+	MsgBox, 0x1044, %prjName% - %AddonName%, %MsgText%
+	IfMsgBox No
+		Return
+	
+	If !LoadFile(AddonURL, tempDir "\" AddonName) {
+		TrayTip, %prjName%, Ошибка загрузки '%Name%'!
+		return
 	}
-	return
+	pkgsMgr_installPackage(tempDir "\" AddonName)
+	
+	AHKName:=RegExReplace(AddonName, ".(ahk|zip)$", ".ahk")
+	If RegExMatch(AHKName, ".ahk$") && FileExist(configFolder "\" AHKName) {
+		IniWrite, 1, %configFolder%\pkgsMgr.ini, pkgsMgr, %AHKName%
+		pkgsMgr_runPackage(AHKName)
+		;Msgbox, %AHKName%`n%AddonName%
+	}
 }
 
 pkgsMgr_fromFile(){
