@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240831.05
+version=240831.06
 */
 
 /*
@@ -302,13 +302,9 @@ IDCL_ConvertAllStats(idft, basic_mode) {
 	idtfen:=""
 	idtferl:=""	
 	;Конвертируем, что не поддается обычным правилам конвертирования модов и уберем лишнее
-	idft:=StrReplace(idft, "Гнезда:", "Sockets:")
-	idft:=StrReplace(idft, "Физический урон:", "Physical Damage:")
-	idft:=StrReplace(idft, "Урон хаосом:", "Chaos Damage:")
-	idft:=StrReplace(idft, "Урон от стихий:", "Elemental Damage:")
-	idft:=StrReplace(idft, "Размер стопки:", "Stack Size:")
+	idft:=StrReplace(idft, "Урон от стихий: ", "Elemental Damage: ")
+	idft:=StrReplace(idft, "Гнезда: ", "Sockets: ")
 	idft:=StrReplace(idft, "(макс.)", "(Max)")
-	idft:=StrReplace(idft, "Опыт:", "Experience:")	
 	;Разбиваем строку
 	lidft:=StrSplit(idft, "`n")	
 	For k, val in lidft {
@@ -321,15 +317,12 @@ IDCL_ConvertAllStats(idft, basic_mode) {
 		If RegExMatch(lidft[k], "^\(.*\)$")
 			Continue
 		;Уберем числовые значения в скобках, они нас не интересуют
-		lidft[k]:=RegExReplace(lidft[k], "U)\((\d+\.\d+|\d+)-(\d+\.\d+|\d+)\)", "")
+		lidft[k]:=RegExReplace(lidft[k], "U)\((-?\d+\.\d+|-?\d+)-(-?\d+\.\d+|-?\d+)\)", "")
 		;Извлекаем часть строки не требующую перевода и препятствующую ему, при сборе вернем ее на место
 		RegExMatch(lidft[k], " (\(augmented\)|\(unmet\)|\(fractured\)|\(crafted\)|\(Max\)|\(implicit\)|\(enchant\)|\(scourge\))$", slidft)
 		lidft[k]:=StrReplace(lidft[k], slidft, "")
 		;Попытка конвертировать стат
 		lidft[k]:= IDCL_ConvertStat(lidft[k])
-		;Обработаем длительность на флаконах
-		If RegExMatch(lidft[k], "^Длится (.*) сек.$", res)
-			lidft[k]:="Lasts " res1 " Seconds"
 		;Если в строке найдены "от" и "до"(Разброс значений), то конвертируем так, иначе ищем нет ли "из" и пытаемся конвертировать, если снова нет, то конвертируем с одним значением
 		If (RegExMatch(lidft[k], " от ") and RegExMatch(lidft[k], " до ")) {
 			v:=IDCL_Value(lidft[k])
@@ -343,11 +336,22 @@ IDCL_ConvertAllStats(idft, basic_mode) {
 			lidft[k]:= IDCL_ConvertStat(lidft[k])
 			v:=StrReplace(v, " из ", " of ")
 			lidft[k]:=StrReplace(lidft[k], "# of #", v)
+		} else if RegExMatch(lidft[k], ": (\d+-\d+|\d+\/\d+)$", res) {
+			lidft[k]:= StrReplace(lidft[k], res1, "#")
+			txt:=lidft[k]
+			lidft[k]:= IDCL_ConvertStat(Trim(lidft[k]))
+			lidft[k]:= StrReplace(lidft[k], "#", res1)
 		} else {
 			v:=IDCL_Value(lidft[k])
-			lidft[k]:= StrReplace(lidft[k], v, "#")
-			lidft[k]:= IDCL_ConvertStat(lidft[k])
-			lidft[k]:= StrReplace(lidft[k], "#", v)
+			If RegExMatch(v, "U)^(-\d+\.\d+|-\d+)$", res) {
+				lidft[k]:= StrReplace(lidft[k], v, "+#")
+				lidft[k]:= IDCL_ConvertStat(lidft[k])
+				lidft[k]:= StrReplace(lidft[k], "+#", v)
+			} else {
+				lidft[k]:= StrReplace(lidft[k], v, "#")
+				lidft[k]:= IDCL_ConvertStat(lidft[k])
+				lidft[k]:= StrReplace(lidft[k], "#", v)
+			}
 		}
 		;Класс предмета
 		If RegExMatch(lidft[k], "Класс предмета: (.*)", itemclass)
@@ -383,7 +387,8 @@ IDCL_ConvertAllStats(idft, basic_mode) {
 ;Получаем значение из стата
 IDCL_Value(ActualValueLine)
 {
-	Result := RegExReplace(ActualValueLine, ".*?\+?(-?\d+(?: (до|из|to) -?\d+|\.\d+)?).*", "$1")
+	Result := RegExReplace(ActualValueLine, ".*?\+?(-?\d+(?: (до|из|to) -?\d+|(\.|\,)\d+)?).*", "$1")
+	;msgbox, %Result%
 	return Result
 }
 
