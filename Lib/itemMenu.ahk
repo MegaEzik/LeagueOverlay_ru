@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240915
+version=240915.01
 */
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
@@ -125,6 +125,8 @@ ItemMenu_Show(){
 				ItemMenu_AddHightlight(findtext)
 			If ((iClass="Чертежи" || iClass="Контракты") && RegExMatch(ItemDataSplit[k], "Требуется (.*) \(\d+", findtext))
 				ItemMenu_AddHightlight(findtext1)
+			If (iClass="Чертежи"  && RegExMatch(ItemDataSplit[k], "^Крыльев обнаружено: \d+/\d+$", findtext))
+				ItemMenu_AddHightlight("""" findtext """")
 			If (iClass="Журналы экспедиции" && RegExMatch(ItemDataSplit[k], "(Друиды Разомкнутого круга|Наёмники Чёрной косы|Рыцари Солнца|Орден Чаши)", findtext)=1)
 				ItemMenu_AddHightlight(findtext1)
 			If (iName="Chronicle of Atzoatl" && RegExMatch(ItemDataSplit[k], "(Аудитория Дориани|Очаг осквернения)", findtext))
