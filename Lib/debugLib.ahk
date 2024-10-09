@@ -7,6 +7,10 @@ version=240915.01
 ;Инициализация и создание меню разработчика
 devInit(){
 	;devSpecialUpdater()
+	SplitPath, A_AhkPath,,AHKPath
+	
+	If (configFolder = A_MyDocuments "\AutoHotKey\LeagueOverlay_ru") && FileExist(configFolder "\pkgsMgr.ini") && FileExist(AHKPath "\AutoHotkeyU32.exe") && FileExist(A_ScriptDir "\Data\MigrateAddons.ahk")
+		RunWait, "%AHKPath%\AutoHotkeyU32.exe" "%A_ScriptDir%\Data\MigrateAddons.ahk" "%A_ScriptFullPath%"
 	
 	If RegExMatch(args, "i)/Dev")
 		traytip, %prjName%, Режим отладки активен!

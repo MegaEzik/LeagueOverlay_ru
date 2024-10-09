@@ -41,17 +41,17 @@ SetWorkingDir %A_ScriptDir%
 #Include <pkgsMgr>
 
 ;Объявление и загрузка переменных
-global githubUser, prjName="LeagueOverlay_ru"
+global githubUser, prjName="LeagueOverlay_ru", buildConfig:=A_ScriptDir "\Data\Build.ini"
 global configFolder:=A_MyDocuments "\AutoHotKey\" prjName
 If InStr(FileExist(A_ScriptDir "\..\Profile"), "D") {
 	SplitPath, A_ScriptDir,, configFolder
 	configFolder.="\Profile"
 }
-global tempDir:=configFolder "\Temp"
-If !FileExist(tempDir)
-	FileCreateDir, %tempDir%
 global configFile:=configFolder "\settings.ini"
-global buildConfig:=A_ScriptDir "\Data\Build.ini"
+global tempDir:=configFolder "\Temp"
+FileCreateDir, %configFolder%\Scripts
+FileCreateDir, %tempDir%
+
 global verScript, args, LastImg, globalOverlayPosition, startProgress, OverlayStatus=0, cmdNum=20
 
 Loop, %0%
@@ -143,6 +143,10 @@ Return
 checkRequirementsAndArgs() {
 	If !A_IsAdmin
 		ReStart()
+	If (A_PtrSize<8) {
+		MsgBox, 0x1010, %prjName%, Для работы %prjName% требуется 64-разрядный интерпретатор AutoHotkey!
+		ExitApp
+	}
 	IniRead, startArgs, %configFile%, settings, startArgs, %A_Space%
 	If (startArgs!="") && !InStr(startArgs, "  ") {
 		If !RegExMatch(args, Trim(startArgs)) {
@@ -181,6 +185,7 @@ migrateConfig() {
 	
 	IniRead, verConfig, %configFile%, info, verConfig, 0
 	If (verConfig!=verScript) {
+		IniRead, AddonsConfig, %configFile%, Addons
 		;FileCopy, %configFile%, %configFolder%\%verConfig%.ini, 1
 		If (verConfig>0) {
 			FileDelete, Data\Packages.txt
@@ -220,6 +225,7 @@ migrateConfig() {
 		IniWrite, %lastImg%, %configFile%, info, lastImg
 		If (labLoadDate!="")
 			IniWrite, %labLoadDate%, %configFile%, info, labLoadDate
+		IniWrite, %AddonsConfig%, %configFile%, Addons
 		
 		saveSettings()
 	}
@@ -613,7 +619,7 @@ showSettings(){
 	IniRead, lr, %configFile%, curl, limit-rate, 1000
 	IniRead, ct, %configFile%, curl, connect-timeout, 5
 	IniRead, update, %configFile%, settings, update, 1
-	IniRead, updateLib, %configFile%, settings, updateLib, 1
+	IniRead, updateLib, %configFile%, settings, updateLib, 0
 	IniRead, updateAHK, %configFile%, settings, updateAHK, 0
 	IniRead, useEvent, %configFile%, settings, useEvent, 1
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
@@ -1129,7 +1135,7 @@ LoadFile(URL, FilePath, CheckDate=false) {
 	
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	If (UserAgent="")
-		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36"
 	
 	If FileExist(A_WinDir "\System32\curl.exe") && !RegExMatch(args, "i)/NoCurl") {
 		IniRead, lr, %configFile%, curl, limit-rate, 1000

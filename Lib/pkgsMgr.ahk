@@ -22,12 +22,12 @@ pkgsMgr_packagesMenu(){
 		Menu, packagesMenu, Add, Установить '%AddonName%', pkgsMgr_loadAddon
 	}
 	
-	Loop, %configFolder%\*.ahk, 1
+	Loop, %configFolder%\Scripts\*.ahk, 1
 		{
 			Menu, packagesMenu, Add
 			Menu, packagesMenu, Add, Выполнить '%A_LoopFileName%', pkgsMgr_runPackage
 			Menu, packagesMenu, Add, Автозапуск '%A_LoopFileName%', pkgMgr_permissionsCustomScript
-			IniRead, AutoStart, %configFolder%\pkgsMgr.ini, pkgsMgr, %A_LoopFileName%, 0
+			IniRead, AutoStart, %configFile%, Addons, %A_LoopFileName%, 0
 			If AutoStart
 				Menu, packagesMenu, Check, Автозапуск '%A_LoopFileName%'
 			Menu, packagesMenu, Add, Удалить '%A_LoopFileName%', pkgsMgr_delPackage
@@ -56,8 +56,8 @@ pkgsMgr_loadAddon(AddonName) {
 	pkgsMgr_installPackage(tempDir "\" AddonName)
 	
 	AHKName:=RegExReplace(AddonName, ".(ahk|zip)$", ".ahk")
-	If RegExMatch(AHKName, ".ahk$") && FileExist(configFolder "\" AHKName) {
-		IniWrite, 1, %configFolder%\pkgsMgr.ini, pkgsMgr, %AHKName%
+	If RegExMatch(AHKName, ".ahk$") && FileExist(configFolder "\Scripts\" AHKName) {
+		IniWrite, 1, %configFile%, Addons, %AHKName%
 		pkgsMgr_runPackage(AHKName)
 		;Msgbox, %AHKName%`n%AddonName%
 	}
@@ -94,10 +94,10 @@ pkgsMgr_installPackage(FilePath){
 		ReStart()
 	}
 	If RegExMatch(FilePath, "i).zip$") {
-		unZipArchive(FilePath, configFolder)
+		unZipArchive(FilePath, configFolder "\Scripts")
 	}
 	If RegExMatch(FilePath, "i).ahk$") {
-		FileCopy, %FilePath%, %configFolder%\%Name%, 1
+		FileCopy, %FilePath%, %configFolder%\Scripts\%Name%, 1
 	}
 	TrayTip, %prjName%, Дополнение '%Name%' установлено!
 }
@@ -107,27 +107,27 @@ pkgsMgr_delPackage(Name){
 	msgbox, 0x1024, %prjName%, Удалить дополнение '%Name%'?
 	IfMsgBox No
 		return
-	FileDelete, %configFolder%\%Name%.ahk
-	FileRemoveDir, %configFolder%\%Name%, 1
+	FileDelete, %configFolder%\Scripts\%Name%.ahk
+	FileRemoveDir, %configFolder%\Scripts\%Name%, 1
 	Sleep 500
 	;ReStart()
 }
 
 pkgsMgr_runPackage(Name){
 	ScriptName:=searchName(Name)
-	Run *RunAs "%A_AhkPath%" "%configFolder%\%ScriptName%" "%A_ScriptDir%"
+	Run *RunAs "%A_AhkPath%" "%configFolder%\Scripts\%ScriptName%" "%A_ScriptDir%"
 }
 
 pkgsMgr_startCustomScripts(){
 	If RegExMatch(args, "i)/NoAddons")
 		return
-	Loop, %configFolder%\*.ahk, 1
-		pkgMgr_runScript(configFolder "\" A_LoopFileName)
+	Loop, %configFolder%\Scripts\*.ahk, 1
+		pkgMgr_runScript(configFolder "\Scripts\" A_LoopFileName)
 }
 
 pkgMgr_runScript(ScriptPath){
 	SplitPath, ScriptPath, ScriptName
-	IniRead, AutoStart, %configFolder%\pkgsMgr.ini, pkgsMgr, %ScriptName%, 0
+	IniRead, AutoStart, %configFile%, Addons, %ScriptName%, 0
 	If AutoStart && RegExMatch(ScriptPath, "i).ahk$")
 		RunWait *RunAs "%A_AhkPath%" "%ScriptPath%" "%A_ScriptDir%"
 }
@@ -138,14 +138,14 @@ pkgMgr_permissionsCustomScript(ScriptName){
 	ScriptName:=searchName(ScriptName)
 	/*
 	If GetKeyState("Ctrl", P) {
-		Run *RunAs "%A_AhkPath%" "%configFolder%\%ScriptName%" "%A_ScriptDir%"
+		Run *RunAs "%A_AhkPath%" "%configFolder%\Scripts\%ScriptName%" "%A_ScriptDir%"
 		Return
 	}
 	*/
-	IniRead, AutoStart, %configFolder%\pkgsMgr.ini, pkgsMgr, %ScriptName%, 0
+	IniRead, AutoStart, %configFile%, Addons, %ScriptName%, 0
 	If AutoStart {
-		IniDelete, %configFolder%\pkgsMgr.ini, pkgsMgr, %ScriptName%
+		IniDelete, %configFile%, Addons, %ScriptName%
 	} Else {
-		IniWrite, 1, %configFolder%\pkgsMgr.ini, pkgsMgr, %ScriptName%
+		IniWrite, 1, %configFile%, Addons, %ScriptName%
 	}
 }
