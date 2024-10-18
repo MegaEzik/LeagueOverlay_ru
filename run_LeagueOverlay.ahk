@@ -712,7 +712,7 @@ showSettings(){
 	Gui, Settings:Add, DropDownList, vleague x+2 yp-3 w130, %LeaguesList%
 	GuiControl,Settings:ChooseString, league, %league%
 	
-	If FileExist(configFolder "/HeistScanner.ahk"){
+	If FileExist(configFolder "/Scripts/HeistScanner.ahk"){
 		Gui, Settings:Add, Text, x12 yp+25 w345, Сканер витрин Кражи(HeistScanner):
 		Gui, Settings:Add, Hotkey, vhotkeyHeistScanner x+2 yp-2 w130 h17, %hotkeyHeistScanner%
 	}

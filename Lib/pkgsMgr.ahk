@@ -1,5 +1,7 @@
 ﻿
 pkgsMgr_packagesMenu(){
+	Gui, Settings:Destroy
+	
 	Menu, packagesMenu, Add
 	Menu, packagesMenu, DeleteAll
 	Menu, packagesMenu, Add, Установка из файла, pkgsMgr_fromFile
@@ -19,21 +21,23 @@ pkgsMgr_packagesMenu(){
 			Continue
 		AddonInfo:=StrSplit(NewAddons[k], "=")
 		AddonName:=AddonInfo[1]
-		Menu, packagesMenu, Add, Установить '%AddonName%', pkgsMgr_loadAddon
+		Menu, packagesMenu, Add, Загрузить '%AddonName%', pkgsMgr_loadAddon
 	}
 	
 	Loop, %configFolder%\Scripts\*.ahk, 1
-		{
-			Menu, packagesMenu, Add
-			Menu, packagesMenu, Add, Выполнить '%A_LoopFileName%', pkgsMgr_runPackage
-			Menu, packagesMenu, Add, Автозапуск '%A_LoopFileName%', pkgMgr_permissionsCustomScript
-			IniRead, AutoStart, %configFile%, Addons, %A_LoopFileName%, 0
-			If AutoStart
-				Menu, packagesMenu, Check, Автозапуск '%A_LoopFileName%'
-			Menu, packagesMenu, Add, Удалить '%A_LoopFileName%', pkgsMgr_delPackage
-		}
-			
+		pkgsMgr_addonMenu(A_LoopFileName)
+	
 	Menu, packagesMenu, Show
+}
+
+pkgsMgr_addonMenu(FileName){
+	Menu, packagesMenu, Add
+	Menu, packagesMenu, Add, Выполнить '%FileName%', pkgsMgr_runPackage
+	Menu, packagesMenu, Add, Автозапуск '%FileName%', pkgMgr_permissionsCustomScript
+	IniRead, AutoStart, %configFile%, Addons, %FileName%, 0
+	If AutoStart
+		Menu, packagesMenu, Check, Автозапуск '%FileName%'
+	Menu, packagesMenu, Add, Удалить '%FileName%', pkgsMgr_delPackage
 }
 
 pkgsMgr_loadAddon(AddonName) {
@@ -55,12 +59,16 @@ pkgsMgr_loadAddon(AddonName) {
 	}
 	pkgsMgr_installPackage(tempDir "\" AddonName)
 	
+	/*
 	AHKName:=RegExReplace(AddonName, ".(ahk|zip)$", ".ahk")
 	If RegExMatch(AHKName, ".ahk$") && FileExist(configFolder "\Scripts\" AHKName) {
 		IniWrite, 1, %configFile%, Addons, %AHKName%
 		pkgsMgr_runPackage(AHKName)
 		;Msgbox, %AHKName%`n%AddonName%
 	}
+	*/
+	
+	FileDelete, %tempDir%\%AddonName%
 }
 
 pkgsMgr_fromFile(){
@@ -94,7 +102,17 @@ pkgsMgr_installPackage(FilePath){
 		ReStart()
 	}
 	If RegExMatch(FilePath, "i).zip$") {
-		unZipArchive(FilePath, configFolder "\Scripts")
+		;unZipArchive(FilePath, configFolder "\Scripts")
+		FileRemoveDir, %tempDir%\NewAddon, 1
+		Sleep 100
+		newPresetName:=RegExReplace(Name, ".zip$", "")
+		unZipArchive(FilePath, tempDir "\NewAddon")
+		If FileExist(tempDir "\NewAddon\PresetConfig.ini") {
+			FileCopyDir, %tempDir%\NewAddon, %configFolder%\Presets\%newPresetName%, 1
+		} else {
+			FileCopyDir, %tempDir%\NewAddon, %configFolder%\Scripts, 1
+		}
+		FileRemoveDir, %tempDir%\NewAddon, 1
 	}
 	If RegExMatch(FilePath, "i).ahk$") {
 		FileCopy, %FilePath%, %configFolder%\Scripts\%Name%, 1
@@ -107,6 +125,7 @@ pkgsMgr_delPackage(Name){
 	msgbox, 0x1024, %prjName%, Удалить дополнение '%Name%'?
 	IfMsgBox No
 		return
+	IniDelete, %configFile%, Addons, %Name%.ahk
 	FileDelete, %configFolder%\Scripts\%Name%.ahk
 	FileRemoveDir, %configFolder%\Scripts\%Name%, 1
 	Sleep 500
@@ -115,7 +134,8 @@ pkgsMgr_delPackage(Name){
 
 pkgsMgr_runPackage(Name){
 	ScriptName:=searchName(Name)
-	Run *RunAs "%A_AhkPath%" "%configFolder%\Scripts\%ScriptName%" "%A_ScriptDir%"
+	If RegExMatch(ScriptName, ".ahk$")
+		Run *RunAs "%A_AhkPath%" "%configFolder%\Scripts\%ScriptName%" "%A_ScriptDir%"
 }
 
 pkgsMgr_startCustomScripts(){
