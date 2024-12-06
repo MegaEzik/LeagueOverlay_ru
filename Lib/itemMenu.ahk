@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240915.01
+version=241206
 */
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
@@ -36,17 +36,15 @@ ItemMenu_Show(){
 	
 	ItemDataSplit:=StrSplit(ItemData, "`n")
 	
-	;Если установлен свой файл для 'Избранных команд', то продублируем его в 'Меню предмета'
-	IniRead, sMenu, %configFile%, settings, sMenu, MyMenu.fmenu
-	If ((ItemData="") && FileExist(configFolder "\MyFiles\" sMenu)) {
-		fastMenu(configFolder "\MyFiles\" sMenu, !Gamepad)
-		Menu, itemMenu, Add, Избранные команды, :fastMenu
-		Menu, itemMenu, Add
-	}
+	PoE2Mode:=false
+	IfWinActive Path of Exile 2
+		PoE2Mode:=true
+	If RegExMatch(args, "i)/PoE2")
+		PoE2Mode:=true
 	
 	If (iClass!=""){
-		;Пункты для открытия на сетевых ресурсах 
-		If (ItemData!="") {
+		;Пункты для открытия на сетевых ресурсах PoE1
+		If (ItemData!="") && !PoE2Mode {
 			ItemMenu_AddPoEDB(iName)
 			ItemMenu_AddWiki(iName)
 			
@@ -72,18 +70,27 @@ ItemMenu_Show(){
 			Menu, itemMenu, Add
 		}
 		
+		;Сетевые ресурсы PoE2
+		If PoE2Mode && (iName!="") &&(iRarity!="") && (iRarity!="Волшебный") {
+			ItemMenu_AddPoEDB2(iName)
+			If RegExMatch(iRarity, "^(Валюта|Уникальный)$")
+				ItemMenu_AddTrade2(iName)
+			Menu, itemMenu, Add
+		}
+		
 		;Пункты для копирования имени предмета
 		ItemMenu_AddCopyInBuffer(iName)
 		
 		;Пункт меню для конвертирования описания
-		;Menu, itemMenu, Add
-		Menu, itemMenu, Add, Ru>En Конвертер(Основной), ItemMenu_ConvertFromGame
-		If FileExist("Data\imgs\copy.png")
-			Menu, itemMenu, Icon, Ru>En Конвертер(Основной), Data\imgs\copy.png
-		If (iRarity="Редкий") {
-			Menu, itemMenu, Add, Ru>En Конвертер(Расширенный), ItemMenu_ConvertFromGamePlus
+		If !PoE2Mode {
+			Menu, itemMenu, Add, Ru>En Конвертер(Основной), ItemMenu_ConvertFromGame
 			If FileExist("Data\imgs\copy.png")
-				Menu, itemMenu, Icon, Ru>En Конвертер(Расширенный), Data\imgs\copy.png
+				Menu, itemMenu, Icon, Ru>En Конвертер(Основной), Data\imgs\copy.png
+			If (iRarity="Редкий") {
+				Menu, itemMenu, Add, Ru>En Конвертер(Расширенный), ItemMenu_ConvertFromGamePlus
+				If FileExist("Data\imgs\copy.png")
+					Menu, itemMenu, Icon, Ru>En Конвертер(Расширенный), Data\imgs\copy.png
+			}
 		}
 		Menu, itemMenu, Add	
 		
@@ -145,6 +152,13 @@ ItemMenu_Show(){
 			}
 		}
 	} Else {
+		;Если существует файл для 'Меню команд', то продублируем его и в 'Меню предмета'
+		;IniRead, hotkeyCmdsMenu, %configFile%, hotkeys, hotkeyCmdsMenu, %A_Space%
+		If FileExist(configFolder "\cmds.txt") && !RegExMatch(args, "i)/HideCmds") {
+			fastMenu(configFolder "\cmds.txt")
+			Menu, itemMenu, Add, Меню команд, :fastMenu
+			Menu, itemMenu, Add
+		}
 		FileRead, hightlightData, %configFolder%\highlight.list
 		hightlightDataSplit:=strSplit(StrReplace(hightlightData, "`r", ""), "`n")
 		For k, val in hightlightDataSplit {
@@ -164,6 +178,12 @@ ItemMenu_AddPoEDB(Line) {
 		Menu, itemMenu, Icon, PoEDB > '%Line%', Data\imgs\web.png
 }
 
+ItemMenu_AddPoEDB2(Line) {
+	Menu, itemMenu, Add, PoE2DB > '%Line%', ItemMenu_OpenOnPoEDB2
+	If FileExist("Data\imgs\web.png")
+		Menu, itemMenu, Icon, PoE2DB > '%Line%', Data\imgs\web.png
+}
+
 ItemMenu_AddWiki(Line) {
 	Menu, itemMenu, Add, PoEWiki > '%Line%', ItemMenu_OpenOnWiki
 	If FileExist("Data\imgs\web.png")
@@ -174,6 +194,12 @@ ItemMenu_AddTrade(Line) {
 	Menu, itemMenu, Add, PoE\trade > '%Line%', ItemMenu_OpenOnTrade
 	If FileExist("Data\imgs\web.png")
 		Menu, itemMenu, Icon, PoE\trade > '%Line%', Data\imgs\web.png
+}
+
+ItemMenu_AddTrade2(Line) {
+	Menu, itemMenu, Add, PoE\2\trade > '%Line%', ItemMenu_OpenOnTrade2
+	If FileExist("Data\imgs\web.png")
+		Menu, itemMenu, Icon, PoE\2\trade > '%Line%', Data\imgs\web.png
 }
 
 ItemMenu_AddReward(Line) {
@@ -197,9 +223,15 @@ ItemMenu_AddHightlight(Line){
 }
 
 ItemMenu_OpenOnPoEDB(Line){
-	Line:=searchName(Line)
+	itemName:=searchName(Line)
 	;run, "https://poedb.tw/ru/search.php?q=%Line%"
 	run, "https://poedb.tw/ru/search?q=%Line%"
+	return
+}
+
+ItemMenu_OpenOnPoEDB2(Line){
+	Line:=searchName(Line)
+	run, "https://poedb2.tw/ru/search?q=%Line%"
 	return
 }
 
@@ -212,9 +244,19 @@ ItemMenu_OpenOnWiki(Line){
 ItemMenu_OpenOnTrade(Line){
 	Line:=searchName(Line)
 	IniRead, league, %configFile%, settings, league, Standard
-	ItemData:=Globals.Get("ItemDataFullText")
+	;ItemData:=Globals.Get("ItemDataFullText")
 	urltype:=(Globals.Get("IDCL_Rarity")="Уникальный")?"name":"type"
 	url:="https://www.pathofexile.com/trade/search/" league "?q={%22query%22:{%22" urltype "%22:%22" Line "%22}}"
+	run,"%url%"
+	return
+}
+
+ItemMenu_OpenOnTrade2(Line){
+	Line:=searchName(Line)
+	IniRead, league, %configFile%, settings, league2, Standard
+	platform:="poe2"
+	urltype:=(Globals.Get("IDCL_Rarity")="Уникальный")?"name":"type"
+	url:="https://www.pathofexile.com/trade/search/" platform "/" league "?q={%22query%22:{%22" urltype "%22:%22" Line "%22}}"
 	run,"%url%"
 	return
 }

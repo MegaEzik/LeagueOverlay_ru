@@ -1,27 +1,26 @@
 ﻿
 /*
 [info]
-version=240915.01
+version=261206.01
 */
 
 ;Инициализация и создание меню разработчика
 devInit(){
 	;devSpecialUpdater()
 	SplitPath, A_AhkPath,,AHKPath
-	
 	If (configFolder = A_MyDocuments "\AutoHotKey\LeagueOverlay_ru") && FileExist(configFolder "\pkgsMgr.ini") && FileExist(AHKPath "\AutoHotkeyU32.exe") && FileExist(A_ScriptDir "\Data\MigrateAddons.ahk")
 		RunWait, "%AHKPath%\AutoHotkeyU32.exe" "%A_ScriptDir%\Data\MigrateAddons.ahk" "%A_ScriptFullPath%"
-	
-	If RegExMatch(args, "i)/Dev")
-		traytip, %prjName%, Режим отладки активен!
+		
+	devPoE2EA()
 	
 	Menu, devMenu, Add, Экран запуска(5 секунд), devStartUI
-	Menu, devMenu, Add, Задать файл 'Меню команд', devFavoriteList
+	;Menu, devMenu, Add, Отслеживаемые файлы, showTrackingList
+	;Menu, devMenu, Add, Задать файл 'Меню команд', devFavoriteList
 	Menu, devMenu, Add
 	Menu, devMenu, Add, Папка макроса, openScriptFolder	
 	Menu, devMenu, Add, Папка настроек, openConfigFolder
 	Menu, devMenu, Add
-	Menu, devMenu, Add, Откатиться на последнюю версию, devRestoreRelease
+	Menu, devMenu, Add, Переустановить, devRestoreRelease
 	Menu, devMenu, Add, Перезагрузить данные, devClSD
 	If FileExist("_DevTools\_CreateRuToEnLists.ahk")
 		Menu, devMenu, Add, Инструмент для 'Файлов соответствий', devCreateRuToEnLists
@@ -44,6 +43,27 @@ devInit(){
 	*/
 }
 
+devPoE2EA(){
+	IniWrite, 1, %configFile%, settings, updateLib
+	/*
+	If !RegExMatch(args, "i)/PoE2") {
+		args.=" /PoE2"
+		ReStart()
+	}
+	*/
+	If !FileExist(configFolder "\Presets\PoE2EA") {
+		FileCreateDir, %configFolder%\Presets\PoE2EA
+		IniWrite, Path of Exile 2, %configFolder%\Presets\PoE2EA\PresetConfig.ini, Windows
+		IniWrite, PoE2DB.url, %configFolder%\Presets\PoE2EA\PresetConfig.ini, SpecialNames, База данных
+		
+		IniWrite, https://poe2db.tw/, %configFolder%\Presets\PoE2EA\PoE2DB.url, InternetShortcut, URL
+		
+		IniWrite, *PoE2EA, %configFile%, settings, preset2
+		Sleep 10
+		devClSD()
+	}
+}
+
 ;Загрузить событие
 loadEvent(){
 	IniRead, EventURL, %buildConfig%, settings, EventURL, %A_Space%
@@ -59,27 +79,20 @@ loadEvent(){
 	IniRead, EventName, %EventPath%, Event, EventName, %A_Space%
 	IniRead, EventLogo, %EventPath%, Event, EventLogo, %A_Space%
 	IniRead, EventMsg, %EventPath%, Event, EventMsg, %A_Space%
-	IniRead, Require, %EventPath%, Event, Require, %A_Space%
-	
 	IniRead, StartDate, %EventPath%, Event, StartDate, %A_Space%
 	IniRead, EndDate, %EventPath%, Event, EndDate, %A_Space%
 	IniRead, MinVersion, %EventPath%, Event, MinVersion, %A_Space%
 	
-	If (EventName="" || MinVersion>verScript || StartDate="" || EndDate="" || CurrentDate<StartDate || CurrentDate>EndDate)
+	If (EventName="" || MinVersion>verScript || StartDate="" || EndDate="" || (CurrentDate<StartDate && !RegExMatch(args, "i)/Dev")) || CurrentDate>EndDate)
 		return
-	
-	If (Require!="") {
-		IniRead, preset, %configFile%, settings, preset, %A_Space%
-		If !RegExMatch(preset, Require)
-			return
-	}
 	
 	EventName.="(" SubStr(EndDate, 7, 2) "." SubStr(EndDate, 5, 2) ")"
 	
 	If (EventLogo!="")
 		LoadFile(EventLogo, configFolder "\Event\bg.jpg", true)
 	
-	showStartUI(EventName "`n" EventMsg, (EventLogo!="")?configFolder "\Event\bg.jpg":"")
+	If (EventMsg!="")
+		showStartUI(EventName "`n" EventMsg, (EventLogo!="")?configFolder "\Event\bg.jpg":"")
 	
 	eventDataSplit:=StrSplit(loadFastFile(EventPath), "`n")
 	For k, val in eventDataSplit
@@ -180,6 +193,7 @@ devStartUI(){
 	closeStartUI()
 }
 
+/*
 devFavoriteList(){
 	Menu, favoriteList, Add
 	Menu, favoriteList, DeleteAll
@@ -191,6 +205,7 @@ devFavoriteList(){
 devFavoriteSetFile(Name){
 	IniWrite, %Name%, %configFile%, settings, sMenu
 }
+*/
 
 /*
 devSpecialUpdater(){
@@ -223,7 +238,7 @@ devSpecialUpdater(){
 */
 
 showArgsInfo(){
-	Msgbox, 0x1040, Список доступных параметров запуска, /Dev - режим разработчика`n/NoCurl - запрещает использование 'curl.exe'`n/ShowCurl - отображает выполнение 'curl.exe'`n/NoUseTheme - не применять системную тему
+	Msgbox, 0x1040, Список доступных параметров запуска, /Dev - режим разработчика`n/NoCurl - запрещает использование 'curl.exe'`n/ShowCurl - отображает выполнение 'curl.exe'`n/NoTheme - не применять системную тему`n/HideCmds - скрыть 'Меню команд'`n/PoE2 - принудительный режим PoE2(для отладки)
 }
 
 devVoid(){

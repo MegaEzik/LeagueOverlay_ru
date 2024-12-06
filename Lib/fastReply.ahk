@@ -187,7 +187,7 @@ commandFastReply(Line:="/dance"){
 			return
 		}
 		If RegExMatch(SplitImg[1], ".(txt|list)$") {
-			textFileWindow(SplitImg[1], SplitImg[1], false)
+			textFileWindow("", SplitImg[1], false)
 			return
 		}
 		If RegExMatch(SplitImg[1], ".fmenu$") {
@@ -195,7 +195,7 @@ commandFastReply(Line:="/dance"){
 			return
 		}
 	}
-	If RegExMatch(Line, ".lnk$") {
+	If RegExMatch(Line, ".(url|lnk)$") {
 		;msgbox, %Line%
 		Run "%Line%"
 		return
