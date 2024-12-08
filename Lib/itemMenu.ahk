@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=241206
+version=241206.01
 */
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
@@ -197,9 +197,9 @@ ItemMenu_AddTrade(Line) {
 }
 
 ItemMenu_AddTrade2(Line) {
-	Menu, itemMenu, Add, PoE\2\trade > '%Line%', ItemMenu_OpenOnTrade2
+	Menu, itemMenu, Add, PoE\trade2 > '%Line%', ItemMenu_OpenOnTrade2
 	If FileExist("Data\imgs\web.png")
-		Menu, itemMenu, Icon, PoE\2\trade > '%Line%', Data\imgs\web.png
+		Menu, itemMenu, Icon, PoE\trade2 > '%Line%', Data\imgs\web.png
 }
 
 ItemMenu_AddReward(Line) {
@@ -253,10 +253,9 @@ ItemMenu_OpenOnTrade(Line){
 
 ItemMenu_OpenOnTrade2(Line){
 	Line:=searchName(Line)
-	IniRead, league, %configFile%, settings, league2, Standard
-	platform:="poe2"
+	IniRead, league, %configFile%, settings, league, Standard
 	urltype:=(Globals.Get("IDCL_Rarity")="Уникальный")?"name":"type"
-	url:="https://www.pathofexile.com/trade/search/" platform "/" league "?q={%22query%22:{%22" urltype "%22:%22" Line "%22}}"
+	url:="https://www.pathofexile.com/trade2/search/poe2/" league "?q={%22query%22:{%22" urltype "%22:%22" Line "%22}}"
 	run,"%url%"
 	return
 }
