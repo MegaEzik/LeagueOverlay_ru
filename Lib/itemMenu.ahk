@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=241206.02
+version=241206.03
 */
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
@@ -255,7 +255,8 @@ ItemMenu_OpenOnTrade2(Line){
 	Line:=searchName(Line)
 	IniRead, league, %configFile%, settings, league, Standard
 	urltype:=(Globals.Get("IDCL_Rarity")="Уникальный")?"name":"type"
-	url:="https://www.pathofexile.com/trade2/search/poe2/" league "?q={%22query%22:{%22" urltype "%22:%22" Line "%22}}"
+	url:="https://ru.pathofexile.com/trade2/search/poe2/" league "?q={%22query%22:{%22" urltype "%22:%22" Line "%22}}"
+	;url:="https://www.pathofexile.com/trade2/search/poe2/" league "?q={%22query%22:{%22" urltype "%22:%22" Line "%22}}"
 	run,"%url%"
 	return
 }
