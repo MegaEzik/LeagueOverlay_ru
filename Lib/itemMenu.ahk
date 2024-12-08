@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=241206.01
+version=241206.02
 */
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
@@ -231,7 +231,7 @@ ItemMenu_OpenOnPoEDB(Line){
 
 ItemMenu_OpenOnPoEDB2(Line){
 	Line:=searchName(Line)
-	run, "https://poedb2.tw/ru/search?q=%Line%"
+	run, "https://poe2db.tw/ru/search?q=%Line%"
 	return
 }
 
