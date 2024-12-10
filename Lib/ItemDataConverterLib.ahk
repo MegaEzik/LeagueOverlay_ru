@@ -70,7 +70,7 @@ IDCL_LoadItemInfo(){
 	BlockInput On
 	SendInput, ^!c
 	BlockInput Off
-	sleep 40
+	sleep 70
 	
 	If (Clipboard="")
 		return

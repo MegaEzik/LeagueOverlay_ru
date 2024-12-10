@@ -80,7 +80,6 @@ If FileExist("Data\imgs\icon.png")
 	Menu, Tray, Icon, Data\imgs\icon.png
 	
 ;Отображение UI загрузки, запуск инструмента переноса настроек
-showStartUI()
 showStartUI("Сборка LeagueOverlay_ru под Ранний доступ PoE 2", "Data\imgs\poe2ea.jpg", "400000")
 migrateConfig()
 
@@ -204,6 +203,13 @@ migrateConfig() {
 				FileMove, %configFolder%\cmds.preset, %configFolder%\MyFiles\MyMenu.preset, 1
 				FileMove, %configFolder%\Presets\*.preset, %configFolder%\MyFiles\*.fmenu, 1
 				FileMove, %configFolder%\MyFiles\*.preset, %configFolder%\MyFiles\*.fmenu, 1
+			}
+			If (verconfig<241206.1) {
+				IniWrite, 1, %configFile%, settings, updateLib
+				
+				FileMove, %configFolder%\MyFiles\MyMenu.fmenu, %configFolder%\cmds.txt, 1
+				FileDelete, %configFolder%\settings.ini
+				FileDelete, %configFolder%\Presets\PoE2EA\PoE2DB.url
 			}
 		}
 		
@@ -545,7 +551,8 @@ showStartUI(SpecialText="", LogoPath="", BGColor=""){
 	
 	;Gui StartUI:Add, Progress, x0 y24 w500 h4 cFDBD75 BackgroundFFFFFF vstartProgress
 	Gui StartUI:Add, Progress, x0 y22 w500 h4 c%BGColor% BackgroundFFFFFF vstartProgress
-	If (SpecialText="") {
+	;If (SpecialText="") {
+	If (Globals.Get("vProgress")="") {
 		Globals.Set("vProgress", 0)
 		suip(5)
 	}
@@ -633,7 +640,7 @@ showSettings(){
 	
 	IniRead, startArgs, %configFile%, settings, startArgs, %A_Space%
 	oldStartArgs:=startArgs
-	IniRead, preset1, %configFile%, settings, preset1, PoE_Russian
+	IniRead, preset1, %configFile%, settings, preset1, PoE
 	IniRead, preset2, %configFile%, settings, preset2, %A_Space%
 	IniRead, preset3, %configFile%, settings, preset3, %A_Space%
 	IniRead, mouseDistance, %configFile%, settings, mouseDistance, 500
@@ -650,7 +657,7 @@ showSettings(){
 	IniRead, lr, %configFile%, curl, limit-rate, 2000
 	IniRead, ct, %configFile%, curl, connect-timeout, 5
 	IniRead, update, %configFile%, settings, update, 1
-	IniRead, updateLib, %configFile%, settings, updateLib, 0
+	IniRead, updateLib, %configFile%, settings, updateLib, 1
 	IniRead, updateAHK, %configFile%, settings, updateAHK, 0
 	IniRead, useEvent, %configFile%, settings, useEvent, 1
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
@@ -776,7 +783,7 @@ showSettings(){
 	Gui, Settings:Add, Checkbox, vupdateLib x27 yp+18 w465 Checked%updateLib% disabled, Автоматически обновлять библиотеки, если это возможно
 	Gui, Settings:Add, Checkbox, vupdateAHK x27 yp+18 w465 Checked%updateAHK% disabled, Предлагать обновления для AutoHotkey
 	If update {
-		;GuiControl, Settings:Enable, updateLib
+		GuiControl, Settings:Enable, updateLib
 		GuiControl, Settings:Enable, updateAHK
 	}
 	
@@ -1197,7 +1204,7 @@ LoadFile(URL, FilePath, CheckDate=false) {
 	
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	If (UserAgent="")
-		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36"
+		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
 	
 	If FileExist(A_WinDir "\System32\curl.exe") && !RegExMatch(args, "i)/NoCurl") {
 		IniRead, lr, %configFile%, curl, limit-rate, 1000

@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=261206.01
+version=261206.02
 */
 
 ;Инициализация и создание меню разработчика
@@ -44,23 +44,12 @@ devInit(){
 }
 
 devPoE2EA(){
-	IniWrite, 1, %configFile%, settings, updateLib
-	/*
-	If !RegExMatch(args, "i)/PoE2") {
-		args.=" /PoE2"
-		ReStart()
-	}
-	*/
 	If !FileExist(configFolder "\Presets\PoE2EA") {
 		FileCreateDir, %configFolder%\Presets\PoE2EA
 		IniWrite, Path of Exile 2, %configFolder%\Presets\PoE2EA\PresetConfig.ini, Windows
-		IniWrite, PoE2DB.url, %configFolder%\Presets\PoE2EA\PresetConfig.ini, SpecialNames, База данных
-		
-		IniWrite, https://poe2db.tw/, %configFolder%\Presets\PoE2EA\PoE2DB.url, InternetShortcut, URL
-		
 		IniWrite, *PoE2EA, %configFile%, settings, preset2
 		Sleep 10
-		devClSD()
+		ReStart()
 	}
 }
 
