@@ -216,15 +216,12 @@ migrateConfig() {
 		showSettings()
 		
 		IniRead, lastImg, %configFile%, info, lastImg, %A_Space%
-		IniRead, labLoadDate, %configFile%, info, labLoadDate, 0
 		
 		FileDelete, %configFile%
 		sleep 25
 		
 		IniWrite, %verScript%, %configFile%, info, verConfig
 		IniWrite, %lastImg%, %configFile%, info, lastImg
-		If (labLoadDate!="")
-			IniWrite, %labLoadDate%, %configFile%, info, labLoadDate
 		IniWrite, %AddonsConfig%, %configFile%, Addons
 		
 		saveSettings()
