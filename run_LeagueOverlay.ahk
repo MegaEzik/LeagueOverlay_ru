@@ -204,11 +204,11 @@ migrateConfig() {
 				FileMove, %configFolder%\Presets\*.preset, %configFolder%\MyFiles\*.fmenu, 1
 				FileMove, %configFolder%\MyFiles\*.preset, %configFolder%\MyFiles\*.fmenu, 1
 			}
-			If (verconfig<241206.1) {
+			If (verconfig<241206.2) {
 				IniWrite, 1, %configFile%, settings, updateLib
 				
 				FileMove, %configFolder%\MyFiles\MyMenu.fmenu, %configFolder%\cmds.txt, 1
-				FileDelete, %configFolder%\settings.ini
+				FileDelete, %configFolder%\windows.list
 				FileDelete, %configFolder%\Presets\PoE2EA\PoE2DB.url
 			}
 		}
