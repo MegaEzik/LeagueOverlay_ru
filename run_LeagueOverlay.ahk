@@ -80,7 +80,8 @@ If FileExist("Data\imgs\icon.png")
 	Menu, Tray, Icon, Data\imgs\icon.png
 	
 ;Отображение UI загрузки, запуск инструмента переноса настроек
-showStartUI("Сборка LeagueOverlay_ru под Ранний доступ PoE 2", "Data\imgs\poe2ea.jpg", "400000")
+showStartUI()
+;showStartUI("Сборка LeagueOverlay_ru под Ранний доступ PoE 2", "Data\imgs\poe2ea.jpg", "400000")
 migrateConfig()
 
 ;Проверка обновлений
@@ -211,6 +212,8 @@ migrateConfig() {
 				FileDelete, %configFolder%\windows.list
 				FileDelete, %configFolder%\Presets\PoE2EA\PoE2DB.url
 			}
+			If (verconfig<241206.3)
+				FileRemoveDir, %configFolder%\Presets\PoE2EA, 1
 		}
 		
 		showSettings()
@@ -752,7 +755,7 @@ showSettings(){
 		LeaguesList.="|" league
 	
 	Gui, Settings:Add, Text, x12 yp+7 w293, Лига:
-	Gui, Settings:Add, DropDownList, vleague x+2 yp-3 w182, %LeaguesList%
+	Gui, Settings:Add, ComboBox, vleague x+2 yp-3 w182, %LeaguesList%
 	GuiControl,Settings:ChooseString, league, %league%
 	
 	If FileExist(configFolder "/Scripts/HeistScanner.ahk"){
@@ -1201,7 +1204,7 @@ LoadFile(URL, FilePath, CheckDate=false) {
 	
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	If (UserAgent="")
-		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
 	
 	If FileExist(A_WinDir "\System32\curl.exe") && !RegExMatch(args, "i)/NoCurl") {
 		IniRead, lr, %configFile%, curl, limit-rate, 1000

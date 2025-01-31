@@ -11,8 +11,6 @@ devInit(){
 	If (configFolder = A_MyDocuments "\AutoHotKey\LeagueOverlay_ru") && FileExist(configFolder "\pkgsMgr.ini") && FileExist(AHKPath "\AutoHotkeyU32.exe") && FileExist(A_ScriptDir "\Data\MigrateAddons.ahk")
 		RunWait, "%AHKPath%\AutoHotkeyU32.exe" "%A_ScriptDir%\Data\MigrateAddons.ahk" "%A_ScriptFullPath%"
 		
-	devPoE2EA()
-	
 	Menu, devMenu, Add, Экран запуска(5 секунд), devStartUI
 	;Menu, devMenu, Add, Отслеживаемые файлы, showTrackingList
 	;Menu, devMenu, Add, Задать файл 'Меню команд', devFavoriteList
@@ -41,16 +39,6 @@ devInit(){
 		FileDelete, %configFolder%\MyFiles\Lab3_Merciless.jpg
 	}
 	*/
-}
-
-devPoE2EA(){
-	If !FileExist(configFolder "\Presets\PoE2EA") {
-		FileCreateDir, %configFolder%\Presets\PoE2EA
-		IniWrite, Path of Exile 2, %configFolder%\Presets\PoE2EA\PresetConfig.ini, Windows
-		IniWrite, *PoE2EA, %configFile%, settings, preset2
-		Sleep 10
-		ReStart()
-	}
 }
 
 ;Загрузить событие
