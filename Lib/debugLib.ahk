@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=261206.02
+version=261206.03
 */
 
 ;Инициализация и создание меню разработчика
@@ -26,10 +26,9 @@ devInit(){
 	Menu, devSubMenu2, Standard
 	Menu, devMenu, Add, AutoHotkey, :devSubMenu2
 	
-	/*
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
-	FormatTime, CurrentDate, %A_NowUTC%, yyyyMMdd
-	If loadLab && RegExMatch(args, "i)/Dev"){
+	FormatTime, cDate, %A_NowUTC%, yyyyMMdd
+	If loadLab && (cDate>=20250220 && cDate<=20250223) {
 		downloadLabLayout("https://www.poelab.com/gtgax", true, "Lab1_Normal")
 		downloadLabLayout("https://www.poelab.com/r8aws", true, "Lab2_Cruel")
 		downloadLabLayout("https://www.poelab.com/riikv", true, "Lab3_Merciless")
@@ -38,7 +37,6 @@ devInit(){
 		FileDelete, %configFolder%\MyFiles\Lab2_Cruel.jpg
 		FileDelete, %configFolder%\MyFiles\Lab3_Merciless.jpg
 	}
-	*/
 }
 
 ;Загрузить событие
@@ -55,7 +53,9 @@ loadEvent(){
 	
 	IniRead, EventName, %EventPath%, Event, EventName, %A_Space%
 	IniRead, EventLogo, %EventPath%, Event, EventLogo, %A_Space%
+	IniRead, EventIcon, %EventPath%, Event, EventIcon, %A_Space%
 	IniRead, EventMsg, %EventPath%, Event, EventMsg, %A_Space%
+	IniRead, AccentColor, %EventPath%, Event, AccentColor, %A_Space%
 	IniRead, StartDate, %EventPath%, Event, StartDate, %A_Space%
 	IniRead, EndDate, %EventPath%, Event, EndDate, %A_Space%
 	IniRead, MinVersion, %EventPath%, Event, MinVersion, %A_Space%
@@ -68,8 +68,13 @@ loadEvent(){
 	If (EventLogo!="")
 		LoadFile(EventLogo, configFolder "\Event\bg.jpg", true)
 	
+	If (EventIcon!="")
+		LoadFile(EventIcon, configFolder "\Event\icon.png", true)
+	If FileExist(configFolder "\Event\icon.png")
+		Menu, Tray, Icon, %configFolder%\Event\icon.png
+	
 	If (EventMsg!="")
-		showStartUI(EventName "`n" EventMsg, (EventLogo!="")?configFolder "\Event\bg.jpg":"")
+		showStartUI(EventName "`n" EventMsg, (EventLogo!="")?configFolder "\Event\bg.jpg":"", AccentColor)
 	
 	eventDataSplit:=StrSplit(loadFastFile(EventPath), "`n")
 	For k, val in eventDataSplit
