@@ -3,17 +3,18 @@
 	Данный скрипт создан MegaEzik
 	
 	Назначение дополнительных библиотек:
-		*Gdip_All.ahk - Библиотека для работы с изображениями, авторство https://www.autohotkey.com/boards/viewtopic.php?t=6517
-		*JSON.ahk - Разбор данных от api, авторство https://github.com/cocobelgica/AutoHotkey-JSON
-		*Overlay.ahk - Набор функций для расчета и отображения изображений оверлея
-		*Labyrinth.ahk - Загрузка убер-лабиринта с poelab.com
-		*Updater.ahk - Проверка и установка обновлений
-		*debugLib.ahk - Библиотека для функций отладки и тестирования новых функций
-		*fastReply.ahk - Библиотека с функциями для команд
-		*ItemDataConverterLib.ahk - Библиотека для конвертирования описания предмета
-		*itemMenu.ahk - Библиотека для формирования меню предмета
-		*Gamepad.ahk - Отвечает за игровой контроллер
-		*pkgsMgr.ahk - Управление дополнениями
+		*Gdip_All - Библиотека для работы с изображениями, авторство https://www.autohotkey.com/boards/viewtopic.php?t=6517
+		*ToolTipOpt - Библиотека позволяющая изменять оформление тултипа, авторство https://www.autohotkey.com/boards/viewtopic.php?t=4777
+		*JSON - Разбор данных от api, авторство https://github.com/cocobelgica/AutoHotkey-JSON
+		*Overlay - Набор функций для расчета и отображения изображений оверлея
+		*Labyrinth - Загрузка убер-лабиринта с poelab.com
+		*Updater - Проверка и установка обновлений
+		*debugLib - Библиотека для функций отладки и тестирования новых функций
+		*fastReply - Библиотека с функциями для команд
+		*ItemDataConverterLib- Библиотека для конвертирования описания предмета
+		*itemMenu - Библиотека для формирования меню предмета
+		*Gamepad - Отвечает за игровой контроллер
+		*pkgsMgr - Управление дополнениями
 	
 	Управление:
 		[Alt+F1] - Последнее изображение
@@ -29,6 +30,7 @@ SetWorkingDir %A_ScriptDir%
 
 ;Подключение библиотек
 #Include <Gdip_All>
+#Include <ToolTipOpt>
 #Include <JSON>
 #Include <Overlay>
 #Include <Labyrinth>
@@ -210,9 +212,8 @@ migrateConfig() {
 				
 				FileMove, %configFolder%\MyFiles\MyMenu.fmenu, %configFolder%\cmds.txt, 1
 				FileDelete, %configFolder%\windows.list
-				FileDelete, %configFolder%\Presets\PoE2EA\PoE2DB.url
 			}
-			If (verconfig<241206.3)
+			If (verconfig<250131)
 				FileRemoveDir, %configFolder%\Presets\PoE2EA, 1
 		}
 		
@@ -1156,8 +1157,12 @@ ReStart(){
 showToolTip(msg, t=0, umd=true) {
 	msg:=StrReplace(msg, "/n", "`n")
 	msg:=StrReplace(msg, "/t", "`t")
-	ToolTip
-	sleep 5
+	
+	If (Globals.Get("TTBGColor")!="" && Globals.Get("TTTextColor")!="")
+		ToolTipColor(Globals.Get("TTBGColor"), Globals.Get("TTTextColor"))
+	If (Globals.Get("TTFontSize")!="")
+		ToolTipFont("s" Globals.Get("TTFontSize"))
+	
 	ToolTip, %msg%
 	If t!=0
 		SetTimer, removeToolTip, %t%

@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=250131.01
+version=250131.02
 */
 
 ;Инициализация и создание меню разработчика
@@ -26,8 +26,9 @@ devInit(){
 	Menu, devSubMenu2, Standard
 	Menu, devMenu, Add, AutoHotkey, :devSubMenu2
 	
-	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	FormatTime, cDate, %A_NowUTC%, yyyyMMdd
+	
+	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	If loadLab && (cDate>=20250220 && cDate<=20250223) {
 		downloadLabLayout("https://www.poelab.com/gtgax", true, "Lab1_Normal")
 		downloadLabLayout("https://www.poelab.com/r8aws", true, "Lab2_Cruel")
@@ -36,6 +37,12 @@ devInit(){
 		FileDelete, %configFolder%\MyFiles\Lab1_Normal.jpg
 		FileDelete, %configFolder%\MyFiles\Lab2_Cruel.jpg
 		FileDelete, %configFolder%\MyFiles\Lab3_Merciless.jpg
+	}
+	
+	If (cDate>=20250217 && cDate<=20250223) {
+		Globals.Set("TTBGColor", "2B2B2B")
+		Globals.Set("TTTextColor", "7CB29C")
+		;Globals.Set("TTFontSize", "10")
 	}
 }
 
