@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=250131.02
+version=250131.03
 */
 
 ;Инициализация и создание меню разработчика
@@ -39,11 +39,14 @@ devInit(){
 		FileDelete, %configFolder%\MyFiles\Lab3_Merciless.jpg
 	}
 	
+	/*
+	;Смена стиля для тултипа почему-то ломает работу с буфером обмена, пока отключим
 	If (cDate>=20250217 && cDate<=20250223) {
 		Globals.Set("TTBGColor", "2B2B2B")
 		Globals.Set("TTTextColor", "7CB29C")
 		;Globals.Set("TTFontSize", "10")
 	}
+	*/
 }
 
 ;Загрузить событие
