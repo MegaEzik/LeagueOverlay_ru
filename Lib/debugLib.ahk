@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=250131.03
+version=250131.04
 */
 
 ;Инициализация и создание меню разработчика
@@ -26,6 +26,11 @@ devInit(){
 	Menu, devSubMenu2, Standard
 	Menu, devMenu, Add, AutoHotkey, :devSubMenu2
 	
+	IniRead, preset1, %configFile%, settings, preset1, %A_Space%
+	If (preset1="")
+		IniWrite, PoE, %configFile%, settings, preset1
+	
+	/*
 	FormatTime, cDate, %A_NowUTC%, yyyyMMdd
 	
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
@@ -39,7 +44,7 @@ devInit(){
 		FileDelete, %configFolder%\MyFiles\Lab3_Merciless.jpg
 	}
 	
-	/*
+	
 	;Смена стиля для тултипа почему-то ломает работу с буфером обмена, пока отключим
 	If (cDate>=20250217 && cDate<=20250223) {
 		Globals.Set("TTBGColor", "2B2B2B")
