@@ -4,7 +4,6 @@
 	
 	Назначение дополнительных библиотек:
 		*Gdip_All - Библиотека для работы с изображениями, авторство https://www.autohotkey.com/boards/viewtopic.php?t=6517
-		*ToolTipOpt - Библиотека позволяющая изменять оформление тултипа, авторство https://www.autohotkey.com/boards/viewtopic.php?t=4777
 		*JSON - Разбор данных от api, авторство https://github.com/cocobelgica/AutoHotkey-JSON
 		*Overlay - Набор функций для расчета и отображения изображений оверлея
 		*Labyrinth - Загрузка убер-лабиринта с poelab.com
@@ -30,7 +29,6 @@ SetWorkingDir %A_ScriptDir%
 
 ;Подключение библиотек
 #Include <Gdip_All>
-#Include <ToolTipOpt>
 #Include <JSON>
 #Include <Overlay>
 #Include <Labyrinth>
@@ -154,7 +152,7 @@ checkRequirementsAndArgs() {
 			ReStart()
 		}
 	}
-	If GetKeyState("Ctrl", P) && !RegExMatch(args, "i)/Dev") {
+	If GetKeyState("LCtrl", P) && !RegExMatch(args, "i)/Dev") {
 		args.=" /Dev"
 		ReStart()
 	}
@@ -274,7 +272,7 @@ LeaguesList(showPorgress=true){
 		SplashTextOn, 400, 20, %prjName%, Обновление списка Лиг, пожалуйста подождите...
 	
 	File:=A_ScriptDir "\Data\JSON\leagues.json"
-	LoadFile("http://api.pathofexile.com/leagues?type=main", File, true)
+	LoadFile("https://api.pathofexile.com/leagues?type=main&realm=pc", File, true)
 	FileRead, html, %File%
 	html:=StrReplace(html, "},{", "},`n{")
 	
@@ -282,8 +280,10 @@ LeaguesList(showPorgress=true){
 	
 	htmlSplit:=StrSplit(html, "`n")
 	For k, val in htmlSplit {
-		If !RegExMatch(htmlSplit[k], "i)SSF") && RegExMatch(htmlSplit[k], "id"":""(.*)"",""realm", res)
-			leagues_list.="|" res1
+		If RegExMatch(htmlSplit[k], "U)id"":""(.*)""", res) && RegExMatch(htmlSplit[k], """realm"":""pc""") {
+			If !RegExMatch(res1, "i)(SSF|Solo Self-Found)")
+				leagues_list.="|" res1
+		}
 	}
 	
 	leagues_list:=subStr(leagues_list, 2)
@@ -294,8 +294,14 @@ LeaguesList(showPorgress=true){
 }
 
 ;Открыть мой файл
-shMyFile(imagename){
-	commandFastReply(configFolder "\MyFiles\" imagename)
+shMyFile(filename){
+	If GetKeyState("LCtrl", P) {
+		MsgBox, 0x1024, %prjName%, Удалить файл '%filename%'?
+		IfMsgBox Yes
+			FileDelete, %configFolder%\MyFiles\%filename%
+		Return
+	}
+	commandFastReply(configFolder "\MyFiles\" filename)
 }
 
 ;Открыть папку с моими файлами
@@ -719,10 +725,11 @@ showSettings(){
 		presetList.="|" A_LoopFileName
 	Loop, %configFolder%\Presets\*, 2
 		presetList.="|*" A_LoopFileName
+	preset1List:=SubStr(presetList, 2)
 	
 	Gui, Settings:Add, Text, x12 yp+25 w178, Наборы:
 	Gui, Settings:Add, Button, x+3 yp-4 w23 h23 gpresetMenuCfgShow, ☰
-	Gui, Settings:Add, DropDownList, vpreset1 x+1 yp+1 w90, %presetList%
+	Gui, Settings:Add, DropDownList, vpreset1 x+1 yp+1 w90, %preset1List%
 	GuiControl,Settings:ChooseString, preset1, %preset1%
 	Gui, Settings:Add, DropDownList, vpreset2 x+1 w90, %presetList%
 	GuiControl,Settings:ChooseString, preset2, %preset2%
@@ -1157,11 +1164,6 @@ ReStart(){
 showToolTip(msg, t=0, umd=true) {
 	msg:=StrReplace(msg, "/n", "`n")
 	msg:=StrReplace(msg, "/t", "`t")
-	
-	If (Globals.Get("TTBGColor")!="" && Globals.Get("TTTextColor")!="")
-		ToolTipColor(Globals.Get("TTBGColor"), Globals.Get("TTTextColor"))
-	If (Globals.Get("TTFontSize")!="")
-		ToolTipFont("s" Globals.Get("TTFontSize"))
 	
 	ToolTip, %msg%
 	If t!=0
