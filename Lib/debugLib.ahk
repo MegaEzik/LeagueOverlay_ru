@@ -1,11 +1,17 @@
 ﻿
 /*
 [info]
-version=250131.05
+version=250131.06
 */
 
 ;Инициализация и создание меню разработчика
 devInit(){
+	;If RegExMatch(args, "i)/Dev") && FileExist("Data\imgs\icon_dev.png")
+	;	Menu, Tray, Icon, Data\imgs\icon_dev.png
+	If RegExMatch(args, "i)/PoE2") {
+		showStartUI("Сборка LeagueOverlay_ru под Ранний доступ PoE 2", "Data\imgs\poe2ea.jpg", "400000")
+	}
+	
 	;devSpecialUpdater()
 	SplitPath, A_AhkPath,,AHKPath
 	If (configFolder = A_MyDocuments "\AutoHotKey\LeagueOverlay_ru") && FileExist(configFolder "\pkgsMgr.ini") && FileExist(AHKPath "\AutoHotkeyU32.exe") && FileExist(A_ScriptDir "\Data\MigrateAddons.ahk")
@@ -39,6 +45,10 @@ devInit(){
 		FileDelete, %configFolder%\MyFiles\Lab3_Merciless.jpg
 	}
 	
+}
+
+devEndInit(){
+	Sleep 100
 }
 
 ;Загрузить событие

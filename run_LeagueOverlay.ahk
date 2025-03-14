@@ -81,8 +81,10 @@ If FileExist("Data\imgs\icon.png")
 	
 ;Отображение UI загрузки, запуск инструмента переноса настроек
 showStartUI()
-;showStartUI("Сборка LeagueOverlay_ru под Ранний доступ PoE 2", "Data\imgs\poe2ea.jpg", "400000")
 migrateConfig()
+
+;Инициализация инструментов отладки
+devInit()
 
 ;Проверка обновлений
 suip(15)
@@ -92,34 +94,30 @@ If update {
 	SetTimer, CheckUpdate, 7200000
 	suip(20)
 	updateAutoHotkey()
-	suip(24)
+	suip(22)
 	updateLib("debugLib.ahk")
-	suip(28)
+	suip(24)
 	updateLib("Labyrinth.ahk")
-	suip(32)
+	suip(26)
 	updateLib("ItemDataConverterLib.ahk")
-	suip(36)
+	suip(28)
 	updateLib("itemMenu.ahk")
-	suip(40)
+	suip(30)
 	LeaguesList(false)
 }
 
-;Инициализация инструментов отладки
-suip(45)
-devInit()
-
 ;Загрузка события, лабиринта, и данных для IDCL
 ;LoadFile("http://api.pathofexile.com/leagues?type=main", A_ScriptDir "\Data\JSON\leagues.json", true)
-suip(60)
+suip(45)
 loadEvent()
 ;loadTrackingFiles()
-suip(85)
+suip(80)
 initLab()
-suip(95)
+suip(90)
 ItemMenu_IDCLInit()
 
 ;Выполним все файлы с окончанием .ahk, передав им папку расположения скрипта
-suip(97)
+suip(95)
 pkgsMgr_startCustomScripts()
 
 ;Назначим управление и создадим меню
@@ -128,7 +126,8 @@ setHotkeys()
 
 systemTheme()
 
-;Завершение загрузки
+;Завершение инициализаций
+devEndInit()
 closeStartUI()
 
 Return
