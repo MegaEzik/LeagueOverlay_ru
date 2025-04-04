@@ -52,7 +52,7 @@ global tempDir:=configFolder "\Temp"
 FileCreateDir, %configFolder%\Scripts
 FileCreateDir, %tempDir%
 
-global verScript, args, LastImg, globalOverlayPosition, startProgress, OverlayStatus=0, cmdNum=20
+global verScript, args, LastImg, globalOverlayPosition, startProgress, cpPos, OverlayStatus=0, cmdNum=20
 
 Loop, %0%
 	args.=" " %A_Index%
@@ -84,7 +84,7 @@ showStartUI()
 migrateConfig()
 
 ;Инициализация инструментов отладки
-devInit()
+devPreInit()
 
 ;Проверка обновлений
 suip(15)
@@ -107,10 +107,10 @@ If update {
 }
 
 ;Загрузка события, лабиринта, и данных для IDCL
-;LoadFile("http://api.pathofexile.com/leagues?type=main", A_ScriptDir "\Data\JSON\leagues.json", true)
 suip(45)
 loadEvent()
-;loadTrackingFiles()
+suip(70)
+loadTrackingFiles()
 suip(80)
 initLab()
 suip(90)
@@ -127,7 +127,7 @@ setHotkeys()
 systemTheme()
 
 ;Завершение инициализаций
-devEndInit()
+devPostInit()
 closeStartUI()
 
 Return
@@ -187,6 +187,7 @@ migrateConfig() {
 		If (verConfig>0) {
 			FileDelete, Data\Packages.txt
 			FileDelete, Data\JSON\leagues.json
+			FileDelete, Data\JSON\leagues2.json
 			IniRead, expandMyImages, %configFile%, settings, expandMyImages, 1
 			If (verConfig<221028) {
 				FileRemoveDir, %A_MyDocuments%\LeagueOverlay_ru, 1
@@ -270,20 +271,26 @@ LeaguesList(showPorgress=true){
 	If showPorgress
 		SplashTextOn, 400, 20, %prjName%, Обновление списка Лиг, пожалуйста подождите...
 	
-	File:=A_ScriptDir "\Data\JSON\leagues.json"
-	LoadFile("https://api.pathofexile.com/leagues?type=main&realm=pc", File, true)
-	FileRead, html, %File%
-	html:=StrReplace(html, "},{", "},`n{")
+	leagues_list:=Globals.Get("devAdditionalLeagues")
 	
-	leagues_list:=""
+	File1:=A_ScriptDir "\Data\JSON\leagues.json"
+	File2:=A_ScriptDir "\Data\JSON\leagues2.json"
+	LoadFile("https://api.pathofexile.com/leagues?realm=pc", File1, true)
+	;LoadFile("https://api.pathofexile.com/leagues?realm=poe2", File2, true)
+	FileRead, DataFile1, %File1%
+	FileRead, DataFile2, %File2%
+	
+	html:=StrReplace(DataFile1 "`n" DataFile2, "},{", "},`n{")
 	
 	htmlSplit:=StrSplit(html, "`n")
 	For k, val in htmlSplit {
-		If RegExMatch(htmlSplit[k], "U)id"":""(.*)""", res) && RegExMatch(htmlSplit[k], """realm"":""pc""") {
-			If !RegExMatch(res1, "i)(SSF|Solo Self-Found)")
+		If RegExMatch(htmlSplit[k], "U)id"":""(.*)""", res) && RegExMatch(htmlSplit[k], """realm"":""(pc|poe2)""") {
+			If !RegExMatch(res1, "i)(SSF|Solo Self-Found)") && !RegExMatch(leagues_list, res1)
 				leagues_list.="|" res1
 		}
 	}
+	
+	;leagues_list.=Globals.Get("devAdditionalLeagues")
 	
 	leagues_list:=subStr(leagues_list, 2)
 	
@@ -293,14 +300,13 @@ LeaguesList(showPorgress=true){
 }
 
 ;Открыть мой файл
-shMyFile(filename){
+shMyFile(FileName){
+	IniRead, FileName, %configFile%, SpecialNames, %FileName%, %FileName%
 	If GetKeyState("LCtrl", P) {
-		MsgBox, 0x1024, %prjName%, Удалить файл '%filename%'?
-		IfMsgBox Yes
-			FileDelete, %configFolder%\MyFiles\%filename%
-		Return
+		myFilesActions(FileName)
+		return
 	}
-	commandFastReply(configFolder "\MyFiles\" filename)
+	commandFastReply(configFolder "\MyFiles\" FileName)
 }
 
 ;Открыть папку с моими файлами
@@ -310,19 +316,35 @@ openMyFilesFolder(){
 
 ;Создать меню с Моими файлами
 myFilesMenuCreate(expandMenu=true){
+	IniRead, SpecialNamesList, %configFile%, SpecialNames
+	SpecialNamesSplit:=StrSplit(SpecialNamesList, "`n")
+		
 	Menu, myFilesMenu, Add
 	Menu, myFilesMenu, DeleteAll
-	If expandMenu {
-		Loop, %configFolder%\MyFiles\*.*, 1
-			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt|fmenu|url|lnk)$")
+	
+	Loop, %configFolder%\MyFiles\*.*, 1
+		If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt|fmenu|url|lnk)$") {
+			If expandMenu
 				Menu, mainMenu, Add, %A_LoopFileName%, shMyFile
+			Menu, myFilesMenu, Add, %A_LoopFileName%, shMyFile
+		}
+			
+	For k, val in SpecialNamesSplit {
+		SplitName:=StrSplit(SpecialNamesSplit[k], "=")
+		NewName:=SplitName[1]
+		OldName:=SplitName[2]
+		If FileExist(configFolder "\MyFiles\" OldName) {
+			If expandMenu
+				Menu, mainMenu, Rename, %OldName%, %NewName%
+			Menu, myFilesMenu, Rename, %OldName%, %NewName%
+		}
+	}
+	
+	If expandMenu {
 		Menu, mainMenu, Add
 	} Else {
-		Loop, %configFolder%\MyFiles\*.*, 1
-			If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt|fmenu|url|lnk)$")
-				Menu, myFilesMenu, Add, %A_LoopFileName%, shMyFile
 		Menu, myFilesMenu, Add
-		Menu, myFilesMenu, Add, Открыть папку 'Мои файлы', openMyFilesFolder
+		Menu, myFilesMenu, Add, Действия, myFilesActions
 		Menu, mainMenu, Add, Мои файлы, :myFilesMenu
 	}
 }
@@ -518,7 +540,7 @@ clearPoECache(){
 }
 
 ;Окно запуска
-showStartUI(SpecialText="", LogoPath="", BGColor=""){
+showStartUI(SpecialText="", LogoPath="", BGColor="", TColor="000000"){
 	Gui, StartUI:Destroy
 	
 	initMsgs := ["Здесь могла быть ваша реклама"
@@ -570,9 +592,10 @@ showStartUI(SpecialText="", LogoPath="", BGColor=""){
 	
 	;Gui, StartUI:Add, Text, x-5 y+2 w510 h1 0x12
 	
-	Gui, StartUI:Font, c000000
+	Gui, StartUI:Font, c%TColor%
 	
-	Gui, StartUI:Font, s10 bold italic
+	;Gui, StartUI:Font, s10 bold italic
+	Gui, StartUI:Font, s10 bold
 	Gui, StartUI:Add, Text, x0 y+5 h30 w500 +Center BackgroundTrans, %initMsg%
 	
 	Gui, StartUI:Font, s8 norm
@@ -617,6 +640,21 @@ updStartProgress(){
 	GuiControl StartUI:, startProgress, %ProgressNum%
 }
 
+;Интерфейс дополнительного прогресса
+customProgress(ProgressPosition=0, WinName="Progress"){
+	If (ProgressPosition=0) {
+		Gui, CustomProgressUI:Add, Progress, w400 h25 BackgroundA9A9A9 vcpPos
+		Gui, CustomProgressUI:-SysMenu +Theme +Border +AlwaysOnTop
+		If (WinName="Progress")
+			Gui, CustomProgressUI:-Caption
+		Gui, CustomProgressUI:Show,, %WinName%
+		Sleep 35
+		WinSet, Transparent, 200, %WinName%
+		Sleep 1000
+	} Else {
+		GuiControl CustomProgressUI:, cpPos, %ProgressPosition%
+	}
+}
 
 ;Настройки
 showSettings(){
@@ -630,7 +668,8 @@ showSettings(){
 	IniRead, dInfo2, %buildConfig%, Donation, Info2, %A_Space%
 	dMsg:=StrReplace(dMsg, "/n", "`n")
 	
-	;Информация об отслеживаемых окнах
+	;Информация о подмене имен и отслеживаемых окнах
+	IniRead, SpecialNamesData, %configFile%, SpecialNames
 	IniRead, WindowsData, %configFile%, Windows
 	
 	;Настройки первой вкладки
@@ -654,7 +693,6 @@ showSettings(){
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
 	IniRead, hotkeyGamepad, %configFile%, hotkeys, hotkeyGamepad, vk07
 	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, !c
-	
 	IniRead, league, %configFile%, settings, league, Standard
 	IniRead, hotkeyHeistScanner, %configFile%, hotkeys, hotkeyHeistScanner, %A_Space%
 	
@@ -667,6 +705,9 @@ showSettings(){
 	IniRead, updateAHK, %configFile%, settings, updateAHK, 0
 	IniRead, useEvent, %configFile%, settings, useEvent, 1
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
+	
+	;Настройки третьей вкладки
+	IniRead, hotkeyCmdsMenu, %configFile%, hotkeys, hotkeyCmdsMenu, %A_Space%
 	
 	;Скрытые настройки
 	IniRead, expandMyFiles, %configFile%, settings, expandMyFiles, 1
@@ -687,19 +728,18 @@ showSettings(){
 	;Gui, Settings:Font, s11
 	Gui, Settings:Add, Button, x305 y432 w195 h23 gsaveSettings, Применить и перезапустить
 	
-	Gui, Settings:Add, Tab3, x0 y70 w500 h385 Bottom, Основные|Загрузки|Быстрые команды
+	Gui, Settings:Add, Tab3, x0 y70 w500 h385 Bottom, Основные|Загрузки|Команды
 	;Gui, Settings:Add, Tab, x0 y75 w640 h385 Bottom, Основные|Загрузки|Команды ;Вкладки
 	;Gui, Settings:Font, s8 normal
 	Gui, Settings:Tab, 1 ;Первая вкладка
 	
-	Gui, Settings:Add, Text, x12 y80 w110, Параметры запуска:
+	Gui, Settings:Add, Checkbox, vautoStartEnabled x12 y80 w480 Checked%autoStartEnabled%, Запустить %prjName% при запуске Windows
+	
+	Gui, Settings:Add, Text, x12 yp+22 w110, Параметры запуска:
 	Gui, Settings:Add, Edit, vstartArgs x+2 yp-2 w346 h17, %startArgs%
 	Gui, Settings:Add, Button, x+1 yp-1 w19 h19 gshowArgsInfo, ?
 	
-	Gui, Settings:Add, Checkbox, vautoStartEnabled x12 yp+24 w480 Checked%autoStartEnabled%, Запустить %prjName% при запуске Windows
-	
-	Gui, Settings:Add, Text, x12 yp+22 w385, Список дополнительных окон для отслеживания:
-	;Gui, Settings:Add, Button, x+1 yp-3 w92 h23 gsetWindowsList, Изменить
+	Gui, Settings:Add, Text, x12 yp+24 w385, Список дополнительных окон для отслеживания:
 	Gui, Settings:Add, Button, x+1 yp-3 w92 h23 geditWinList, Изменить
 	
 	Gui, Settings:Add, Text, x10 y+3 w480 h1 0x12
@@ -740,8 +780,7 @@ showSettings(){
 	Gui, Settings:Add, UpDown, Range5-99999 0x80, %mouseDistance%
 	
 	Gui, Settings:Add, Checkbox, vexpandMyFiles x12 yp+24 w385 Checked%expandMyFiles%, Развернуть 'Мои файлы'
-	Gui, Settings:Add, Button, x+1 yp-3 w92 h23 gsettingsMyFilesMenuShow, Мои файлы
-	
+	Gui, Settings:Add, Button, x+1 yp-3 w92 h23 gmyFilesActions, Действия
 	
 	Gui, Settings:Add, Text, x10 y+3 w480 h1 0x12
 	
@@ -755,14 +794,14 @@ showSettings(){
 	Gui, Settings:Add, Text, x12 yp+22 w385, Меню предмета:
 	Gui, Settings:Add, Hotkey, vhotkeyItemMenu x+2 yp-2 w90 h17, %hotkeyItemMenu%
 	
-	Gui, Settings:Add, Text, x10 y+4 w480 h1 0x12
+	Gui, Settings:Add, Text, x10 y+3 w480 h1 0x12
 	
 	LeaguesList:=LeaguesList()
 	If !RegExMatch(LeaguesList, league)
 		LeaguesList.="|" league
 	
-	Gui, Settings:Add, Text, x12 yp+7 w293, Лига:
-	Gui, Settings:Add, ComboBox, vleague x+2 yp-3 w182, %LeaguesList%
+	Gui, Settings:Add, Text, x12 yp+7 w203, Лига испытаний:
+	Gui, Settings:Add, ComboBox, vleague x+2 yp-3 w272, %LeaguesList%
 	GuiControl,Settings:ChooseString, league, %league%
 	
 	If FileExist(configFolder "/Scripts/HeistScanner.ahk"){
@@ -797,11 +836,14 @@ showSettings(){
 	Gui, Settings:Add, Checkbox, vuseEvent x12 yp+18 w480 Checked%useEvent%, Разрешить события
 	
 	Gui, Settings:Add, Checkbox, vloadLab x12 yp+18 w345 Checked%loadLab%, Скачивать раскладку лабиринта('Мои файлы'>Labyrinth.jpg)
-	Gui, Settings:Add, Link, x+2 yp+0 w130 +Right, <a href="https://www.poelab.com/">POELab.com</a>
+	Gui, Settings:Add, Link, x+2 yp+0 w130 +Right, <a href="https://www.poelab.com/">PoELab.com</a>
 	
 	Gui, Settings:Tab, 3 ; Третья вкладка
 	
-	Gui, Settings:Add, Text, x12 y80 w0 h0
+	Gui, Settings:Add, Text, x12 y80 w385, Избранные команды:
+	Gui, Settings:Add, Hotkey, vhotkeyCmdsMenu x+2 yp-2 w90 h17, %hotkeyCmdsMenu%
+	
+	Gui, Settings:Add, Text, x10 y+2 w480 h2 0x12
 	
 	;Настраиваемые команды fastReply
 	LoopVar:=cmdNum/2
@@ -887,6 +929,9 @@ saveSettings(){
 	IniWrite, %useEvent%, %configFile%, settings, useEvent
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
 	
+	;Настройки третьей вкладки
+	IniWrite, %hotkeyCmdsMenu%, %configFile%, hotkeys, hotkeyCmdsMenu
+	
 	;Скрытые настройки
 	IniWrite, %expandMyFiles%, %configFile%, settings, expandMyFiles
 	IniWrite, %tfwFontSize%, %configFile%, settings, tfwFontSize
@@ -900,7 +945,9 @@ saveSettings(){
 		IniWrite, %tempVar%, %configFile%, fastReply, textCmd%A_Index%
 	}
 	
-	;Информация об отслеживаемых окнах
+	;Информация о подмене имен и отслеживаемых окнах
+	IniDelete, %configFile%, SpecialNames
+	IniWrite, %SpecialNamesData%, %configFile%, SpecialNames
 	IniDelete, %configFile%, Windows
 	IniWrite, %WindowsData%, %configFile%, Windows
 	
@@ -917,10 +964,13 @@ setHotkeys(){
 	;Инициализация основных клавиш макроса
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, %A_Space%
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, %A_Space%
+	IniRead, hotkeyCmdsMenu, %configFile%, hotkeys, hotkeyCmdsMenu, %A_Space%
 	If (hotkeyLastImg!="")
 		Hotkey, % hotkeyLastImg, shLastImage, On
 	If (hotkeyMainMenu!="")
 		Hotkey, % hotkeyMainMenu, shMainMenu, On
+	If (hotkeyCmdsMenu!="")
+		Hotkey, % hotkeyCmdsMenu, shСmdsMenu, On
 	
 	;Инициализация настраиваемых команд fastReply
 	Loop %cmdNum% {
@@ -975,9 +1025,13 @@ presetMenuCfgShow(){
 }
 
 ;Меню управления для 'Мои файлы'
-settingsMyFilesMenuShow() {
+myFilesActions(FileName="") {
 	Menu, settingsMyFilesMenu, Add
 	Menu, settingsMyFilesMenu, DeleteAll
+	If (FileName!="") && FileExist(configFolder "\MyFiles\" FileName) {
+		Menu, settingsMyFilesMenu, Add, Удалить '%FileName%', removeMyFile
+		Menu, settingsMyFilesMenu, Add
+	}
 	Menu, settingsMyFilesMenu, Add, Добавить 'Ярлык', createNewLink
 	Menu, settingsMyFilesMenu, Add, Добавить 'Заметку', createNewNote
 	Menu, settingsMyFilesMenu, Add, Добавить 'Меню команд', createNewMenu
@@ -985,6 +1039,12 @@ settingsMyFilesMenuShow() {
 	Menu, settingsMyFilesMenu, Add
 	Menu, settingsMyFilesMenu, Add, Открыть папку 'Мои файлы', openMyFilesFolder
 	Menu, settingsMyFilesMenu, Show
+}
+
+;Удаление файла из 'Моих файлов'
+removeMyFile(FileName) {
+	FileName:=searchName(FileName)
+	FileDelete, %configFolder%\MyFiles\%FileName%
 }
 
 ;Поиск имени
@@ -1089,6 +1149,9 @@ shPreset(TargetName){
 
 ;Сформировать и открыть основное меню
 shMainMenu(Gamepad=false){
+	If RegExMatch(args, "i)/Gamepad")
+		Gamepad:=true
+	
 	removeToolTip()
 	destroyOverlay()
 	Menu, mainMenu, Add
@@ -1099,23 +1162,32 @@ shMainMenu(Gamepad=false){
 		Menu, mainMenu, Add, %eventName%, eventMenu
 		Menu, mainMenu, Add
 	}
-	
 	loadPreset()
 	
 	IniRead, expandMyFiles, %configFile%, settings, expandMyFiles, 1
 	myFilesMenuCreate(expandMyFiles || Gamepad)
 	
 	IniRead, hotkeyCmdsMenu, %configFile%, hotkeys, hotkeyCmdsMenu, %A_Space%
-	If !RegExMatch(args, "i)/HideCmds") {
-		fastMenu(configFolder "\cmds.txt", false)
+	If (hotkeyCmdsMenu="") {
+		fastMenu(configFolder "\cmds.txt", False)
 		Menu, fastMenu, Add
-		Menu, fastMenu, Add, Редактировать 'Меню команд', editCmdsList
-		Menu, mainMenu, Add, Меню команд, :fastMenu
+		Menu, fastMenu, Add, Редактировать 'Избранные команды', editCmdsList
+		Menu, mainMenu, Add, Избранные команды, :fastMenu
 	}
-
+	
+	If Gamepad {
+		ItemMenu_Show(False, False)
+		Menu, mainMenu, Add, Подсветка, :itemMenu
+	}
+	
 	Menu, mainMenu, Add, Область уведомлений, :Tray
 	sleep 5
 	Menu, mainMenu, Show
+}
+
+;Избранные команды
+shСmdsMenu(){
+	shFastMenu(configFolder "\cmds.txt")
 }
 
 ;Окно редактирования для отслеживаемых файлов
@@ -1127,14 +1199,18 @@ showTrackingList(){
 loadTrackingFiles(){
 	FileRead, Data, %configFolder%\TrackingURLs.txt
 	DataSplit:=strSplit(StrReplace(Data, "`r", ""), "`n")
-		For k, val in DataSplit
-			If (RegExMatch(DataSplit[k], "i)https://(.*).(png|jpg|jpeg|bmp|txt|fmenu)$")=1){
-				FileURL:=DataSplit[k]
-				SplitPath, FileURL, FileName
-				LoadFile(FileURL, configFolder "\MyFiles\" FileName, CheckDate=true)
-			}
+	
+	If (DataSplit.MaxIndex()>1)
+		customProgress(, "Обновление отслеживаемых файлов...")
+	For k, val in DataSplit 
+		If (RegExMatch(DataSplit[k], "i)https://(.*).(png|jpg|jpeg|bmp|txt|fmenu)$")=1){
+		customProgress(A_Index/DataSplit.MaxIndex()*100)
+		FileURL:=DataSplit[k]
+		SplitPath, FileURL, FileName
+			LoadFile(FileURL, configFolder "\MyFiles\" FileName, CheckDate=true)
+		}
+	Gui CustomProgressUI:Destroy
 }
-
 
 ;Редактировать 'Избранные команды'
 editCmdsList(){
@@ -1210,7 +1286,7 @@ LoadFile(URL, FilePath, CheckDate=false) {
 	
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	If (UserAgent="")
-		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"
+		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
 	
 	If FileExist(A_WinDir "\System32\curl.exe") && !RegExMatch(args, "i)/NoCurl") {
 		IniRead, lr, %configFile%, curl, limit-rate, 1000
@@ -1255,7 +1331,10 @@ Return
 ;Нужно для работы с ItemDataConverter
 class Globals {
 	Set(name, value) {
-		Globals[name] := value
+		Globals[name]:=value
+	}
+	Add(name, value) {
+		Globals[name].=value
 	}
 	Get(name, value_default="") {
 		return Globals[name]

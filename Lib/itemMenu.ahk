@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=241206.05
+version=250404
 */
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
@@ -19,22 +19,24 @@ ItemMenu_ConvertFromGamePlus() {
 	showToolTip(ItemData, 15000)
 }
 
-ItemMenu_Show(){
+ItemMenu_Show(ItemMode=True, AutoShow=True){
 	sleep 50
 	ToolTip
 	Menu, itemMenu, Add
 	Menu, itemMenu, DeleteAll
 	
-	;ItemData:=IDCL_CleanerItem(IDCL_loadInfo())
-	;Globals.Set("IDCL_ItemData", ItemData)
-	;sleep 25
-	IDCL_LoadItemInfo()
-	ItemData:=Globals.Get("IDCL_ItemData")
-	iName:=Globals.Get("IDCL_Name")
-	iClass:=Globals.Get("IDCL_Class")
-	iRarity:=Globals.Get("IDCL_Rarity")
-	
-	ItemDataSplit:=StrSplit(ItemData, "`n")
+	If ItemMode {
+		;ItemData:=IDCL_CleanerItem(IDCL_loadInfo())
+		;Globals.Set("IDCL_ItemData", ItemData)
+		;sleep 25
+		IDCL_LoadItemInfo()
+		ItemData:=Globals.Get("IDCL_ItemData")
+		iName:=Globals.Get("IDCL_Name")
+		iClass:=Globals.Get("IDCL_Class")
+		iRarity:=Globals.Get("IDCL_Rarity")
+		
+		ItemDataSplit:=StrSplit(ItemData, "`n")
+	}
 	
 	PoE2Mode:=false
 	IfWinActive Path of Exile 2
@@ -42,7 +44,7 @@ ItemMenu_Show(){
 	If RegExMatch(args, "i)/PoE2")
 		PoE2Mode:=true
 	
-	If (iClass!=""){
+	If (iClass!="") && ItemMode {
 		;Пункты для открытия на сетевых ресурсах PoE1
 		If (ItemData!="") && !PoE2Mode {
 			ItemMenu_AddPoEDB(iName)
@@ -153,10 +155,10 @@ ItemMenu_Show(){
 		}
 	} Else {
 		;Если существует файл для 'Меню команд', то продублируем его и в 'Меню предмета'
-		;IniRead, hotkeyCmdsMenu, %configFile%, hotkeys, hotkeyCmdsMenu, %A_Space%
-		If FileExist(configFolder "\cmds.txt") && !RegExMatch(args, "i)/HideCmds") {
+		IniRead, hotkeyCmdsMenu, %configFile%, hotkeys, hotkeyCmdsMenu, %A_Space%
+		If ItemMode && FileExist(configFolder "\cmds.txt") && (hotkeyCmdsMenu="") {
 			fastMenu(configFolder "\cmds.txt")
-			Menu, itemMenu, Add, Меню команд, :fastMenu
+			Menu, itemMenu, Add, Избранные команды, :fastMenu
 			Menu, itemMenu, Add
 		}
 		FileRead, hightlightData, %configFolder%\highlight.list
@@ -166,10 +168,11 @@ ItemMenu_Show(){
 				Continue
 			ItemMenu_AddHightlight(hightlightDataSplit[k])
 		}
-	}		
+	}
 	Menu, itemMenu, Add
 	Menu, itemMenu, Add, Редактировать подсветку, ItemMenu_customHightlight
-	Menu, itemMenu, Show
+	If AutoShow
+		Menu, itemMenu, Show
 }
 
 ItemMenu_AddPoEDB(Line) {

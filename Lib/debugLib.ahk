@@ -1,11 +1,11 @@
 ﻿
 /*
 [info]
-version=250131.06
+version=250404
 */
 
 ;Инициализация и создание меню разработчика
-devInit(){
+devPreInit(){
 	;If RegExMatch(args, "i)/Dev") && FileExist("Data\imgs\icon_dev.png")
 	;	Menu, Tray, Icon, Data\imgs\icon_dev.png
 	If RegExMatch(args, "i)/PoE2") {
@@ -18,7 +18,7 @@ devInit(){
 		RunWait, "%AHKPath%\AutoHotkeyU32.exe" "%A_ScriptDir%\Data\MigrateAddons.ahk" "%A_ScriptFullPath%"
 		
 	Menu, devMenu, Add, Экран запуска(5 секунд), devStartUI
-	;Menu, devMenu, Add, Отслеживаемые файлы, showTrackingList
+	Menu, devMenu, Add, Отслеживаемые файлы, showTrackingList
 	;Menu, devMenu, Add, Задать файл 'Меню команд', devFavoriteList
 	Menu, devMenu, Add
 	Menu, devMenu, Add, Папка макроса, openScriptFolder	
@@ -31,7 +31,9 @@ devInit(){
 	Menu, devMenu, Add
 	Menu, devSubMenu2, Standard
 	Menu, devMenu, Add, AutoHotkey, :devSubMenu2
-	
+}
+
+devPostInit(){
 	FormatTime, cDate, %A_NowUTC%, yyyyMMdd
 	
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
@@ -45,9 +47,6 @@ devInit(){
 		FileDelete, %configFolder%\MyFiles\Lab3_Merciless.jpg
 	}
 	
-}
-
-devEndInit(){
 	Sleep 100
 }
 
@@ -68,9 +67,11 @@ loadEvent(){
 	IniRead, EventIcon, %EventPath%, Event, EventIcon, %A_Space%
 	IniRead, EventMsg, %EventPath%, Event, EventMsg, %A_Space%
 	IniRead, AccentColor, %EventPath%, Event, AccentColor, %A_Space%
+	IniRead, MsgColor, %EventPath%, Event, MsgColor, 000000
 	IniRead, StartDate, %EventPath%, Event, StartDate, %A_Space%
 	IniRead, EndDate, %EventPath%, Event, EndDate, %A_Space%
 	IniRead, MinVersion, %EventPath%, Event, MinVersion, %A_Space%
+	IniRead, EventLeagues, %EventPath%, Event, EventLeagues, %A_Space%
 	
 	If (EventName="" || MinVersion>verScript || StartDate="" || EndDate="" || (CurrentDate<StartDate && !RegExMatch(args, "i)/Dev")) || CurrentDate>EndDate)
 		return
@@ -86,7 +87,10 @@ loadEvent(){
 		Menu, Tray, Icon, %configFolder%\Event\icon.png
 	
 	If (EventMsg!="")
-		showStartUI(EventName "`n" EventMsg, (EventLogo!="")?configFolder "\Event\bg.jpg":"", AccentColor)
+		showStartUI(EventName "`n" EventMsg, (EventLogo!="")?configFolder "\Event\bg.jpg":"", AccentColor, MsgColor)
+		
+	If (EventLeagues!="")
+		Globals.Add("devAdditionalLeagues", "|" EventLeagues)
 	
 	eventDataSplit:=StrSplit(loadFastFile(EventPath), "`n")
 	For k, val in eventDataSplit
@@ -150,6 +154,7 @@ devClSD(){
 	FileDelete, %configFolder%\MyFiles\Labyrinth.jpg
 	;FileDelete, Data\JSON\*
 	FileDelete, Data\JSON\leagues.json
+	FileDelete, Data\JSON\leagues2.json
 	FileRemoveDir, %A_Temp%\MegaEzik, 1
 	FileRemoveDir, %tempDir%, 1
 	FileRemoveDir, %configFolder%\Event, 1
@@ -232,7 +237,7 @@ devSpecialUpdater(){
 */
 
 showArgsInfo(){
-	Msgbox, 0x1040, Список доступных параметров запуска, /Dev - режим разработчика`n/NoCurl - запрещает использование 'curl.exe'`n/ShowCurl - отображает выполнение 'curl.exe'`n/NoTheme - не применять системную тему`n/HideCmds - скрыть 'Меню команд'
+	Msgbox, 0x1040, Список доступных параметров запуска, /Dev - режим разработчика`n`n/NoCurl - запрещает использование 'curl.exe'`n`n/ShowCurl - отображает выполнение 'curl.exe'`n`n/NoTheme - не применять системную тему к меню`n`n/Gamepad - компоновка 'Меню быстрого доступа' в стиле используемом с игровым контроллером`n`n/PoE2 - принудительный режим PoE2(для отладки)
 }
 
 devVoid(){
