@@ -221,9 +221,11 @@ fastMenu(fastPath, editBtn=true){
 	Menu, fastMenu, DeleteAll
 	dataSplit:=StrSplit(Globals.Get("fastData"), "`n")
 	For k, val in dataSplit {
-		If InStr(dataSplit[k], ";")=1
+		If InStr(dataSplit[k], ";")=1 || InStr(dataSplit[k], "[")=1 
 			Continue
-		If InStr(dataSplit[k], "=") && !InStr(dataSplit[k], "|") || InStr(dataSplit[k], "[")=1
+		If InStr(dataSplit[k], "=") && !InStr(dataSplit[k], "|") 
+			Continue
+		If InStr(dataSplit[k], "=") && (InStr(dataSplit[k], "=") < InStr(dataSplit[k], "|")) 
 			Continue
 		If (dataSplit[k]="---") {
 			Menu, fastMenu, Add
