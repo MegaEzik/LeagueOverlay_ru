@@ -87,32 +87,38 @@ migrateConfig()
 devPreInit()
 
 ;Проверка обновлений
-suip(15)
 IniRead, update, %configFile%, settings, update, 1
+suip(10)
 If update {
 	CheckUpdate(True)
 	SetTimer, CheckUpdate, 7200000
-	suip(20)
-	updateAutoHotkey()
-	suip(22)
-	updateLib("debugLib.ahk")
-	suip(24)
-	updateLib("Labyrinth.ahk")
-	suip(26)
-	updateLib("ItemDataConverterLib.ahk")
-	suip(28)
-	updateLib("itemMenu.ahk")
+}
+
+;Загрузка события
+suip(25)
+loadEvent()
+
+;Обновление компонентов
+If update {
 	suip(30)
+	updateAutoHotkey()
+	suip(35)
+	updateLib("debugLib.ahk")
+	suip(40)
+	updateLib("Labyrinth.ahk")
+	suip(45)
+	updateLib("ItemDataConverterLib.ahk")
+	suip(50)
+	updateLib("itemMenu.ahk")
+	suip(55)
 	LeaguesList(false)
 }
 
-;Загрузка события, лабиринта, и данных для IDCL
-suip(45)
-loadEvent()
-suip(70)
-loadTrackingFiles()
+;Загрузка лабиринта, отслеживаемых файлов и данных для IDCL
 suip(80)
 initLab()
+suip(85)
+loadTrackingFiles()
 suip(90)
 ItemMenu_IDCLInit()
 
