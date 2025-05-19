@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=250404
+version=250404.01
 */
 
 ;Инициализация и создание меню разработчика
@@ -18,8 +18,7 @@ devPreInit(){
 		RunWait, "%AHKPath%\AutoHotkeyU32.exe" "%A_ScriptDir%\Data\MigrateAddons.ahk" "%A_ScriptFullPath%"
 		
 	Menu, devMenu, Add, Экран запуска(5 секунд), devStartUI
-	Menu, devMenu, Add, Отслеживаемые файлы, showTrackingList
-	;Menu, devMenu, Add, Задать файл 'Меню команд', devFavoriteList
+	;Menu, devMenu, Add, Отслеживаемые файлы, devTrackingList
 	Menu, devMenu, Add
 	Menu, devMenu, Add, Папка макроса, openScriptFolder	
 	Menu, devMenu, Add, Папка настроек, openConfigFolder
@@ -183,6 +182,7 @@ devAddInList(Line, File="devList.txt"){
 	FileAppend, %Line%`n, %FilePath%, UTF-8
 }
 
+;Тест окна запуска
 devStartUI(){
 	InputBox, inputLine, Введите текст,,, 300, 100
 	Globals.Set("vProgress", 0)
@@ -192,19 +192,27 @@ devStartUI(){
 	closeStartUI()
 }
 
-/*
-devFavoriteList(){
-	Menu, favoriteList, Add
-	Menu, favoriteList, DeleteAll
-	Loop, %configFolder%\MyFiles\*.fmenu, 1
-		Menu, favoriteList, Add, %A_LoopFileName%, devFavoriteSetFile
-	Menu, favoriteList, Show
+;Окно редактирования для отслеживаемых файлов
+devTrackingList(){
+	textFileWindow("Список прямых ссылок на файлы в интернете для автоматического отслеживания и загрузки в 'Мои файлы'", configFolder "\TrackingURLs.txt", false)
 }
 
-devFavoriteSetFile(Name){
-	IniWrite, %Name%, %configFile%, settings, sMenu
+;Загрузка отслеживаемых файлов
+devLoadTrackingFiles(){
+	FileRead, Data, %configFolder%\TrackingURLs.txt
+	DataSplit:=strSplit(StrReplace(Data, "`r", ""), "`n")
+	
+	If (DataSplit.MaxIndex()>1)
+		customProgress(, "Обновление отслеживаемых файлов...")
+	For k, val in DataSplit 
+		If (RegExMatch(DataSplit[k], "i)https://(.*).(png|jpg|jpeg|bmp|txt|fmenu)$")=1){
+		customProgress(A_Index/DataSplit.MaxIndex()*100)
+		FileURL:=DataSplit[k]
+		SplitPath, FileURL, FileName
+			LoadFile(FileURL, configFolder "\MyFiles\" FileName, CheckDate=true)
+		}
+	Gui CustomProgressUI:Destroy
 }
-*/
 
 /*
 devSpecialUpdater(){

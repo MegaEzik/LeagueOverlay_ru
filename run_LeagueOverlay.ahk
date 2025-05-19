@@ -114,11 +114,9 @@ If update {
 	LeaguesList(false)
 }
 
-;Загрузка лабиринта, отслеживаемых файлов и данных для IDCL
+;Загрузка лабиринта, отслеживаемых и данных для IDCL
 suip(80)
 initLab()
-suip(85)
-loadTrackingFiles()
 suip(90)
 ItemMenu_IDCLInit()
 
@@ -188,8 +186,12 @@ migrateConfig() {
 	
 	IniRead, verConfig, %configFile%, info, verConfig, 0
 	If (verConfig!=verScript) {
+		If RegExMatch(args, "i)/Dev") {
+			FileCreateDir, %configFolder%\Backups
+			FileCopy, %configFile%, %configFolder%\Backups\%verConfig%.ini, 1
+			FileDelete, %configFolder%\LeagueOverlay_ru.log
+		}
 		IniRead, AddonsConfig, %configFile%, Addons
-		;FileCopy, %configFile%, %configFolder%\%verConfig%.ini, 1
 		If (verConfig>0) {
 			FileDelete, Data\Packages.txt
 			FileDelete, Data\JSON\leagues.json
@@ -953,6 +955,8 @@ saveSettings(){
 	
 	;Информация о подмене имен и отслеживаемых окнах
 	IniDelete, %configFile%, SpecialNames
+	If (SpecialNamesData="")
+		SpecialNamesData:="Лабиринт(PoELab.com)=Labyrinth.jpg"
 	IniWrite, %SpecialNamesData%, %configFile%, SpecialNames
 	IniDelete, %configFile%, Windows
 	IniWrite, %WindowsData%, %configFile%, Windows
@@ -1041,7 +1045,6 @@ myFilesActions(FileName="") {
 	Menu, settingsMyFilesMenu, Add, Добавить 'Ярлык', createNewLink
 	Menu, settingsMyFilesMenu, Add, Добавить 'Заметку', createNewNote
 	Menu, settingsMyFilesMenu, Add, Добавить 'Меню команд', createNewMenu
-	;Menu, settingsMyFilesMenu, Add, Отслеживаемые, showTrackingList
 	Menu, settingsMyFilesMenu, Add
 	Menu, settingsMyFilesMenu, Add, Открыть папку 'Мои файлы', openMyFilesFolder
 	Menu, settingsMyFilesMenu, Show
@@ -1106,7 +1109,7 @@ menuCreate(){
 	Menu, Tray, Add, Настройки, showSettings
 	Menu, Tray, Default, Настройки
 	Menu, Tray, Add, Очистить кэш PoE, clearPoECache
-	;Menu, Tray, Add, Избранные команды, editCmdsList
+	Menu, Tray, Add, Избранные команды, editCmdsList
 	Menu, Tray, Add, Дополнения, pkgsMgr_packagesMenu
 	Menu, Tray, Add, Меню отладки, :devMenu
 	Menu, Tray, Add
@@ -1196,28 +1199,6 @@ shСmdsMenu(){
 	shFastMenu(configFolder "\cmds.txt")
 }
 
-;Окно редактирования для отслеживаемых файлов
-showTrackingList(){
-	textFileWindow("Список прямых ссылок на файлы в интернете для автоматического отслеживания и загрузки в 'Мои файлы'", configFolder "\TrackingURLs.txt", false)
-}
-
-;Загрузка отслеживаемых файлов
-loadTrackingFiles(){
-	FileRead, Data, %configFolder%\TrackingURLs.txt
-	DataSplit:=strSplit(StrReplace(Data, "`r", ""), "`n")
-	
-	If (DataSplit.MaxIndex()>1)
-		customProgress(, "Обновление отслеживаемых файлов...")
-	For k, val in DataSplit 
-		If (RegExMatch(DataSplit[k], "i)https://(.*).(png|jpg|jpeg|bmp|txt|fmenu)$")=1){
-		customProgress(A_Index/DataSplit.MaxIndex()*100)
-		FileURL:=DataSplit[k]
-		SplitPath, FileURL, FileName
-			LoadFile(FileURL, configFolder "\MyFiles\" FileName, CheckDate=true)
-		}
-	Gui CustomProgressUI:Destroy
-}
-
 ;Редактировать 'Избранные команды'
 editCmdsList(){
 	textFileWindow("Избранные команды", configFolder "\cmds.txt", false, "/global 820`n/whois <last>`n/deaths`n/passives`n/atlaspassives`n/remaining`n/autoreply <inputbox>`n/autoreply`n---`n>calc`n>https://siveran.github.io/calc.html`n>https://poe.re/#/expedition`n>https://www.poewiki.net/wiki/Chat")
@@ -1292,7 +1273,7 @@ LoadFile(URL, FilePath, CheckDate=false) {
 	
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	If (UserAgent="")
-		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
+		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
 	
 	If FileExist(A_WinDir "\System32\curl.exe") && !RegExMatch(args, "i)/NoCurl") {
 		IniRead, lr, %configFile%, curl, limit-rate, 1000
