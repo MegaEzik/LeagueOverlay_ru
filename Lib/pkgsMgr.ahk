@@ -77,7 +77,7 @@ pkgsMgr_fromFile(){
 }
 
 pkgsMgr_fromURL(){
-	InputBox, fileURL, Укажите URL,,, 300, 100
+	InputBox, fileURL, Укажите URL,,, 500, 100
 	SplitPath, fileURL, fileName
 	If (RegExMatch(fileURL, "i)https://")!=1) || !LoadFile(fileURL,  tempDir "\" fileName) {
 		TrayTip, %prjName%, Ошибка загрузки '%fileName%'!

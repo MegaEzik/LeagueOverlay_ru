@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240724.01
+version=250606
 */
 
 ;Загрузка изображения с раскладкой лабиринта соответствующего уровня
@@ -26,7 +26,7 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false, fileNam
 	FileDelete, %configFolder%\MyFiles\%fileName%.jpg
 	
 	;Загружаем страницу с убер-лабой и извлекаем ссылку на изображение
-	LoadFile(LabURL, tempDir "\labpage.html")
+	LoadFile(LabURL, tempDir "\labpage.html",,true)
 	
 	FileRead, LabData, %tempDir%\labpage.html
 	LabDataSplit:=StrSplit(LabData, "`n")
@@ -52,7 +52,7 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false, fileNam
 	FileDelete, %tempDir%\labpage.html
 	
 	;Загружаем изображение убер-лабы
-	LoadFile(URL1, configFolder "\MyFiles\" fileName ".jpg")
+	LoadFile(URL1, configFolder "\MyFiles\" fileName ".jpg",,true)
 	
 	;Проверим изображение, чтобы оно не было пустым файлом или веб-страницей
 	FileReadLine, Line, %configFolder%\MyFiles\%fileName%.jpg, 1
@@ -71,7 +71,7 @@ initLab(){
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	If loadLab {
 		downloadLabLayout(,true)
-		SetTimer, downloadLabLayout, 7200000
+		;SetTimer, downloadLabLayout, 10800000
 	}
 }
 

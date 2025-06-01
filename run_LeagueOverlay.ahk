@@ -84,6 +84,7 @@ showStartUI()
 migrateConfig()
 
 ;Инициализация инструментов отладки
+suip(5)
 devPreInit()
 
 ;Проверка обновлений
@@ -189,7 +190,7 @@ migrateConfig() {
 		If RegExMatch(args, "i)/Dev") {
 			FileCreateDir, %configFolder%\Backups
 			FileCopy, %configFile%, %configFolder%\Backups\%verConfig%.ini, 1
-			FileDelete, %configFolder%\LeagueOverlay_ru.log
+			FileDelete, %configFolder%\%prjName%.log
 		}
 		IniRead, AddonsConfig, %configFile%, Addons
 		If (verConfig>0) {
@@ -208,19 +209,19 @@ migrateConfig() {
 				FileDelete, %configFolder%\curl.exe
 				FileDelete, %configFolder%\curl-ca-bundle.crt
 				FileMove, %configFolder%\highlight.txt, %configFolder%\highlight.list, 1
-				
 				FileMove, %configFolder%\cmds.preset, %configFolder%\MyFiles\MyMenu.preset, 1
 				FileMove, %configFolder%\Presets\*.preset, %configFolder%\MyFiles\*.fmenu, 1
 				FileMove, %configFolder%\MyFiles\*.preset, %configFolder%\MyFiles\*.fmenu, 1
 			}
 			If (verconfig<241206.2) {
 				IniWrite, 1, %configFile%, settings, updateLib
-				
 				FileMove, %configFolder%\MyFiles\MyMenu.fmenu, %configFolder%\cmds.txt, 1
 				FileDelete, %configFolder%\windows.list
 			}
 			If (verconfig<250131)
 				FileRemoveDir, %configFolder%\Presets\PoE2EA, 1
+			If (verconfig<250404.2)
+				IniWrite, 0, %configFile%, settings, loadLab
 		}
 		
 		showSettings()
@@ -481,7 +482,7 @@ editWinList(){
 
 ;Создание заметки
 createNewNote(){
-	InputBox, fileName, Введите название для заметки,,, 300, 100,,,,, NewNote
+	InputBox, fileName, Введите название для заметки,,, 500, 100,,,,, NewNote
 	filePath:=configFolder "\MyFiles\" fileName ".txt"
 	If (FileExist(filePath) || fileName="" || ErrorLevel) {
 		traytip, %prjName%, Что-то пошло не так(
@@ -492,7 +493,7 @@ createNewNote(){
 
 ;Создание нового меню
 createNewMenu(){
-	InputBox, fileName, Введите название для файла меню,,, 300, 100,,,,, MyMenu
+	InputBox, fileName, Введите название для файла меню,,, 500, 100,,,,, MyMenu
 	filePath:=configFolder "\MyFiles\" fileName ".fmenu"
 	If (FileExist(filePath) || fileName="" || ErrorLevel) {
 		traytip, %prjName%, Что-то пошло не так(
@@ -507,7 +508,7 @@ createNewLink(){
 		If (TargetPath="")
 			Return
 	SplitPath, TargetPath, NameLink
-	InputBox, NameLink, Введите название набора,,, 300, 100,,,,, %NameLink%
+	InputBox, NameLink, Введите имя для ссылки,,, 500, 100,,,,, %NameLink%
 	FileCreateShortcut, %TargetPath%, %configFolder%\MyFiles\%NameLink%.lnk
 }
 
@@ -1082,14 +1083,14 @@ presetFolderDelete(Name){
 
 ;Менеджер создания нового набора
 presetCreate(){
-	InputBox, PresetName, Введите название набора,,, 300, 100,,,,, NewPreset
+	InputBox, PresetName, Введите название набора,,, 500, 100,,,,, NewPreset
 	PresetFolder:=configFolder "\Presets\" PresetName
 	If (PresetName="") || FileExist(PresetFolder) {
 		msgbox, 0x1040,, Недопустимое имя для набора!
 		return
 	}
 	FileCreateDir, %PresetFolder%
-	InputBox, wline, Укажите окно отслеживания,,, 300, 100,,,,, ahk_exe notepad.exe
+	InputBox, wline, Укажите окно отслеживания,,, 500, 100,,,,, ahk_exe notepad.exe
 	;FileAppend, %wline%, %PresetFolder%\windows.list, UTF-8
 	IniWrite, %wline%, %PresetFolder%\PresetConfig.ini, Windows
 	IniWrite, ReadMe.txt, %PresetFolder%\PresetConfig.ini, SpecialNames, Read Me
@@ -1253,7 +1254,7 @@ timerToolTip() {
 }
 
 ;Скачивание файла из сети
-LoadFile(URL, FilePath, CheckDate=false) {	
+LoadFile(URL, FilePath, CheckDate=false, UseCookies=false) {	
 	;Сверим дату
 	If CheckDate {
 		FormatTime, CurrentDate, %A_Now%, yyyyMMdd
@@ -1273,17 +1274,22 @@ LoadFile(URL, FilePath, CheckDate=false) {
 	
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	If (UserAgent="")
-		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
 	
 	If FileExist(A_WinDir "\System32\curl.exe") && !RegExMatch(args, "i)/NoCurl") {
 		IniRead, lr, %configFile%, curl, limit-rate, 1000
 		IniRead, ct, %configFile%, curl, connect-timeout, 10
+		FileRead, Cookies, %configFolder%\cookies.txt
 		
 		CurlLine:="curl -L -A """ UserAgent """ -o """ FilePath """" " " """" URL """"
 		If ct>0
 			CurlLine.=" --connect-timeout " ct
 		If lr>0
 			CurlLine.=" --limit-rate " lr "K"
+		
+		If UseCookies && (Cookies!="")
+			CurlLine.=" -b """ Cookies """"
+		
 		If RegExMatch(args, "i)/ShowCurl")
 			RunWait, %CurlLine%
 		Else

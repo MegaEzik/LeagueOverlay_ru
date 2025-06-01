@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=250404.01
+version=250404.2
 */
 
 ;Инициализация и создание меню разработчика
@@ -16,7 +16,8 @@ devPreInit(){
 	SplitPath, A_AhkPath,,AHKPath
 	If (configFolder = A_MyDocuments "\AutoHotKey\LeagueOverlay_ru") && FileExist(configFolder "\pkgsMgr.ini") && FileExist(AHKPath "\AutoHotkeyU32.exe") && FileExist(A_ScriptDir "\Data\MigrateAddons.ahk")
 		RunWait, "%AHKPath%\AutoHotkeyU32.exe" "%A_ScriptDir%\Data\MigrateAddons.ahk" "%A_ScriptFullPath%"
-		
+	
+	Menu, devMenu, Add, Cookies, devEditCookies
 	Menu, devMenu, Add, Экран запуска(5 секунд), devStartUI
 	;Menu, devMenu, Add, Отслеживаемые файлы, devTrackingList
 	Menu, devMenu, Add
@@ -149,6 +150,7 @@ devRestoreRelease() {
 
 ;Перезагрузка данных
 devClSD(){
+	FileDelete, %configFolder%\%prjName%.log
 	FileDelete, Data\Addons.ini
 	FileDelete, %configFolder%\MyFiles\Labyrinth.jpg
 	;FileDelete, Data\JSON\*
@@ -184,7 +186,7 @@ devAddInList(Line, File="devList.txt"){
 
 ;Тест окна запуска
 devStartUI(){
-	InputBox, inputLine, Введите текст,,, 300, 100
+	InputBox, inputLine, Введите текст,,, 500, 100
 	Globals.Set("vProgress", 0)
 	Globals.Set("pProgress", 95)
 	showStartUI((inputLine="")?"Здесь могла быть ваша реклама...":inputLine)
@@ -212,6 +214,17 @@ devLoadTrackingFiles(){
 			LoadFile(FileURL, configFolder "\MyFiles\" FileName, CheckDate=true)
 		}
 	Gui CustomProgressUI:Destroy
+}
+
+devEditCookies(){
+	FileRead, Cookies, %configFolder%\cookies.txt
+	If (Cookies="")
+		Cookies:="cf_clearance="
+	InputBox, Cookies, Cookies,,, 500, 100,,,,, %Cookies%
+	FileDelete, %configFolder%\cookies.txt
+	If (Cookies!="") && (Cookies!="cf_clearance=")
+		FileAppend, %Cookies%, %configFolder%\cookies.txt, UTF-8
+	ReStart()
 }
 
 /*
