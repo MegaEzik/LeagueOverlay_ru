@@ -45,8 +45,13 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false, fileNam
 			break
 	}
 	If (StrLen(URL1)<23 || StrLen(URL1)>100) {
-		TrayTip, Labyrinth.ahk, Не удалось скачать страницу с раскладкой!
-		devLog("Не удалось скачать страницу с раскладкой!")
+		If RegExMatch(LabData, "i)Just a moment...") && RegExMatch(LabData, "_cf_") {
+			TrayTip, Labyrinth, Не возможно скачать - активен CloudFlare!
+			devLog("Не возможно скачать - активен CloudFlare!")
+			return
+		}
+		TrayTip, Labyrinth, Не удалось извлечь ссылку!
+		devLog("Не удалось извлечь ссылку!")
 		return
 	}
 	FileDelete, %tempDir%\labpage.html
@@ -58,8 +63,8 @@ downloadLabLayout(LabURL="https://www.poelab.com/wfbra", openPage=false, fileNam
 	FileReadLine, Line, %configFolder%\MyFiles\%fileName%.jpg, 1
 	If (Line="" || (InStr(Line, "<") && InStr(Line, ">")) || InStr(Line, "ban") || InStr(Line, "error")) {
 		FileDelete, %configFolder%\MyFiles\%fileName%.jpg
-		TrayTip, Labyrinth.ahk, Получен некорректный файл лабиринта!
-		devLog("Получен некорректный файл лабиринта!")
+		TrayTip, Labyrinth, Некорректный файл лабиринта!
+		devLog("Некорректный файл лабиринта!")
 		return
 	}
 	

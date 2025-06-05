@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=250404
+version=250606
 */
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
@@ -170,7 +170,7 @@ ItemMenu_Show(ItemMode=True, AutoShow=True){
 		}
 	}
 	Menu, itemMenu, Add
-	Menu, itemMenu, Add, Редактировать подсветку, ItemMenu_customHightlight
+	Menu, itemMenu, Add, Условия для 'Меню предмета', ItemMenu_customHightlight
 	If AutoShow
 		Menu, itemMenu, Show
 }
@@ -219,7 +219,8 @@ ItemMenu_AddCopyInBuffer(Line){
 }
 
 ItemMenu_AddHightlight(Line){
-	Line:=SubStr(Line, 1, 50)
+	;Line:=SubStr(Line, 1, 50)
+	Line:=SubStr(Line, 1, 250)
 	Menu, itemMenu, Add, *%Line%, ItemMenu_Hightlight
 	If FileExist("Data\imgs\highlight.png")
 		Menu, itemMenu, Icon, *%Line%, Data\imgs\highlight.png
@@ -281,7 +282,8 @@ ItemMenu_CopyInBuffer(Line){
 }
 
 ItemMenu_Hightlight(Line){
-	Line:=SubStr(Line, 2, 50)
+	;Line:=SubStr(Line, 2, 50)
+	Line:=SubStr(Line, 2, 250)
 	;DllCall("PostMessage", "Ptr", A_ScriptHWND, "UInt", 0x50, "UInt", 0x4090409, "UInt", 0x4090409)
 	;sleep 25
 	clipboard:=Line
@@ -293,7 +295,7 @@ ItemMenu_Hightlight(Line){
 }
 
 ItemMenu_customHightlight() {
-	textFileWindow("Редактирование подсветки", configFolder "\highlight.list", false, "к максимуму здоровья`nк сопротивлению`nповышение скорости передвижения`nВосприятие|Маскировка`n""nt ro|fien|r be|vy b|amp|ian""")
+	textFileWindow("Условия для 'Меню предмета'", configFolder "\highlight.list", false, "к максимуму здоровья`nк сопротивлению`nповышение скорости передвижения`nВосприятие|Маскировка`n""nt ro|fien|r be|vy b|amp|ian""")
 }
 
 ItemMenu_IDCLInit(){

@@ -37,7 +37,7 @@ devPostInit(){
 	FormatTime, cDate, %A_NowUTC%, yyyyMMdd
 	
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
-	If loadLab && (cDate>=20250220 && cDate<=20250223) {
+	If loadLab && FileExist(configFolder "\MyFiles\Labyrinth.jpg") && FileExist(configFolder "\cookies.txt") && (cDate>=20250613 && cDate<=20250615) {
 		downloadLabLayout("https://www.poelab.com/gtgax", true, "Lab1_Normal")
 		downloadLabLayout("https://www.poelab.com/r8aws", true, "Lab2_Cruel")
 		downloadLabLayout("https://www.poelab.com/riikv", true, "Lab3_Merciless")

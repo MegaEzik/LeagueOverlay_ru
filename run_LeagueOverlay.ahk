@@ -101,17 +101,16 @@ loadEvent()
 
 ;Обновление компонентов
 If update {
+	;updateAutoHotkey()
 	suip(30)
-	updateAutoHotkey()
-	suip(35)
 	updateLib("debugLib.ahk")
-	suip(40)
+	suip(35)
 	updateLib("Labyrinth.ahk")
-	suip(45)
+	suip(40)
 	updateLib("ItemDataConverterLib.ahk")
-	suip(50)
+	suip(45)
 	updateLib("itemMenu.ahk")
-	suip(55)
+	suip(50)
 	LeaguesList(false)
 }
 
@@ -278,7 +277,7 @@ shLastImage(){
 ;Формирование списка лиг
 LeaguesList(showPorgress=true){
 	If showPorgress
-		SplashTextOn, 400, 20, %prjName%, Обновление списка Лиг, пожалуйста подождите...
+		SplashTextOn, 500, 20, %prjName%, Обновление списка Лиг, пожалуйста подождите...
 	
 	leagues_list:=Globals.Get("devAdditionalLeagues")
 	
@@ -530,7 +529,7 @@ clearPoECache(){
 	IfMsgBox No
 		return
 
-	SplashTextOn, 400, 20, %prjName%, Очистка кэша PoE, пожалуйста подождите...
+	SplashTextOn, 500, 20, %prjName%, Очистка кэша PoE, пожалуйста подождите...
 	
 	PoEConfigFolderPath:=A_MyDocuments "\My Games\Path of Exile"
 	FileRemoveDir, %PoEConfigFolderPath%\OnlineFilters, 1
@@ -836,10 +835,10 @@ showSettings(){
 	Gui, Settings:Add, Checkbox, vupdate x12 y+6 w480 Checked%update%, Автоматическая проверка обновлений
 	
 	Gui, Settings:Add, Checkbox, vupdateLib x27 yp+18 w465 Checked%updateLib% disabled, Автоматически обновлять библиотеки, если это возможно
-	Gui, Settings:Add, Checkbox, vupdateAHK x27 yp+18 w465 Checked%updateAHK% disabled, Предлагать обновления для AutoHotkey
+	;Gui, Settings:Add, Checkbox, vupdateAHK x27 yp+18 w465 Checked%updateAHK% disabled, Предлагать обновления для AutoHotkey
 	If update {
 		GuiControl, Settings:Enable, updateLib
-		GuiControl, Settings:Enable, updateAHK
+		;GuiControl, Settings:Enable, updateAHK
 	}
 	
 	Gui, Settings:Add, Checkbox, vuseEvent x12 yp+18 w480 Checked%useEvent%, Разрешить события
@@ -1109,8 +1108,11 @@ menuCreate(){
 	Menu, Tray, Add
 	Menu, Tray, Add, Настройки, showSettings
 	Menu, Tray, Default, Настройки
+	Menu, Tray, Add, Открыть папку 'Мои файлы', openMyFilesFolder
+	Menu, Tray, Add, Список 'Избранных команд', editCmdsList
+	Menu, Tray, Add, Условия для 'Меню предмета', ItemMenu_customHightlight
+	Menu, Tray, Add
 	Menu, Tray, Add, Очистить кэш PoE, clearPoECache
-	Menu, Tray, Add, Избранные команды, editCmdsList
 	Menu, Tray, Add, Дополнения, pkgsMgr_packagesMenu
 	Menu, Tray, Add, Меню отладки, :devMenu
 	Menu, Tray, Add
@@ -1181,7 +1183,7 @@ shMainMenu(Gamepad=false){
 	If (hotkeyCmdsMenu="") {
 		fastMenu(configFolder "\cmds.txt", False)
 		Menu, fastMenu, Add
-		Menu, fastMenu, Add, Редактировать 'Избранные команды', editCmdsList
+		Menu, fastMenu, Add, Список 'Избранных команд', editCmdsList
 		Menu, mainMenu, Add, Избранные команды, :fastMenu
 	}
 	
@@ -1200,7 +1202,7 @@ shСmdsMenu(){
 	shFastMenu(configFolder "\cmds.txt")
 }
 
-;Редактировать 'Избранные команды'
+;Изменить 'Избранные команды'
 editCmdsList(){
 	textFileWindow("Избранные команды", configFolder "\cmds.txt", false, "/global 820`n/whois <last>`n/deaths`n/passives`n/atlaspassives`n/remaining`n/autoreply <inputbox>`n/autoreply`n---`n>calc`n>https://siveran.github.io/calc.html`n>https://poe.re/#/expedition`n>https://www.poewiki.net/wiki/Chat")
 }
