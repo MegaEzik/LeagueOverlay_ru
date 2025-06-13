@@ -277,7 +277,7 @@ shLastImage(){
 ;Формирование списка лиг
 LeaguesList(showPorgress=true){
 	If showPorgress
-		SplashTextOn, 500, 20, %prjName%, Обновление списка Лиг, пожалуйста подождите...
+		SplashTextOn, 400, 20, %prjName%, Обновление списка Лиг, пожалуйста подождите...
 	
 	leagues_list:=Globals.Get("devAdditionalLeagues")
 	
@@ -529,7 +529,7 @@ clearPoECache(){
 	IfMsgBox No
 		return
 
-	SplashTextOn, 500, 20, %prjName%, Очистка кэша PoE, пожалуйста подождите...
+	SplashTextOn, 400, 20, %prjName%, Очистка кэша PoE, пожалуйста подождите...
 	
 	PoEConfigFolderPath:=A_MyDocuments "\My Games\Path of Exile"
 	FileRemoveDir, %PoEConfigFolderPath%\OnlineFilters, 1
@@ -557,6 +557,8 @@ showStartUI(SpecialText="", LogoPath="", BGColor="", TColor="000000"){
 				,"Удаляем Зеркало Каландры из вашего фильтра предметов"
 				,"Удаляем Волшебную кровь из вашего фильтра предметов"
 				,"Усугубляем проблему с C-States в 3.21.2"
+				,"x2.5 урон в голове... БАМА"
+				,"Expedition 26"
 				;,"Вас приветствуют поселенцы Калуги"
 				;,"Добро пожаловать в Калугу"
 				,"Поддержи " githubUser " <3"]

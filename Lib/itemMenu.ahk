@@ -144,8 +144,10 @@ ItemMenu_Show(ItemMode=True, AutoShow=True){
 		FileRead, hightlightData, %configFolder%\highlight.list
 		hightlightDataSplit:=strSplit(StrReplace(hightlightData, "`r", ""), "`n")
 		For k, val in hightlightDataSplit {
-			If (hightlightDataSplit[k]="") || (InStr(hightlightDataSplit[k], ";")=1)
+			If (hightlightDataSplit[k]="") || (InStr(hightlightDataSplit[k], ";")=1) || (hightlightDataSplit[k]="---")
 				Continue
+			If (InStr(hightlightDataSplit[k], "!")=1)
+				hightlightDataSplit[k]:=SubStr(hightlightDataSplit[k], 2)
 			If RegExMatch(ItemData, hightlightDataSplit[k], findtext) {
 				ItemMenu_AddHightlight(findtext)
 				If FileExist("Data\imgs\favorite.png")
@@ -164,7 +166,7 @@ ItemMenu_Show(ItemMode=True, AutoShow=True){
 		FileRead, hightlightData, %configFolder%\highlight.list
 		hightlightDataSplit:=strSplit(StrReplace(hightlightData, "`r", ""), "`n")
 		For k, val in hightlightDataSplit {
-			If (hightlightDataSplit[k]="") || (InStr(hightlightDataSplit[k], ";")=1)
+			If (hightlightDataSplit[k]="") || (InStr(hightlightDataSplit[k], ";")=1) || (InStr(hightlightDataSplit[k], "!")=1)
 				Continue
 			ItemMenu_AddHightlight(hightlightDataSplit[k])
 		}
@@ -221,6 +223,10 @@ ItemMenu_AddCopyInBuffer(Line){
 ItemMenu_AddHightlight(Line){
 	;Line:=SubStr(Line, 1, 50)
 	Line:=SubStr(Line, 1, 250)
+	If (Line="---") {
+		Menu, itemMenu, Add
+		return
+	}
 	Menu, itemMenu, Add, *%Line%, ItemMenu_Hightlight
 	If FileExist("Data\imgs\highlight.png")
 		Menu, itemMenu, Icon, *%Line%, Data\imgs\highlight.png
