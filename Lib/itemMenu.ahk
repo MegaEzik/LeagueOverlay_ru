@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=250606
+version=250606.2
 */
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
@@ -56,16 +56,20 @@ ItemMenu_Show(ItemMode=True, AutoShow=True){
 			If (iName="Inscribed Ultimatum") {
 				If (RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*) x\d+", findtext) || RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*)", findtext)) {
 					Menu, itemMenu, Add
+					ItemMenu_AddPoEDB(findtext1)
 					ItemMenu_AddReward(findtext1)
 					If RegExMatch(ItemDataSplit[8], "Награда: (.*)", findtext)
-						If !RegExMatch(findtext1, "Удваивает")
-								ItemMenu_AddReward(findtext1)
+						If !RegExMatch(findtext1, "Удваивает") {
+							ItemMenu_AddPoEDB(findtext1)
+							ItemMenu_AddReward(findtext1)
+						}
 				}
 			}
 			
 			If (ItemDataSplit[6]="Уровень карты: 17")
 				If RegExMatch(ItemDataSplit[7], "Награда: Особ(ая|ый|ое|ые) (.*)", findtext) {
 					Menu, itemMenu, Add
+					ItemMenu_AddPoEDB(findtext2)
 					ItemMenu_AddReward(findtext2)
 				}
 			
@@ -310,11 +314,16 @@ ItemMenu_IDCLInit(){
 		return
 	Hotkey, % hotkeyItemMenu, ItemMenu_Show, On
 	
-	FileCreateDir, Data\JSON
-	ResultNames:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/Data/JSON/names.json", "Data\JSON\names.json")
-	ResultStats:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/Data/JSON/stats.json", "Data\JSON\stats.json")
-	ResultTags:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/Data/JSON/tags.json", "Data\JSON\tags.json")
-	sleep 100
+	IniRead, updateItemData, %configFile%, settings, updateItemData, 0
+	If updateItemData {
+		FileCreateDir, Data\JSON
+		ResultNames:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/Data/JSON/names.json", "Data\JSON\names.json")
+		ResultStats:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/Data/JSON/stats.json", "Data\JSON\stats.json")
+		ResultTags:=ItemMenu_LoadDataFile("https://raw.githubusercontent.com/" githubUser "/" prjName "/master/Data/JSON/tags.json", "Data\JSON\tags.json")
+		sleep 100
+		If (ResultNames || ResultStats || ResultTags)
+			MsgBox,  0x1040, %prjName%, Обновлены списки соответствий, 3
+	}
 	
 	FileRead, stats_list, Data\JSON\stats.json
 	Globals.Set("item_stats", JSON.Load(stats_list))
@@ -322,9 +331,6 @@ ItemMenu_IDCLInit(){
 	Globals.Set("item_names", JSON.Load(names_list))
 	FileRead, tags_list, Data\JSON\tags.json
 	Globals.Set("item_tags", JSON.Load(tags_list))
-	
-	If (ResultNames || ResultStats || ResultTags)
-		MsgBox,  0x1040, %prjName%, Обновлены списки соответствий, 3
 }
 
 ItemMenu_LoadDataFile(URL, Path){

@@ -219,8 +219,11 @@ migrateConfig() {
 			}
 			If (verconfig<250131)
 				FileRemoveDir, %configFolder%\Presets\PoE2EA, 1
-			If (verconfig<250404.2)
-				IniWrite, 0, %configFile%, settings, loadLab
+			If (verconfig<250606.2) {
+				If !FileExist(configFolder "\cookies.txt")
+					IniWrite, 0, %configFile%, settings, loadLab
+				IniWrite, 0, %configFile%, settings, updateLib
+			}
 		}
 		
 		showSettings()
@@ -711,7 +714,8 @@ showSettings(){
 	IniRead, lr, %configFile%, curl, limit-rate, 2000
 	IniRead, ct, %configFile%, curl, connect-timeout, 5
 	IniRead, update, %configFile%, settings, update, 1
-	IniRead, updateLib, %configFile%, settings, updateLib, 1
+	IniRead, updateLib, %configFile%, settings, updateLib, 0
+	IniRead, updateItemData, %configFile%, settings, updateItemData, 0
 	IniRead, updateAHK, %configFile%, settings, updateAHK, 0
 	IniRead, useEvent, %configFile%, settings, useEvent, 1
 	IniRead, loadLab, %configFile%, settings, loadLab, 0
@@ -836,17 +840,21 @@ showSettings(){
 	
 	Gui, Settings:Add, Checkbox, vupdate x12 y+6 w480 Checked%update%, Автоматическая проверка обновлений
 	
-	Gui, Settings:Add, Checkbox, vupdateLib x27 yp+18 w465 Checked%updateLib% disabled, Автоматически обновлять библиотеки, если это возможно
+	Gui, Settings:Add, Checkbox, vupdateLib x27 yp+18 w465 Checked%updateLib% disabled, Обновлять библиотеки, если это возможно
 	;Gui, Settings:Add, Checkbox, vupdateAHK x27 yp+18 w465 Checked%updateAHK% disabled, Предлагать обновления для AutoHotkey
 	If update {
 		GuiControl, Settings:Enable, updateLib
 		;GuiControl, Settings:Enable, updateAHK
 	}
 	
-	Gui, Settings:Add, Checkbox, vuseEvent x12 yp+18 w480 Checked%useEvent%, Разрешить события
+	Gui, Settings:Add, Checkbox, vupdateItemData x12 yp+18 w480 Checked%updateItemData%, Обновлять списки соответствий
 	
-	Gui, Settings:Add, Checkbox, vloadLab x12 yp+18 w345 Checked%loadLab%, Скачивать раскладку лабиринта('Мои файлы'>Labyrinth.jpg)
+	Gui, Settings:Add, Checkbox, vloadLab x12 yp+18 w345 Checked%loadLab% disabled, Скачивать раскладку лабиринта('Мои файлы'>Labyrinth.jpg)
 	Gui, Settings:Add, Link, x+2 yp+0 w130 +Right, <a href="https://www.poelab.com/">PoELab.com</a>
+	If FileExist(configFolder "\cookies.txt")
+		GuiControl, Settings:Enable, loadLab
+	
+	Gui, Settings:Add, Checkbox, vuseEvent x12 yp+18 w480 Checked%useEvent%, Разрешить события
 	
 	Gui, Settings:Tab, 3 ; Третья вкладка
 	
@@ -935,6 +943,7 @@ saveSettings(){
 	IniWrite, %ct%, %configFile%, curl, connect-timeout
 	IniWrite, %update%, %configFile%, settings, update
 	IniWrite, %updateLib%, %configFile%, settings, updateLib
+	IniWrite, %updateItemData%, %configFile%, settings, updateItemData
 	IniWrite, %updateAHK%, %configFile%, settings, updateAHK
 	IniWrite, %useEvent%, %configFile%, settings, useEvent
 	IniWrite, %loadLab%, %configFile%, settings, loadLab
