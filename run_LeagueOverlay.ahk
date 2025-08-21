@@ -89,34 +89,34 @@ devPreInit()
 
 ;Проверка обновлений
 IniRead, update, %configFile%, settings, update, 1
-suip(10)
+suip(15)
 If update {
 	CheckUpdate(True)
 	SetTimer, CheckUpdate, 7200000
 }
 
 ;Загрузка события
-suip(25)
+suip(30)
 loadEvent()
 
 ;Обновление компонентов
 If update {
 	;updateAutoHotkey()
-	suip(30)
-	updateLib("debugLib.ahk")
 	suip(35)
-	updateLib("Labyrinth.ahk")
+	updateLib("debugLib.ahk")
 	suip(40)
-	updateLib("ItemDataConverterLib.ahk")
+	updateLib("Labyrinth.ahk")
 	suip(45)
-	updateLib("itemMenu.ahk")
+	updateLib("ItemDataConverterLib.ahk")
 	suip(50)
-	LeaguesList(false)
+	updateLib("itemMenu.ahk")
+	;suip(50)
+	;LeaguesList(false)
 }
 
 ;Загрузка лабиринта, отслеживаемых и данных для IDCL
-suip(80)
-initLab()
+;suip(80)
+;initLab()
 suip(90)
 ItemMenu_IDCLInit()
 
@@ -133,6 +133,9 @@ systemTheme()
 ;Завершение инициализаций
 devPostInit()
 closeStartUI()
+
+;Автозагрузка лабиринта
+autoLoadLab()
 
 Return
 
@@ -713,6 +716,7 @@ showSettings(){
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	IniRead, lr, %configFile%, curl, limit-rate, 2000
 	IniRead, ct, %configFile%, curl, connect-timeout, 5
+	IniRead, showCurl, %configFile%, curl, showCurl, 0
 	IniRead, update, %configFile%, settings, update, 1
 	IniRead, updateLib, %configFile%, settings, updateLib, 0
 	IniRead, updateItemData, %configFile%, settings, updateItemData, 0
@@ -836,11 +840,13 @@ showSettings(){
 	Gui, Settings:Add, Edit, vct x+2 yp-2 w90 h18 Number, %ct%
 	Gui, Settings:Add, UpDown, Range1-99999 0x80, %ct%
 	
-	Gui, Settings:Add, Text, x10 y+4 w480 h1 0x12
+	Gui, Settings:Add, Checkbox, vshowCurl x12 y+4 w480 Checked%showCurl%, cURL | Отображать выполнение(не рекомендуется)
 	
-	Gui, Settings:Add, Checkbox, vupdate x12 y+6 w480 Checked%update%, Автоматическая проверка обновлений
+	Gui, Settings:Add, Text, x10 y+6 w480 h1 0x12
 	
-	Gui, Settings:Add, Checkbox, vupdateLib x27 yp+18 w465 Checked%updateLib% disabled, Обновлять библиотеки, если это возможно
+	Gui, Settings:Add, Checkbox, vupdate x12 y+6 w480 Checked%update%, Автоматически проверять наличие обновлений
+	
+	Gui, Settings:Add, Checkbox, vupdateLib x27 yp+18 w465 Checked%updateLib% disabled, Предлагать обновления библиотек, если это возможно
 	;Gui, Settings:Add, Checkbox, vupdateAHK x27 yp+18 w465 Checked%updateAHK% disabled, Предлагать обновления для AutoHotkey
 	If update {
 		GuiControl, Settings:Enable, updateLib
@@ -849,16 +855,16 @@ showSettings(){
 	
 	Gui, Settings:Add, Checkbox, vupdateItemData x12 yp+18 w480 Checked%updateItemData%, Обновлять списки соответствий
 	
-	Gui, Settings:Add, Checkbox, vloadLab x12 yp+18 w345 Checked%loadLab% disabled, Скачивать раскладку лабиринта('Мои файлы'>Labyrinth.jpg)
-	Gui, Settings:Add, Link, x+2 yp+0 w130 +Right, <a href="https://www.poelab.com/">PoELab.com</a>
-	If FileExist(configFolder "\cookies.txt")
-		GuiControl, Settings:Enable, loadLab
-	
 	Gui, Settings:Add, Checkbox, vuseEvent x12 yp+18 w480 Checked%useEvent%, Разрешить события
+	
+	If FileExist(configFolder "\LabCookies.txt") {
+		Gui, Settings:Add, Checkbox, vloadLab x12 yp+18 w375 Checked%loadLab%, Обновлять Лабиринт после запуска('Мои файлы'>Labyrinth.jpg)
+		Gui, Settings:Add, Link, x+2 yp+0 w100 +Right, <a href="https://www.poelab.com/">PoELab.com</a>
+	}
 	
 	Gui, Settings:Tab, 3 ; Третья вкладка
 	
-	Gui, Settings:Add, Text, x12 y80 w385, Избранные команды:
+	Gui, Settings:Add, Text, x12 y80 w385, Меню избранных команд:
 	Gui, Settings:Add, Hotkey, vhotkeyCmdsMenu x+2 yp-2 w90 h17, %hotkeyCmdsMenu%
 	
 	Gui, Settings:Add, Text, x10 y+2 w480 h2 0x12
@@ -901,7 +907,7 @@ showSettings(){
 		Gui, Settings:Add, Hotkey, vhotkeyCmd%TwoColumn% x+1 w90 h17, %tempVar%
 	}
 	
-	helptext:="/dance - простая команда`n/whois <last> - команда к последнему игроку`n@<last> ty, gl) - сообщение последнему игроку`n_ty, gl) - сообщение в чат области`n%ty, gl) - сообщение в чат группы`n>calc - выполнить`nmy.jpg - изображение/набор/текст`n!текст - всплывающая подсказка"
+	helptext:="/dance - простая команда`n/whois <last> - команда к последнему игроку`n@<last> ty, gl) - сообщение последнему игроку`n_ty, gl) - сообщение в чат области`n%ty, gl) - сообщение в чат группы`n>calc - выполнить`nmy.jpg - изображение/набор/текст`n!текст - всплывающая подсказка`n~информация - копировать в буфер обмена`n#правило - подсветить"
 	helptext2:="--- - разделитель`n;/kick player - комментарий`n<configFolder> - папка настроек`n<presetFolder> - папка набора`n<eventFolder> - папка события`n<time> - время UTC`n<inputbox> - поле ввода"
 	Gui, Settings:Add, Text, x12 y+2 w237 c7F3208, %helptext%
 	Gui, Settings:Add, Text, x+6 w237 c7F3208, %helptext2%
@@ -941,6 +947,7 @@ saveSettings(){
 	IniWrite, %UserAgent%, %configFile%, curl, user-agent
 	IniWrite, %lr%, %configFile%, curl, limit-rate
 	IniWrite, %ct%, %configFile%, curl, connect-timeout
+	IniWrite, %showCurl%, %configFile%, curl, showCurl
 	IniWrite, %update%, %configFile%, settings, update
 	IniWrite, %updateLib%, %configFile%, settings, updateLib
 	IniWrite, %updateItemData%, %configFile%, settings, updateItemData
@@ -1057,6 +1064,7 @@ myFilesActions(FileName="") {
 	Menu, settingsMyFilesMenu, Add, Добавить 'Заметку', createNewNote
 	Menu, settingsMyFilesMenu, Add, Добавить 'Меню команд', createNewMenu
 	Menu, settingsMyFilesMenu, Add
+	addLoadLabInMenu("settingsMyFilesMenu", "Обновить 'Labyrinth.jpg'")
 	Menu, settingsMyFilesMenu, Add, Открыть папку 'Мои файлы', openMyFilesFolder
 	Menu, settingsMyFilesMenu, Show
 }
@@ -1190,6 +1198,8 @@ shMainMenu(Gamepad=false){
 	IniRead, expandMyFiles, %configFile%, settings, expandMyFiles, 1
 	myFilesMenuCreate(expandMyFiles || Gamepad)
 	
+	;addLoadLabInMenu("mainMenu", "Обновить Лабиринт")
+	
 	IniRead, hotkeyCmdsMenu, %configFile%, hotkeys, hotkeyCmdsMenu, %A_Space%
 	If (hotkeyCmdsMenu="") {
 		fastMenu(configFolder "\cmds.txt", False)
@@ -1267,7 +1277,7 @@ timerToolTip() {
 }
 
 ;Скачивание файла из сети
-LoadFile(URL, FilePath, CheckDate=false, UseCookies=false) {	
+LoadFile(URL, FilePath, CheckDate=false, Cookies="") {	
 	;Сверим дату
 	If CheckDate {
 		FormatTime, CurrentDate, %A_Now%, yyyyMMdd
@@ -1287,12 +1297,13 @@ LoadFile(URL, FilePath, CheckDate=false, UseCookies=false) {
 	
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	If (UserAgent="")
-		UserAgent:="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
+		IniRead, UserAgent, %buildConfig%, Settings, UserAgent, %A_Space%
 	
 	If FileExist(A_WinDir "\System32\curl.exe") && !RegExMatch(args, "i)/NoCurl") {
 		IniRead, lr, %configFile%, curl, limit-rate, 1000
 		IniRead, ct, %configFile%, curl, connect-timeout, 10
-		FileRead, Cookies, %configFolder%\cookies.txt
+		IniRead, showCurl, %configFile%, curl, showCurl, 0
+		;FileRead, Cookies, %configFolder%\cookies.txt
 		
 		CurlLine:="curl -L -A """ UserAgent """ -o """ FilePath """" " " """" URL """"
 		If ct>0
@@ -1300,10 +1311,10 @@ LoadFile(URL, FilePath, CheckDate=false, UseCookies=false) {
 		If lr>0
 			CurlLine.=" --limit-rate " lr "K"
 		
-		If UseCookies && (Cookies!="")
+		If (Cookies!="")
 			CurlLine.=" -b """ Cookies """"
 		
-		If RegExMatch(args, "i)/ShowCurl")
+		If showCurl || RegExMatch(args, "i)/ShowCurl")
 			RunWait, %CurlLine%
 		Else
 			RunWait, %CurlLine%, , hide

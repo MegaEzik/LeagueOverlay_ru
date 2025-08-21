@@ -60,8 +60,10 @@ loadItem(itemNameRu){
 	;WGetLine:="""" A_ScriptDir "\lib\wget.exe"" -o """ A_ScriptDir "\tmpPage.log"" -O """ A_ScriptDir "\tmpPage.html"" ""https://poedb.tw/ru/search?q=" itemNameRu ""
 	;RunWait, %WGetLine%
 	
-	CurlLine:="curl.exe -L -A ""Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:115.0) Gecko/20100101 Firefox/115.0"" -o """ A_ScriptDir "\tmpPage.html"" --trace-ascii """  A_ScriptDir "\tmpPage.log"" ""https://poedb.tw/ru/search?q=" StrReplace(itemNameRu, " ", "_")""" --connect-timeout 3"
-	RunWait, %CurlLine%,,hide
+	URLLine:="https://poedb.tw/ru/search?q=" StrReplace(itemNameRu, " ", "_")
+	CurlLine:="curl.exe -L -A ""Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:139.0) Gecko/20100101 Firefox/139.0"" -o """ A_ScriptDir "\tmpPage.html"" --trace-ascii """  A_ScriptDir "\tmpPage.log"" """ URLLine """ --connect-timeout 10"
+	Run, "%URLLine%"
+	;RunWait, %CurlLine%
 	
 	Sleep 50
 	

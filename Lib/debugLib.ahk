@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=250404.2
+version=250822
 */
 
 ;Инициализация и создание меню разработчика
@@ -17,7 +17,8 @@ devPreInit(){
 	If (configFolder = A_MyDocuments "\AutoHotKey\LeagueOverlay_ru") && FileExist(configFolder "\pkgsMgr.ini") && FileExist(AHKPath "\AutoHotkeyU32.exe") && FileExist(A_ScriptDir "\Data\MigrateAddons.ahk")
 		RunWait, "%AHKPath%\AutoHotkeyU32.exe" "%A_ScriptDir%\Data\MigrateAddons.ahk" "%A_ScriptFullPath%"
 	
-	Menu, devMenu, Add, Cookies, devEditCookies
+	Menu, devMenu, Add, Загрузить Лабиринт, loadLabWithCookies
+	;Menu, devMenu, Add, Cookies, devEditCookies
 	Menu, devMenu, Add, Экран запуска(5 секунд), devStartUI
 	;Menu, devMenu, Add, Отслеживаемые файлы, devTrackingList
 	Menu, devMenu, Add
@@ -34,19 +35,6 @@ devPreInit(){
 }
 
 devPostInit(){
-	FormatTime, cDate, %A_NowUTC%, yyyyMMdd
-	
-	IniRead, loadLab, %configFile%, settings, loadLab, 0
-	If loadLab && FileExist(configFolder "\MyFiles\Labyrinth.jpg") && FileExist(configFolder "\cookies.txt") && (cDate>=20250613 && cDate<=20250615) {
-		downloadLabLayout("https://www.poelab.com/gtgax", true, "Lab1_Normal")
-		downloadLabLayout("https://www.poelab.com/r8aws", true, "Lab2_Cruel")
-		downloadLabLayout("https://www.poelab.com/riikv", true, "Lab3_Merciless")
-	} else {
-		FileDelete, %configFolder%\MyFiles\Lab1_Normal.jpg
-		FileDelete, %configFolder%\MyFiles\Lab2_Cruel.jpg
-		FileDelete, %configFolder%\MyFiles\Lab3_Merciless.jpg
-	}
-	
 	Sleep 100
 }
 
@@ -152,6 +140,9 @@ devRestoreRelease() {
 devClSD(){
 	FileDelete, %configFolder%\%prjName%.log
 	FileDelete, Data\Addons.ini
+	FileDelete, %configFolder%\MyFiles\Lab1_Normal.jpg
+	FileDelete, %configFolder%\MyFiles\Lab2_Cruel.jpg
+	FileDelete, %configFolder%\MyFiles\Lab3_Merciless.jpg
 	FileDelete, %configFolder%\MyFiles\Labyrinth.jpg
 	;FileDelete, Data\JSON\*
 	FileDelete, Data\JSON\leagues.json

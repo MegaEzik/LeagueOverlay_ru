@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=250606.2
+version=250822
 */
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
@@ -72,6 +72,15 @@ ItemMenu_Show(ItemMode=True, AutoShow=True){
 					ItemMenu_AddPoEDB(findtext2)
 					ItemMenu_AddReward(findtext2)
 				}
+				
+			If (iRarity="Уникальный") {
+				DisenchantCost:=ItemMenu_UniqueDisenchant(iName)
+				If (DisenchantCost!=0) {
+					Menu, itemMenu, Add
+					Menu, itemMenu, Add, Чародейская пыль - %DisenchantCost%, devVoid
+					Menu, itemMenu, Disable, Чародейская пыль - %DisenchantCost%
+				}
+			}
 			
 			Menu, itemMenu, Add
 		}
@@ -155,7 +164,7 @@ ItemMenu_Show(ItemMode=True, AutoShow=True){
 			If RegExMatch(ItemData, hightlightDataSplit[k], findtext) {
 				ItemMenu_AddHightlight(findtext)
 				If FileExist("Data\imgs\favorite.png")
-					Menu, itemMenu, Icon, *%findtext%, Data\imgs\favorite.png
+					Menu, itemMenu, Icon, #%findtext%, Data\imgs\favorite.png
 					;Menu, itemMenu, Check, *%findtext%
 			}
 		}
@@ -231,9 +240,9 @@ ItemMenu_AddHightlight(Line){
 		Menu, itemMenu, Add
 		return
 	}
-	Menu, itemMenu, Add, *%Line%, ItemMenu_Hightlight
+	Menu, itemMenu, Add, #%Line%, ItemMenu_Hightlight
 	If FileExist("Data\imgs\highlight.png")
-		Menu, itemMenu, Icon, *%Line%, Data\imgs\highlight.png
+		Menu, itemMenu, Icon, #%Line%, Data\imgs\highlight.png
 }
 
 ItemMenu_OpenOnPoEDB(Line){
@@ -286,6 +295,27 @@ ItemMenu_OpenRewardOnTrade(Line){
 	return
 }
 
+ItemMenu_UniqueDisenchant(iName){
+	ItemData:=Globals.Get("IDCL_ItemData")
+	ItemClass:=Globals.Get("IDCL_Class")
+	If RegExMatch(ItemClass, "Флакон|флакон|Микстуры|Самоцветы|Карты")
+		return 0
+	If RegExMatch(ItemData, "U)Уровень предмета: (\d+)`n", res)
+		iLvl:=res1
+	If (iLvl<68)
+		return 0
+	If (iLvl>84)
+		iLvl:=84
+	Quality:=0
+	If RegExMatch(ItemData, "U)Качество.*\+(\d+)%", res)
+		Quality:=res1
+	disenchant_list:=Globals.Get("disenchant_list")
+	disenchant_val:=disenchant_list[iName]
+	val:=Floor(disenchant_val*(20-(84-iLvl))*(100+(Quality*2))*1.25)
+	;msgbox, %val% | %iLvl% | %Quality%`n`n`n%ItemData%
+	return val
+}
+
 ItemMenu_CopyInBuffer(Line){
 	Clipboard:=Line
 	showToolTip("Скопировано в буфер обмена!`n-----------------------------------`n" Line, 5000)
@@ -331,6 +361,9 @@ ItemMenu_IDCLInit(){
 	Globals.Set("item_names", JSON.Load(names_list))
 	FileRead, tags_list, Data\JSON\tags.json
 	Globals.Set("item_tags", JSON.Load(tags_list))
+	
+	FileRead, disenchant_list, Data\JSON\disenchant.json
+	Globals.Set("disenchant_list", JSON.Load(disenchant_list))
 }
 
 ItemMenu_LoadDataFile(URL, Path){

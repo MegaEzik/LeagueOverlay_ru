@@ -174,6 +174,19 @@ commandFastReply(Line:="/dance"){
 		return
 	}
 	
+	;Скопировать в буфер обмена
+	If (InStr(Line, "~")=1) {
+		Line:=SubStr(Line, 2)
+		ItemMenu_CopyInBuffer(Line)
+		return
+	}
+	
+	;Подсветить
+	If (InStr(Line, "#")=1) {
+		ItemMenu_Hightlight(Line)
+		return
+	}
+	
 	;Другое
 	If (InStr(Line, ">")=1) {
 		Line:=SubStr(Line, 2)
