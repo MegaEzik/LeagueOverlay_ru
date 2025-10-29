@@ -61,7 +61,8 @@ loadItem(itemNameRu){
 	;RunWait, %WGetLine%
 	
 	URLLine:="https://poedb.tw/ru/search?q=" StrReplace(itemNameRu, " ", "_")
-	CurlLine:="curl.exe -L -A ""Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:139.0) Gecko/20100101 Firefox/139.0"" -o """ A_ScriptDir "\tmpPage.html"" --trace-ascii """  A_ScriptDir "\tmpPage.log"" """ URLLine """ --connect-timeout 10"
+	CurlLine:="curl.exe -L -A ""Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0"" -o """ A_ScriptDir "\tmpPage.html"" --trace-ascii """  A_ScriptDir "\tmpPage.log"" """ URLLine """ --connect-timeout 10"
+	;Clipboard:=CurlLine
 	Run, "%URLLine%"
 	;RunWait, %CurlLine%
 	
