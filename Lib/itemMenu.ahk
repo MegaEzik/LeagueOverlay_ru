@@ -47,6 +47,8 @@ ItemMenu_Show(ItemMode=True, AutoShow=True){
 	If (iClass!="") && ItemMode {
 		;Пункты для открытия на сетевых ресурсах PoE1
 		If (ItemData!="") && !PoE2Mode {
+			If RegExMatch(iName, "^Foulborn ")
+				iName:=RegExReplace(iName, "^Foulborn ", "")
 			ItemMenu_AddPoEDB(iName)
 			ItemMenu_AddWiki(iName)
 			
