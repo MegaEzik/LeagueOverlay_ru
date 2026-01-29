@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=250822
+version=250822.01
 */
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
@@ -249,8 +249,11 @@ ItemMenu_AddHightlight(Line){
 
 ItemMenu_OpenOnPoEDB(Line){
 	Line:=searchName(Line)
+	Line:=StrReplace(Line, "'", "")
+	Line:=StrReplace(Line, " ", "_")
 	;run, "https://poedb.tw/ru/search.php?q=%Line%"
-	run, "https://poedb.tw/ru/search?q=%Line%"
+	;run, "https://poedb.tw/ru/search?q=%Line%"
+	run, "https://poedb.tw/ru/%Line%"
 	return
 }
 
