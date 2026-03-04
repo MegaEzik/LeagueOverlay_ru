@@ -291,7 +291,7 @@ srCreateItems(){
 	ResultContent:="`r`n"
 	FileLines:=StrSplit(FileContent, "`r`n")
 	For k, val in FileLines {
-		If (RegExMatch(FileLines[k], "[А-Яа-яЁё]+") && !RegExMatch(FileLines[k], "Пробужд(е|ё)нный: ") && !RegExMatch(FileLines[k], "Захваченная душа ")) {
+		If (RegExMatch(FileLines[k], "[А-Яа-яЁё]+") && !RegExMatch(FileLines[k], "Пробужд(е|ё)нный - ") && !RegExMatch(FileLines[k], "Захваченная душа ")) {
 			ResultContent.=FileLines[k] "`r`n"
 		}
 	}

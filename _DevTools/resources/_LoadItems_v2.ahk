@@ -30,7 +30,8 @@ FileRead, newItemsData, %A_ScriptDir%\NewItem.txt
 newItemsRu:=StrSplit(StrReplace(newItemsData, "`r", ""), "`n")
 
 Run, https://poedb.tw/ru/
-Sleep 3000
+InputBox, SearchToken, PoEDB.tw - Search Token,,, 500, 100
+;Sleep 3000
 
 Gui ProgressUI:Add, Progress, w350 h25 BackgroundA9A9A9 vuiProgress
 Gui, ProgressUI:-SysMenu +Theme +Border +AlwaysOnTop
@@ -38,7 +39,7 @@ Gui, ProgressUI:Show
 
 numItems:=newItemsRu.maxIndex()
 loop %numItems% {
-	loadItem(newItemsRu[A_Index])
+	loadItem(newItemsRu[A_Index], SearchToken)
 	cProgress:=A_Index/numItems*100
 	GuiControl ProgressUI:, uiProgress, %cProgress% 
 }
@@ -49,7 +50,7 @@ ExitApp
 
 ;==============================================
 
-loadItem(itemNameRu){
+loadItem(itemNameRu, SearchToken=""){
 	if (itemNameRu="")
 		return
 		
@@ -60,7 +61,11 @@ loadItem(itemNameRu){
 	;WGetLine:="""" A_ScriptDir "\lib\wget.exe"" -o """ A_ScriptDir "\tmpPage.log"" -O """ A_ScriptDir "\tmpPage.html"" ""https://poedb.tw/ru/search?q=" itemNameRu ""
 	;RunWait, %WGetLine%
 	
-	URLLine:="https://poedb.tw/ru/search?q=" StrReplace(itemNameRu, " ", "_")
+	URLLine:="https://poedb.tw/ru/search?"
+	If SearchToken!=""
+		URLLine.="token=" SearchToken "&"
+	URLLine.="q=" StrReplace(itemNameRu, " ", "_")
+	
 	CurlLine:="curl.exe -L -A ""Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0"" -o """ A_ScriptDir "\tmpPage.html"" --trace-ascii """  A_ScriptDir "\tmpPage.log"" """ URLLine """ --connect-timeout 10"
 	;Clipboard:=CurlLine
 	Run, "%URLLine%"
