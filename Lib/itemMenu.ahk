@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=250822.01
+version=250822.02
 */
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
@@ -44,13 +44,18 @@ ItemMenu_Show(ItemMode=True, AutoShow=True){
 	If RegExMatch(args, "i)/PoE2")
 		PoE2Mode:=true
 	
+	;Определение пути к файлу с настройками подсветки
+	highlightListPath:=configFolder "\highlight.list"
+	If PoE2Mode
+		highlightListPath:=configFolder "\highlight_poe2.list"
+	
 	If (iClass!="") && ItemMode {
 		;Пункты для открытия на сетевых ресурсах PoE1
 		If (ItemData!="") && !PoE2Mode {
 			If RegExMatch(iName, "^Foulborn ")
 				iName:=RegExReplace(iName, "^Foulborn ", "")
+			ItemMenu_AddSearch(iName)
 			ItemMenu_AddPoEDB(iName)
-			ItemMenu_AddWiki(iName)
 			
 			If RegExMatch(iClass, "(Валюта|Гадальные карты|Обрывки карт|Уголья Всепламени|Камни поддержки|Камни умений)") || (iRarity="Уникальный")
 				ItemMenu_AddTrade(iName)
@@ -58,21 +63,28 @@ ItemMenu_Show(ItemMode=True, AutoShow=True){
 			If (iName="Inscribed Ultimatum") {
 				If (RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*) x\d+", findtext) || RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*)", findtext)) {
 					Menu, itemMenu, Add
-					ItemMenu_AddPoEDB(findtext1)
-					ItemMenu_AddReward(findtext1)
+					;ItemMenu_AddPoEDB(findtext1)
+					;ItemMenu_AddReward(findtext1)
+					ItemMenu_AddSearch(findtext1)
+					ItemMenu_AddCopyInBuffer(findtext1)
+					
 					If RegExMatch(ItemDataSplit[8], "Награда: (.*)", findtext)
 						If !RegExMatch(findtext1, "Удваивает") {
-							ItemMenu_AddPoEDB(findtext1)
-							ItemMenu_AddReward(findtext1)
+							;ItemMenu_AddPoEDB(findtext1)
+							;ItemMenu_AddReward(findtext1)
+							ItemMenu_AddSearch(findtext1)
+							ItemMenu_AddCopyInBuffer(findtext1)
 						}
 				}
 			}
 			
-			If (ItemDataSplit[6]="Уровень карты: 17")
+			If (iName="Valdo Map")
 				If RegExMatch(ItemDataSplit[7], "Награда: Особ(ая|ый|ое|ые) (.*)", findtext) {
 					Menu, itemMenu, Add
-					ItemMenu_AddPoEDB(findtext2)
-					ItemMenu_AddReward(findtext2)
+					;ItemMenu_AddPoEDB(findtext2)
+					;ItemMenu_AddReward(findtext2)
+					ItemMenu_AddSearch(findtext2)
+					ItemMenu_AddCopyInBuffer(findtext2)
 				}
 				
 			If (iRarity="Уникальный") {
@@ -89,7 +101,7 @@ ItemMenu_Show(ItemMode=True, AutoShow=True){
 		
 		;Сетевые ресурсы PoE2
 		If PoE2Mode && (iName!="") &&(iRarity!="") && (iRarity!="Волшебный") {
-			ItemMenu_AddPoEDB2(iName)
+			ItemMenu_AddSearch(iName, "PoE2")
 			If RegExMatch(iRarity, "^(Валюта|Уникальный)$")
 				ItemMenu_AddTrade2(iName)
 			Menu, itemMenu, Add
@@ -99,15 +111,13 @@ ItemMenu_Show(ItemMode=True, AutoShow=True){
 		ItemMenu_AddCopyInBuffer(iName)
 		
 		;Пункт меню для конвертирования описания
-		If !PoE2Mode {
-			Menu, itemMenu, Add, Ru>En Конвертер(Основной), ItemMenu_ConvertFromGame
+		Menu, itemMenu, Add, Ru>En Конвертер(Основной), ItemMenu_ConvertFromGame
+		If FileExist("Data\imgs\copy.png")
+			Menu, itemMenu, Icon, Ru>En Конвертер(Основной), Data\imgs\copy.png
+		If (iRarity="Редкий") && !PoE2Mode {
+			Menu, itemMenu, Add, Ru>En Конвертер(Расширенный), ItemMenu_ConvertFromGamePlus
 			If FileExist("Data\imgs\copy.png")
-				Menu, itemMenu, Icon, Ru>En Конвертер(Основной), Data\imgs\copy.png
-			If (iRarity="Редкий") {
-				Menu, itemMenu, Add, Ru>En Конвертер(Расширенный), ItemMenu_ConvertFromGamePlus
-				If FileExist("Data\imgs\copy.png")
-					Menu, itemMenu, Icon, Ru>En Конвертер(Расширенный), Data\imgs\copy.png
-			}
+				Menu, itemMenu, Icon, Ru>En Конвертер(Расширенный), Data\imgs\copy.png
 		}
 		Menu, itemMenu, Add	
 		
@@ -121,7 +131,7 @@ ItemMenu_Show(ItemMode=True, AutoShow=True){
 				ItemMenu_AddHightlight("""" iClass """ """ iRarity """")
 		}
 		
-		If (iClass="Валюта") &&& RegExMatch(iName, "Essence") {
+		If (iClass="Валюта") && RegExMatch(iName, "Essence") {
 			splitItemName:=StrSplit(iName, " ")
 			For k, val in splitItemName
 				If StrLen(splitItemName[k])>2
@@ -156,7 +166,7 @@ ItemMenu_Show(ItemMode=True, AutoShow=True){
 			If (iName="Chronicle of Atzoatl" && RegExMatch(ItemDataSplit[k], "(Аудитория Дориани|Очаг осквернения)", findtext))
 				ItemMenu_AddHightlight(findtext)
 		}
-		FileRead, hightlightData, %configFolder%\highlight.list
+		FileRead, hightlightData, %highlightListPath%
 		hightlightDataSplit:=strSplit(StrReplace(hightlightData, "`r", ""), "`n")
 		For k, val in hightlightDataSplit {
 			If (hightlightDataSplit[k]="") || (InStr(hightlightDataSplit[k], ";")=1) || (hightlightDataSplit[k]="---")
@@ -178,7 +188,7 @@ ItemMenu_Show(ItemMode=True, AutoShow=True){
 			Menu, itemMenu, Add, Избранные команды, :fastMenu
 			Menu, itemMenu, Add
 		}
-		FileRead, hightlightData, %configFolder%\highlight.list
+		FileRead, hightlightData, %highlightListPath%
 		hightlightDataSplit:=strSplit(StrReplace(hightlightData, "`r", ""), "`n")
 		For k, val in hightlightDataSplit {
 			If (hightlightDataSplit[k]="") || (InStr(hightlightDataSplit[k], ";")=1) || (InStr(hightlightDataSplit[k], "!")=1)
@@ -188,20 +198,21 @@ ItemMenu_Show(ItemMode=True, AutoShow=True){
 	}
 	Menu, itemMenu, Add
 	Menu, itemMenu, Add, Условия для 'Меню предмета', ItemMenu_customHightlight
+	If PoE2Mode
+		Menu, itemMenu, Add, Условия для 'Меню предмета', ItemMenu_customHightlight2
 	If AutoShow
 		Menu, itemMenu, Show
 }
 
 ItemMenu_AddPoEDB(Line) {
+	IniRead, useWiki, %configFile%, settings, useWiki, 0
+	If useWiki {
+		ItemMenu_AddWiki(Line)
+		return
+	}
 	Menu, itemMenu, Add, PoEDB > '%Line%', ItemMenu_OpenOnPoEDB
 	If FileExist("Data\imgs\web.png")
 		Menu, itemMenu, Icon, PoEDB > '%Line%', Data\imgs\web.png
-}
-
-ItemMenu_AddPoEDB2(Line) {
-	Menu, itemMenu, Add, PoE2DB > '%Line%', ItemMenu_OpenOnPoEDB2
-	If FileExist("Data\imgs\web.png")
-		Menu, itemMenu, Icon, PoE2DB > '%Line%', Data\imgs\web.png
 }
 
 ItemMenu_AddWiki(Line) {
@@ -222,12 +233,19 @@ ItemMenu_AddTrade2(Line) {
 		Menu, itemMenu, Icon, PoE\trade2 > '%Line%', Data\imgs\web.png
 }
 
+/*
 ItemMenu_AddReward(Line) {
 	Menu, itemMenu, Add, PoE\trade > '%Line%', ItemMenu_OpenRewardOnTrade
 	If FileExist("Data\imgs\web.png")
 		Menu, itemMenu, Icon, PoE\trade > '%Line%', Data\imgs\web.png
 }
+*/
 
+ItemMenu_AddSearch(Line, tagPoE="PoE") {
+	Menu, itemMenu, Add, Search > '%tagPoE% %Line%', ItemMenu_OpenSearch
+	If FileExist("Data\imgs\web.png")
+		Menu, itemMenu, Icon, Search > '%tagPoE% %Line%', Data\imgs\web.png
+}
 
 ItemMenu_AddCopyInBuffer(Line){
 	Menu, itemMenu, Add, %Line%, ItemMenu_CopyInBuffer
@@ -247,6 +265,14 @@ ItemMenu_AddHightlight(Line){
 		Menu, itemMenu, Icon, #%Line%, Data\imgs\highlight.png
 }
 
+ItemMenu_OpenSearch(Line) {
+	IniRead, searchProvider, %configFile%, settings, searchProvider, google.com/search?q
+	;ya.ru/search/?text
+	Line:=searchName(Line)
+	run, "https://%searchProvider%=%Line%"
+	return
+}
+
 ItemMenu_OpenOnPoEDB(Line){
 	Line:=searchName(Line)
 	Line:=StrReplace(Line, "'", "")
@@ -254,12 +280,6 @@ ItemMenu_OpenOnPoEDB(Line){
 	;run, "https://poedb.tw/ru/search.php?q=%Line%"
 	;run, "https://poedb.tw/ru/search?q=%Line%"
 	run, "https://poedb.tw/ru/%Line%"
-	return
-}
-
-ItemMenu_OpenOnPoEDB2(Line){
-	Line:=searchName(Line)
-	run, "https://poe2db.tw/ru/search?q=%Line%"
 	return
 }
 
@@ -290,6 +310,7 @@ ItemMenu_OpenOnTrade2(Line){
 	return
 }
 
+/*
 ItemMenu_OpenRewardOnTrade(Line){
 	Line:=searchName(Line)
 	IniRead, league, %configFile%, settings, league, Standard
@@ -299,6 +320,7 @@ ItemMenu_OpenRewardOnTrade(Line){
 	run,"%url%"
 	return
 }
+*/
 
 ItemMenu_UniqueDisenchant(iName){
 	ItemData:=Globals.Get("IDCL_ItemData")
@@ -341,6 +363,10 @@ ItemMenu_Hightlight(Line){
 
 ItemMenu_customHightlight() {
 	textFileWindow("Условия для 'Меню предмета'", configFolder "\highlight.list", false, "к максимуму здоровья`nк сопротивлению`nповышение скорости передвижения`nВосприятие|Маскировка`n""nt ro|fien|r be|vy b|amp|ian""")
+}
+
+ItemMenu_customHightlight2() {
+	textFileWindow("Условия для 'Меню предмета'(PoE2)", configFolder "\highlight_poe2.list", false, "к максимуму здоровья`nк сопротивлению`nповышение скорости передвижения")
 }
 
 ItemMenu_IDCLInit(){

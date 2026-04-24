@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=250822
+version=250822.01
 */
 
 ;Инициализация и создание меню разработчика
@@ -16,6 +16,8 @@ devPreInit(){
 	SplitPath, A_AhkPath,,AHKPath
 	If (configFolder = A_MyDocuments "\AutoHotKey\LeagueOverlay_ru") && FileExist(configFolder "\pkgsMgr.ini") && FileExist(AHKPath "\AutoHotkeyU32.exe") && FileExist(A_ScriptDir "\Data\MigrateAddons.ahk")
 		RunWait, "%AHKPath%\AutoHotkeyU32.exe" "%A_ScriptDir%\Data\MigrateAddons.ahk" "%A_ScriptFullPath%"
+	
+	devPoE2EA()
 	
 	Menu, devMenu, Add, Загрузить Лабиринт, loadLabWithCookies
 	;Menu, devMenu, Add, Cookies, devEditCookies
@@ -36,6 +38,16 @@ devPreInit(){
 
 devPostInit(){
 	Sleep 100
+}
+
+devPoE2EA(){
+	If !FileExist(configFolder "\Presets\PoE2") {
+		FileCreateDir, %configFolder%\Presets\PoE2
+		IniWrite, Path of Exile 2, %configFolder%\Presets\PoE2\PresetConfig.ini, Windows
+		IniWrite, *PoE2, %configFile%, settings, preset2
+		Sleep 10
+		ReStart()
+	}
 }
 
 ;Загрузить событие
