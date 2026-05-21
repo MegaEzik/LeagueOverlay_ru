@@ -1,4 +1,5 @@
 ﻿{
+ "+# к духу": "+# to Spirit",
  "Атак в секунду: #": "Attacks per Second: #",
  "Барьер: #": "Ward: #",
  "Бездна": "Abyss",
@@ -94,6 +95,7 @@
  "Шанс критического удара: #%": "Critical Strike Chance: #%",
  "Щелкните ПКМ, чтобы выпить. Содержит заряды только когда висит на поясе. Пополняется по мере убийства монстров.": "Right click to drink. Can only hold charges while in belt. Refills as you kill monsters.",
  "Энерг. щит: #": "Energy Shield: #",
+ "Энергетический щит: #": "Energy Shield: #",
  
  "Амулеты": "Amulets",
  "Валюта Спуска": "Delve Stackable Socketable Currency",

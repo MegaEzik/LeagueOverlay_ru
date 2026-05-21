@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=240915
+version=250822.01
 */
 
 /*
@@ -319,7 +319,7 @@ IDCL_ConvertAllStats(idft, basic_mode) {
 		;Уберем числовые значения в скобках, они нас не интересуют
 		lidft[k]:=RegExReplace(lidft[k], "U)\((-?\d+\.\d+|-?\d+)-(-?\d+\.\d+|-?\d+)\)", "")
 		;Извлекаем часть строки не требующую перевода и препятствующую ему, при сборе вернем ее на место
-		RegExMatch(lidft[k], " (\(augmented\)|\(unmet\)|\(fractured\)|\(crafted\)|\(Max\)|\(implicit\)|\(enchant\)|\(scourge\))$", slidft)
+		RegExMatch(lidft[k], " (\(augmented\)|\(unmet\)|\(fractured\)|\(crafted\)|\(Max\)|\(implicit\)|\(enchant\)|\(scourge\)|\(rune\))$", slidft)
 		lidft[k]:=StrReplace(lidft[k], slidft, "")
 		;Попытка конвертировать стат
 		lidft[k]:= IDCL_ConvertStat(lidft[k])

@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=250822.02
+version=250822.03
 */
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
@@ -205,8 +205,8 @@ ItemMenu_Show(ItemMode=True, AutoShow=True){
 }
 
 ItemMenu_AddPoEDB(Line) {
-	IniRead, useWiki, %configFile%, settings, useWiki, 0
-	If useWiki {
+	IniRead, forceWiki, %configFile%, settings, forceWiki, 0
+	If forceWiki {
 		ItemMenu_AddWiki(Line)
 		return
 	}
@@ -266,8 +266,11 @@ ItemMenu_AddHightlight(Line){
 }
 
 ItemMenu_OpenSearch(Line) {
-	IniRead, searchProvider, %configFile%, settings, searchProvider, google.com/search?q
-	;ya.ru/search/?text
+	IniRead, searchProvider, %configFile%, settings, searchProvider, Google
+	If RegExMatch(searchProvider, "i)Google") || (searchProvider="")
+		searchProvider:="google.com/search?q"
+	If RegExMatch(searchProvider, "i)Yandex")
+		searchProvider:="ya.ru/search/?text"
 	Line:=searchName(Line)
 	run, "https://%searchProvider%=%Line%"
 	return
