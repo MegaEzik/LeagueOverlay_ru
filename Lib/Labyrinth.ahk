@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=250822
+version=260626
 */
 
 ;Загрузка изображения с раскладкой лабиринта соответствующего уровня
@@ -109,9 +109,10 @@ addLoadLabInMenu(MenuName, Name="LoadLab"){
 }
 
 autoLoadLab(){
-	IniRead, loadLab, %configFile%, settings, loadLab, 0
+	;IniRead, loadLab, %configFile%, settings, loadLab, 0
 	IniRead, lDate, %configFile%, info, labfileLabyrinth, 0
-	If !loadLab
+	;If !loadLab
+	If !RegExMatch(args, "i)/Lab")
 		return
 	FormatTime, сDate, %A_NowUTC%, yyyyMMdd
 	If FileExist(configFolder "\LabCookies.txt") && ((lDate<сDate) || !FileExist(configFolder "\MyFiles\Labyrinth.jpg"))
@@ -119,8 +120,8 @@ autoLoadLab(){
 }
 
 initLab(){
-	IniRead, loadLab, %configFile%, settings, loadLab, 0
-	If loadLab {
+	;IniRead, loadLab, %configFile%, settings, loadLab, 0
+	If RegExMatch(args, "i)/Lab") {
 		downloadLabLayout()
 		;SetTimer, downloadLabLayout, 10800000
 	}

@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=250822.01
+version=260626
 */
 
 ;Инициализация и создание меню разработчика
@@ -13,9 +13,6 @@ devPreInit(){
 	}
 	
 	;devSpecialUpdater()
-	SplitPath, A_AhkPath,,AHKPath
-	If (configFolder = A_MyDocuments "\AutoHotKey\LeagueOverlay_ru") && FileExist(configFolder "\pkgsMgr.ini") && FileExist(AHKPath "\AutoHotkeyU32.exe") && FileExist(A_ScriptDir "\Data\MigrateAddons.ahk")
-		RunWait, "%AHKPath%\AutoHotkeyU32.exe" "%A_ScriptDir%\Data\MigrateAddons.ahk" "%A_ScriptFullPath%"
 	
 	devPoE2EA()
 	
@@ -41,10 +38,20 @@ devPostInit(){
 }
 
 devPoE2EA(){
-	If !FileExist(configFolder "\Presets\PoE2") {
-		FileCreateDir, %configFolder%\Presets\PoE2
-		IniWrite, Path of Exile 2, %configFolder%\Presets\PoE2\PresetConfig.ini, Windows
-		IniWrite, *PoE2, %configFile%, settings, preset2
+	IniRead, verPreset, %configFolder%\Presets\PoE2\PresetConfig.ini, Configuration, version, 241205
+	;msgbox, %verPreset%
+	If (verPreset=241205) {
+		If !FileExist(configFolder "\Presets\PoE2") {
+			FileCreateDir, %configFolder%\Presets\PoE2)
+			IniWrite, Path of Exile 2, %configFolder%\Presets\PoE2\PresetConfig.ini, Windows
+			IniWrite, *PoE2, %configFile%, settings, preset2
+		}
+	}
+	If verPreset<260626
+		IniWrite, PoE2, %configFolder%\Presets\PoE2\PresetConfig.ini, Configuration, myFiles
+	
+	If (verPreset<260626) {
+		IniWrite, 260626, %configFolder%\Presets\PoE2\PresetConfig.ini, Configuration, version
 		Sleep 10
 		ReStart()
 	}
@@ -261,7 +268,7 @@ devSpecialUpdater(){
 */
 
 showArgsInfo(){
-	Msgbox, 0x1040, Список доступных параметров запуска, /Dev - режим разработчика`n`n/NoCurl - запрещает использование 'curl.exe'`n`n/ShowCurl - отображает выполнение 'curl.exe'`n`n/NoTheme - не применять системную тему к меню`n`n/Gamepad - компоновка 'Меню быстрого доступа' в стиле используемом с игровым контроллером`n`n/PoE2 - принудительный режим PoE2(для отладки)
+	Msgbox, 0x1040, Список доступных параметров запуска, /Dev - режим разработчика`n`n/NoCurl - запрещает использование 'curl.exe'`n`n/ShowCurl - отображает выполнение 'curl.exe'`n`n/NoTheme - не применять системную тему к меню`n`n/Lab - загрузка раскладки лабиринта`n`n/Gamepad - компоновка 'Меню быстрого доступа' в стиле используемом с игровым контроллером`n`n/PoE2 - принудительный режим PoE2(для отладки)
 }
 
 devVoid(){

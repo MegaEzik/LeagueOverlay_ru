@@ -47,6 +47,7 @@ If InStr(FileExist(A_ScriptDir "\..\Profile"), "D") {
 	SplitPath, A_ScriptDir,, configFolder
 	configFolder.="\Profile"
 }
+Globals.Set("myFilesFolder", configFolder "\MyFiles")
 global configFile:=configFolder "\settings.ini"
 global tempDir:=configFolder "\Temp"
 FileCreateDir, %configFolder%\Scripts
@@ -67,7 +68,7 @@ IniRead, mouseDistance, %configFile%, settings, mouseDistance, 500
 Globals.Set("mouseDistance", mouseDistance)
 
 ;Добавляем окна для отслеживания
-global WindowGrp, WinGrp2, WinGrp3
+global WindowGrp, WinGrp2, WinGrp3, WinGrp4, WinGrp5
 addWindow("ahk_exe GeForceNOW.exe")
 addWinList()
 	
@@ -101,7 +102,6 @@ loadEvent()
 
 ;Обновление компонентов
 If update {
-	;updateAutoHotkey()
 	suip(35)
 	updateLib("debugLib.ahk")
 	suip(40)
@@ -222,11 +222,8 @@ migrateConfig() {
 			}
 			If (verconfig<250131)
 				FileRemoveDir, %configFolder%\Presets\PoE2EA, 1
-			If (verconfig<250606.2) {
-				If !FileExist(configFolder "\cookies.txt")
-					IniWrite, 0, %configFile%, settings, loadLab
+			If (verconfig<250606.2)
 				IniWrite, 0, %configFile%, settings, updateLib
-			}
 		}
 		
 		showSettings()
@@ -252,7 +249,7 @@ addWinList(){
 		If (Window[k]!="")
 			addWindow(Window[k])
 	
-	Loop 3 {
+	Loop 5 {
 		;presetNum:=(A_Index=1)?"":A_Index
 		presetNum:=A_Index
 		IniRead, preset, %configFile%, settings, preset%presetNum%, %A_Space%
@@ -320,7 +317,7 @@ shMyFile(FileName){
 		myFilesActions(FileName)
 		return
 	}
-	commandFastReply(configFolder "\MyFiles\" FileName)
+	commandFastReply(Globals.Get("myFilesFolder") "\" FileName)
 }
 
 ;Открыть папку с моими файлами
@@ -332,22 +329,33 @@ openMyFilesFolder(){
 myFilesMenuCreate(expandMenu=true){
 	IniRead, SpecialNamesList, %configFile%, SpecialNames
 	SpecialNamesSplit:=StrSplit(SpecialNamesList, "`n")
+	
+	myFilesFolder:=configFolder "\MyFiles"
+	
+	presetFolder:=Globals.Get("presetFolder")
+	IniRead, myFilesCustomName, %presetFolder%\PresetConfig.ini, Configuration, myFiles, %A_Space%
+	If (myFilesCustomName!="")
+		myFilesFolder:=configFolder "\MyFiles\" myFilesCustomName
+	If RegExMatch(args, "i)/PoE2")
+		myFilesFolder:=configFolder "\MyFiles\PoE2"
+	FileCreateDir, %myFilesFolder%
+	Globals.Set("myFilesFolder", myFilesFolder)
 		
 	Menu, myFilesMenu, Add
 	Menu, myFilesMenu, DeleteAll
 	
-	Loop, %configFolder%\MyFiles\*.*, 1
+	Loop, %myFilesFolder%\*.*, 1
 		If RegExMatch(A_LoopFileName, ".(png|jpg|jpeg|bmp|txt|fmenu|url|lnk)$") {
 			If expandMenu
 				Menu, mainMenu, Add, %A_LoopFileName%, shMyFile
 			Menu, myFilesMenu, Add, %A_LoopFileName%, shMyFile
 		}
-			
+	
 	For k, val in SpecialNamesSplit {
 		SplitName:=StrSplit(SpecialNamesSplit[k], "=")
 		NewName:=SplitName[1]
 		OldName:=SplitName[2]
-		If FileExist(configFolder "\MyFiles\" OldName) {
+		If FileExist(myFilesFolder "\" OldName) {
 			If expandMenu
 				Menu, mainMenu, Rename, %OldName%, %NewName%
 			Menu, myFilesMenu, Rename, %OldName%, %NewName%
@@ -488,7 +496,7 @@ editWinList(){
 ;Создание заметки
 createNewNote(){
 	InputBox, fileName, Введите название для заметки,,, 500, 100,,,,, NewNote
-	filePath:=configFolder "\MyFiles\" fileName ".txt"
+	filePath:=Globals.Get("myFilesFolder") "\" fileName ".txt"
 	If (FileExist(filePath) || fileName="" || ErrorLevel) {
 		traytip, %prjName%, Что-то пошло не так(
 		return
@@ -499,7 +507,7 @@ createNewNote(){
 ;Создание нового меню
 createNewMenu(){
 	InputBox, fileName, Введите название для файла меню,,, 500, 100,,,,, MyMenu
-	filePath:=configFolder "\MyFiles\" fileName ".fmenu"
+	filePath:=Globals.Get("myFilesFolder") "\" fileName ".fmenu"
 	If (FileExist(filePath) || fileName="" || ErrorLevel) {
 		traytip, %prjName%, Что-то пошло не так(
 		return
@@ -514,7 +522,8 @@ createNewLink(){
 			Return
 	SplitPath, TargetPath, NameLink
 	InputBox, NameLink, Введите имя для ссылки,,, 500, 100,,,,, %NameLink%
-	FileCreateShortcut, %TargetPath%, %configFolder%\MyFiles\%NameLink%.lnk
+	LinkPath:=Globals.Get("myFilesFolder") "\" NameLink ".lnk"
+	FileCreateShortcut, %TargetPath%, %LinkPath%
 }
 
 ;История изменений
@@ -527,27 +536,52 @@ showLicense(){
 	textFileWindow("Лицензия", "LICENSE.md")
 }
 
+clearPoECacheUI(){
+	global
+
+	IniRead, PoECacheMain, %A_MyDocuments%\My Games\Path of Exile\production_Config.ini, GENERAL, cache_directory, %A_AppData%\Path of Exile\
+	IniRead, PoE2CacheMain, %A_MyDocuments%\My Games\Path of Exile 2\poe2_production_Config.ini, GENERAL, cache_directory, %A_AppData%\Path of Exile 2\
+	
+	Gui, PoECacheUI:Destroy
+	
+	Gui, PoECacheUI:Add, Checkbox, vClearPoECacheMain x12 y12, PoE - Основной (Shaders\Shop\Minimap):`n%PoECacheMain%
+	Gui, PoECacheUI:Add, Checkbox, vClearPoECacheMinor x12 y+12, PoE - Вторичный (OnlineFilters, Folder 'release'):`n%A_MyDocuments%\My Games\Path of Exile\*
+	
+	Gui, PoECacheUI:Add, Text, y+12 w480 h1 0x12
+	
+	Gui, PoECacheUI:Add, Checkbox, vClearPoE2CacheMain x12 y+12, PoE 2 - Основной (Shaders\Shop\Minimap):`n%PoE2CacheMain%
+	
+	Gui, PoECacheUI:Add, Text, y+12 w480 h1 0x12
+	
+	Gui, PoECacheUI:Add, Text, x12 y+12 cFF0000, Во время очистки кэша рекомендуется закрыть игру!
+	
+	Gui, PoECacheUI:Add, Button, x12 y+12 w480 h23 gclearPoECache, Удалить кэш, согласно параметрам выше>>
+	
+	Gui, PoECacheUI:-MinimizeBox -MaximizeBox
+	Gui, PoECacheUI:Show,, %prjName% - Очистка кэша Path of Exile
+}
 ;Очистка кэша PoE
 clearPoECache(){
-	FileRemoveDir, %A_AppData%\Path of Exile\Minimap, 1
+	global
+	Gui, PoECacheUI:Submit
 	
-	msgbox, 0x1044, %prjName%, Во время очистки кэша рекомендуется закрыть игру.`n`nХотите продолжить?
-	IfMsgBox No
-		return
-
+	;Msgbox, PoE1=%PoECacheMain%`nPoE2=%PoE2CacheMain%`n%ClearPoECacheMain% %ClearPoECacheMinor% %ClearPoE2CacheMain%
+	;Return
+	
 	SplashTextOn, 400, 20, %prjName%, Очистка кэша PoE, пожалуйста подождите...
 	
-	PoEConfigFolderPath:=A_MyDocuments "\My Games\Path of Exile"
-	FileRemoveDir, %PoEConfigFolderPath%\OnlineFilters, 1
-	FileRemoveDir, %PoEConfigFolderPath%\release, 1
-	FileDelete, %PoEConfigFolderPath%\*.dmp
+	FileRemoveDir, %A_AppData%\Path of Exile\Minimap, 1
 	
-	IniRead, PoECacheFolder, %PoEConfigFolderPath%\production_Config.ini, GENERAL, cache_directory, %A_Space%
-	If (PoECacheFolder="")
-		PoECacheFolder:=A_AppData "\Path of Exile\"
-	FileRemoveDir, %PoECacheFolder%, 1
+	If ClearPoECacheMain
+		FileRemoveDir, %PoECacheMain%, 1
 	
-	FileRemoveDir, %A_AppData%\Path of Exile 2, 1
+	If ClearPoECacheMinor {
+		FileRemoveDir, %A_MyDocuments%\My Games\Path of Exile\OnlineFilters, 1
+		FileRemoveDir, %A_MyDocuments%\My Games\Path of Exile\release, 1
+	}
+	
+	If ClearPoE2CacheMain
+		FileRemoveDir, %PoE2CacheMain%, 1
 	
 	SplashTextOff
 	TrayTip, %prjName%, Очистка кэша завершена)
@@ -558,12 +592,11 @@ showStartUI(SpecialText="", LogoPath="", BGColor="", TColor="000000"){
 	Gui, StartUI:Destroy
 	
 	initMsgs := ["Здесь могла быть ваша реклама"
-				;,"Выполняется подготовка к работе"
+				,"Выполняется подготовка к работе"
 				,"Нанимаем NPC 'Борис Бритва'"
 				,"Удаляем Зеркало Каландры из вашего фильтра предметов"
 				,"Удаляем Волшебную кровь из вашего фильтра предметов"
-				;,"Усугубляем проблему с C-States в 3.21.2"
-				,"-4 к интеллекту и +30 к билду Антона"
+				,"Усугубляем проблему с C-States в 3.21.2"
 				,"-4 к интеллекту и +30 к билду Антона"
 				,"Поддержи " githubUser " <3"]
 	
@@ -702,12 +735,18 @@ showSettings(){
 	IniRead, preset1, %configFile%, settings, preset1, PoE
 	IniRead, preset2, %configFile%, settings, preset2, %A_Space%
 	IniRead, preset3, %configFile%, settings, preset3, %A_Space%
+	IniRead, preset4, %configFile%, settings, preset4, %A_Space%
+	IniRead, preset5, %configFile%, settings, preset5, %A_Space%
 	IniRead, mouseDistance, %configFile%, settings, mouseDistance, 500
 	IniRead, hotkeyLastImg, %configFile%, hotkeys, hotkeyLastImg, !f1
 	IniRead, hotkeyMainMenu, %configFile%, hotkeys, hotkeyMainMenu, !f2
 	IniRead, hotkeyGamepad, %configFile%, hotkeys, hotkeyGamepad, vk07
+	
 	IniRead, hotkeyItemMenu, %configFile%, hotkeys, hotkeyItemMenu, !c
 	IniRead, league, %configFile%, settings, league, Standard
+	IniRead, searchProvider, %configFile%, settings, searchProvider, Google
+	IniRead, forceWiki, %configFile%, settings, forceWiki, 0
+	
 	IniRead, hotkeyHeistScanner, %configFile%, hotkeys, hotkeyHeistScanner, %A_Space%
 	
 	;Настройки второй вкладки
@@ -718,9 +757,7 @@ showSettings(){
 	IniRead, update, %configFile%, settings, update, 1
 	IniRead, updateLib, %configFile%, settings, updateLib, 0
 	IniRead, updateItemData, %configFile%, settings, updateItemData, 0
-	IniRead, updateAHK, %configFile%, settings, updateAHK, 0
 	IniRead, useEvent, %configFile%, settings, useEvent, 1
-	IniRead, loadLab, %configFile%, settings, loadLab, 0
 	
 	;Настройки третьей вкладки
 	IniRead, hotkeyCmdsMenu, %configFile%, hotkeys, hotkeyCmdsMenu, %A_Space%
@@ -751,8 +788,8 @@ showSettings(){
 	
 	Gui, Settings:Add, Checkbox, vautoStartEnabled x12 y80 w480 Checked%autoStartEnabled%, Запустить %prjName% при запуске Windows
 	
-	Gui, Settings:Add, Text, x12 yp+22 w110, Параметры запуска:
-	Gui, Settings:Add, Edit, vstartArgs x+2 yp-2 w346 h17, %startArgs%
+	Gui, Settings:Add, Text, x12 yp+22 w112, Параметры запуска:
+	Gui, Settings:Add, Edit, vstartArgs x+2 yp-2 w344 h17, %startArgs%
 	Gui, Settings:Add, Button, x+1 yp-1 w19 h19 gshowArgsInfo, ?
 	
 	Gui, Settings:Add, Text, x12 yp+24 w385, Список дополнительных окон для отслеживания:
@@ -782,7 +819,7 @@ showSettings(){
 		presetList.="|*" A_LoopFileName
 	preset1List:=SubStr(presetList, 2)
 	
-	Gui, Settings:Add, Text, x12 yp+25 w178, Наборы:
+	Gui, Settings:Add, Text, x12 yp+25 w87, Наборы:
 	Gui, Settings:Add, Button, x+3 yp-4 w23 h23 gpresetMenuCfgShow, ☰
 	Gui, Settings:Add, DropDownList, vpreset1 x+1 yp+1 w90, %preset1List%
 	GuiControl,Settings:ChooseString, preset1, %preset1%
@@ -790,6 +827,8 @@ showSettings(){
 	GuiControl,Settings:ChooseString, preset2, %preset2%
 	Gui, Settings:Add, DropDownList, vpreset3 x+1 w90, %presetList%
 	GuiControl,Settings:ChooseString, preset3, %preset3%
+	Gui, Settings:Add, DropDownList, vpreset4 x+1 w90, %presetList%
+	GuiControl,Settings:ChooseString, preset4, %preset4%
 	
 	Gui, Settings:Add, Text, x12 yp+27 w385, Смещение указателя(пиксели):
 	Gui, Settings:Add, Edit, vmouseDistance x+2 yp-2 w90 h18 Number, %mouseDistance%
@@ -804,24 +843,36 @@ showSettings(){
 		Gui, Settings:Add, Button, x+1 yp-3 w182 h19 gcfgGamepad, Геймпад - Удерживать [%hotkeyGamepad%]
 	Gui, Settings:Add, Hotkey, vhotkeyMainMenu x+1 yp+1 w90 h17, %hotkeyMainMenu%
 	
+	
+	
 	Gui, Settings:Add, Text, x12 yp+22 w385, Последнее изображение:
 	Gui, Settings:Add, Hotkey, vhotkeyLastImg x+2 yp-2 w90 h17, %hotkeyLastImg%
 	
-	Gui, Settings:Add, Text, x12 yp+22 w385, Меню предмета:
-	Gui, Settings:Add, Hotkey, vhotkeyItemMenu x+2 yp-2 w90 h17, %hotkeyItemMenu%
-	
 	Gui, Settings:Add, Text, x10 y+3 w480 h1 0x12
+	
+	Gui, Settings:Add, Text, x12 yp+7 w385, Меню предмета:
+	Gui, Settings:Add, Hotkey, vhotkeyItemMenu x+2 yp-2 w90 h17, %hotkeyItemMenu%
 	
 	LeaguesList:=LeaguesList()
 	If !RegExMatch(LeaguesList, league)
 		LeaguesList.="|" league
 	
-	Gui, Settings:Add, Text, x12 yp+7 w203, Лига испытаний:
-	Gui, Settings:Add, ComboBox, vleague x+2 yp-3 w272, %LeaguesList%
+	Gui, Settings:Add, Text, x12 yp+23 w294, Лига испытаний:
+	Gui, Settings:Add, ComboBox, vleague x+2 yp-3 w181, %LeaguesList%
 	GuiControl,Settings:ChooseString, league, %league%
 	
+	searchProviderList:="Google|Yandex"
+	If !RegExMatch(searchProviderList, searchProvider)
+	searchProviderList.="|" searchProvider
+	
+	Gui, Settings:Add, Text, x12 yp+27 w294, Предпочитаемая Поисковая система:
+	Gui, Settings:Add, DropDownList, vsearchProvider x+2 yp-3 w181, %searchProviderList%
+	GuiControl,Settings:ChooseString, searchProvider, %searchProvider%
+	
+	Gui, Settings:Add, Checkbox, vforceWiki x12 yp+26 w480 Checked%forceWiki%, Использовать PoEWiki.net вместо PoEDB.tw
+	
 	If FileExist(configFolder "/Scripts/HeistScanner.ahk"){
-		Gui, Settings:Add, Text, x12 yp+26 w385, Сканер витрин Кражи(HeistScanner):
+		Gui, Settings:Add, Text, x12 yp+22 w385, Сканер витрин Кражи(HeistScanner):
 		Gui, Settings:Add, Hotkey, vhotkeyHeistScanner x+2 yp-2 w90 h17, %hotkeyHeistScanner%
 	}
 	
@@ -845,20 +896,12 @@ showSettings(){
 	Gui, Settings:Add, Checkbox, vupdate x12 y+6 w480 Checked%update%, Автоматически проверять наличие обновлений
 	
 	Gui, Settings:Add, Checkbox, vupdateLib x27 yp+18 w465 Checked%updateLib% disabled, Предлагать обновления библиотек, если это возможно
-	;Gui, Settings:Add, Checkbox, vupdateAHK x27 yp+18 w465 Checked%updateAHK% disabled, Предлагать обновления для AutoHotkey
-	If update {
+	If update
 		GuiControl, Settings:Enable, updateLib
-		;GuiControl, Settings:Enable, updateAHK
-	}
 	
 	Gui, Settings:Add, Checkbox, vupdateItemData x12 yp+18 w480 Checked%updateItemData%, Обновлять списки соответствий
 	
 	Gui, Settings:Add, Checkbox, vuseEvent x12 yp+18 w480 Checked%useEvent%, Разрешить события
-	
-	If FileExist(configFolder "\LabCookies.txt") {
-		Gui, Settings:Add, Checkbox, vloadLab x12 yp+18 w375 Checked%loadLab%, Обновлять Лабиринт после запуска('Мои файлы'>Labyrinth.jpg)
-		Gui, Settings:Add, Link, x+2 yp+0 w100 +Right, <a href="https://www.poelab.com/">PoELab.com</a>
-	}
 	
 	Gui, Settings:Tab, 3 ; Третья вкладка
 	
@@ -932,13 +975,18 @@ saveSettings(){
 	IniWrite, %preset1%, %configFile%, settings, preset1
 	IniWrite, %preset2%, %configFile%, settings, preset2
 	IniWrite, %preset3%, %configFile%, settings, preset3
+	IniWrite, %preset4%, %configFile%, settings, preset4
+	IniWrite, %preset5%, %configFile%, settings, preset5
 	IniWrite, %mouseDistance%, %configFile%, settings, mouseDistance
 	IniWrite, %hotkeyLastImg%, %configFile%, hotkeys, hotkeyLastImg
 	IniWrite, %hotkeyMainMenu%, %configFile%, hotkeys, hotkeyMainMenu
 	IniWrite, %hotkeyGamepad%, %configFile%, hotkeys, hotkeyGamepad
-	IniWrite, %hotkeyItemMenu%, %configFile%, hotkeys, hotkeyItemMenu
 	
+	IniWrite, %hotkeyItemMenu%, %configFile%, hotkeys, hotkeyItemMenu
 	IniWrite, %league%, %configFile%, settings, league
+	IniWrite, %searchProvider%, %configFile%, settings, searchProvider
+	IniWrite, %forceWiki%, %configFile%, settings, forceWiki
+	
 	IniWrite, %hotkeyHeistScanner%, %configFile%, hotkeys, hotkeyHeistScanner
 	
 	;Настройки второй вкладки
@@ -949,9 +997,7 @@ saveSettings(){
 	IniWrite, %update%, %configFile%, settings, update
 	IniWrite, %updateLib%, %configFile%, settings, updateLib
 	IniWrite, %updateItemData%, %configFile%, settings, updateItemData
-	IniWrite, %updateAHK%, %configFile%, settings, updateAHK
 	IniWrite, %useEvent%, %configFile%, settings, useEvent
-	IniWrite, %loadLab%, %configFile%, settings, loadLab
 	
 	;Настройки третьей вкладки
 	IniWrite, %hotkeyCmdsMenu%, %configFile%, hotkeys, hotkeyCmdsMenu
@@ -1016,8 +1062,8 @@ setHotkeys(){
 
 ;Проверка обновления AHK
 updateAutoHotkey(){
-	IniRead, updateAHK, %configFile%, settings, updateAHK, 0
-	If !updateAHK
+	;IniRead, updateAHK, %configFile%, settings, updateAHK, 0
+	;If !updateAHK
 		return
 	filePath:=tempDir "\ahkver.txt"
 	LoadFile("https://www.autohotkey.com/download/1.1/version.txt", filePath, true)
@@ -1054,7 +1100,7 @@ presetMenuCfgShow(){
 myFilesActions(FileName="") {
 	Menu, settingsMyFilesMenu, Add
 	Menu, settingsMyFilesMenu, DeleteAll
-	If (FileName!="") && FileExist(configFolder "\MyFiles\" FileName) {
+	If (FileName!="") && FileExist(Globals.Get("myFilesFolder") "\" FileName) {
 		Menu, settingsMyFilesMenu, Add, Удалить '%FileName%', removeMyFile
 		Menu, settingsMyFilesMenu, Add
 	}
@@ -1062,7 +1108,7 @@ myFilesActions(FileName="") {
 	Menu, settingsMyFilesMenu, Add, Добавить 'Заметку', createNewNote
 	Menu, settingsMyFilesMenu, Add, Добавить 'Меню команд', createNewMenu
 	Menu, settingsMyFilesMenu, Add
-	addLoadLabInMenu("settingsMyFilesMenu", "Обновить 'Labyrinth.jpg'")
+	;addLoadLabInMenu("settingsMyFilesMenu", "Обновить 'Labyrinth.jpg'")
 	Menu, settingsMyFilesMenu, Add, Открыть папку 'Мои файлы', openMyFilesFolder
 	Menu, settingsMyFilesMenu, Show
 }
@@ -1070,7 +1116,8 @@ myFilesActions(FileName="") {
 ;Удаление файла из 'Моих файлов'
 removeMyFile(FileName) {
 	FileName:=searchName(FileName)
-	FileDelete, %configFolder%\MyFiles\%FileName%
+	FilePath:=Globals.Get("myFilesFolder") "\" FileName
+	FileDelete, %FilePath%
 }
 
 ;Поиск имени
@@ -1129,7 +1176,7 @@ menuCreate(){
 	Menu, Tray, Add, Список 'Избранных команд', editCmdsList
 	Menu, Tray, Add, Условия для 'Меню предмета', ItemMenu_customHightlight
 	Menu, Tray, Add
-	Menu, Tray, Add, Очистить кэш PoE, clearPoECache
+	Menu, Tray, Add, Очистить кэш PoE, clearPoECacheUI
 	Menu, Tray, Add, Дополнения, pkgsMgr_packagesMenu
 	Menu, Tray, Add, Меню отладки, :devMenu
 	Menu, Tray, Add
@@ -1145,6 +1192,10 @@ loadPreset(){
 		IniRead, preset, %configFile%, settings, preset2, %A_Space%
 	IfWinActive ahk_group WinGrp3
 		IniRead, preset, %configFile%, settings, preset3, %A_Space%
+	IfWinActive ahk_group WinGrp4
+		IniRead, preset, %configFile%, settings, preset4, %A_Space%
+	IfWinActive ahk_group WinGrp5
+		IniRead, preset, %configFile%, settings, preset5, %A_Space%
 		
 	If (preset="")
 		return
@@ -1195,8 +1246,6 @@ shMainMenu(Gamepad=false){
 	
 	IniRead, expandMyFiles, %configFile%, settings, expandMyFiles, 1
 	myFilesMenuCreate(expandMyFiles || Gamepad)
-	
-	;addLoadLabInMenu("mainMenu", "Обновить Лабиринт")
 	
 	IniRead, hotkeyCmdsMenu, %configFile%, hotkeys, hotkeyCmdsMenu, %A_Space%
 	If (hotkeyCmdsMenu="") {
