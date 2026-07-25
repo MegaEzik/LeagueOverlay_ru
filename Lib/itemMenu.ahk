@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=250822.03
+version=260626.01
 */
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
@@ -35,6 +35,8 @@ ItemMenu_Show(ItemMode=True, AutoShow=True){
 		iClass:=Globals.Get("IDCL_Class")
 		iRarity:=Globals.Get("IDCL_Rarity")
 		
+		iName_En:=IDCL_ConvertName(iName, ItemData)
+		
 		ItemDataSplit:=StrSplit(ItemData, "`n")
 	}
 	
@@ -58,7 +60,7 @@ ItemMenu_Show(ItemMode=True, AutoShow=True){
 			ItemMenu_AddPoEDB(iName)
 			
 			If RegExMatch(iClass, "(Валюта|Гадальные карты|Обрывки карт|Уголья Всепламени|Камни поддержки|Камни умений)") || (iRarity="Уникальный")
-				ItemMenu_AddTrade(iName)
+				ItemMenu_AddTrade(iName_En)
 				
 			If (iName="Inscribed Ultimatum") {
 				If (RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*) x\d+", findtext) || RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*)", findtext)) {
@@ -298,6 +300,8 @@ ItemMenu_OpenOnTrade(Line){
 	;ItemData:=Globals.Get("ItemDataFullText")
 	urltype:=(Globals.Get("IDCL_Rarity")="Уникальный")?"name":"type"
 	url:="https://www.pathofexile.com/trade/search/" league "?q={%22query%22:{%22" urltype "%22:%22" Line "%22}}"
+	If RegExMatch(Line, "[А-Яа-яЁё]+")
+		url:="https://ru.pathofexile.com/trade/search/" league "?q={%22query%22:{%22" urltype "%22:%22" Line "%22}}"
 	run, "%url%"
 	return
 }
