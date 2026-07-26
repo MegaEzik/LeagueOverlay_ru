@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=260626.01
+version=260626.02
 */
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
@@ -35,7 +35,8 @@ ItemMenu_Show(ItemMode=True, AutoShow=True){
 		iClass:=Globals.Get("IDCL_Class")
 		iRarity:=Globals.Get("IDCL_Rarity")
 		
-		iName_En:=IDCL_ConvertName(iName, ItemData)
+		If (iName!="") && (iName!="Undefined Name")
+			iName:=IDCL_ConvertName(iName, ItemData)
 		
 		ItemDataSplit:=StrSplit(ItemData, "`n")
 	}
@@ -60,7 +61,7 @@ ItemMenu_Show(ItemMode=True, AutoShow=True){
 			ItemMenu_AddPoEDB(iName)
 			
 			If RegExMatch(iClass, "(Валюта|Гадальные карты|Обрывки карт|Уголья Всепламени|Камни поддержки|Камни умений)") || (iRarity="Уникальный")
-				ItemMenu_AddTrade(iName_En)
+				ItemMenu_AddTrade(iName)
 				
 			If (iName="Inscribed Ultimatum") {
 				If (RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*) x\d+", findtext) || RegExMatch(ItemDataSplit[7], "Требуется жертвоприношение: (.*)", findtext)) {
