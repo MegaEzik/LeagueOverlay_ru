@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=250822.01
+version=250822.02
 */
 
 /*
@@ -214,6 +214,14 @@ IDCL_ConvertName(name, itemdata=""){
 		new_name:=mapres[mapre] " " IDCL_ConvertName(Trim(StrReplace(new_name, mapre)), itemdata)
 		return new_name		
 	}
+	
+	;Нечестивые и Вырожденные предметы
+	if RegExMatch(new_name, "^(Нечестивый|Вырожденный:)", asName) {
+		asNameList:={"Нечестивый":"Foulborn","Вырожденный:":"Vestigial"}
+		new_name:=asNameList[asName] " " IDCL_ConvertName(Trim(StrReplace(new_name, asName)), itemdata)
+		return new_name		
+	}
+	
 	;Обработка и конвертация синтезированных предметов
 	if RegExMatch(new_name, "Синтезированн") {
 		if RegExMatch(new_name, "} ") {

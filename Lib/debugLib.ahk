@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=260626
+version=260626.02
 */
 
 ;Инициализация и создание меню разработчика
@@ -16,7 +16,8 @@ devPreInit(){
 	
 	devPoE2EA()
 	
-	Menu, devMenu, Add, Загрузить Лабиринт, loadLabWithCookies
+	If RegExMatch(args, "i)/Lab")
+		Menu, devMenu, Add, Загрузить Лабиринт, loadLabWithCookies
 	;Menu, devMenu, Add, Cookies, devEditCookies
 	Menu, devMenu, Add, Экран запуска(5 секунд), devStartUI
 	;Menu, devMenu, Add, Отслеживаемые файлы, devTrackingList
@@ -42,7 +43,7 @@ devPoE2EA(){
 	;msgbox, %verPreset%
 	If (verPreset=241205) {
 		If !FileExist(configFolder "\Presets\PoE2") {
-			FileCreateDir, %configFolder%\Presets\PoE2)
+			FileCreateDir, %configFolder%\Presets\PoE2
 			IniWrite, Path of Exile 2, %configFolder%\Presets\PoE2\PresetConfig.ini, Windows
 			IniWrite, *PoE2, %configFile%, settings, preset2
 		}
@@ -53,7 +54,7 @@ devPoE2EA(){
 	If (verPreset<260626) {
 		IniWrite, 260626, %configFolder%\Presets\PoE2\PresetConfig.ini, Configuration, version
 		Sleep 10
-		ReStart()
+		;ReStart()
 	}
 }
 
