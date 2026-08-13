@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=260626.02
+version=260626.03
 */
 
 ;Инициализация и создание меню разработчика
@@ -15,6 +15,7 @@ devPreInit(){
 	;devSpecialUpdater()
 	
 	devPoE2EA()
+	devQuickTravel()
 	
 	If RegExMatch(args, "i)/Lab")
 		Menu, devMenu, Add, Загрузить Лабиринт, loadLabWithCookies
@@ -55,6 +56,17 @@ devPoE2EA(){
 		IniWrite, 260626, %configFolder%\Presets\PoE2\PresetConfig.ini, Configuration, version
 		Sleep 10
 		;ReStart()
+	}
+}
+
+devQuickTravel(){
+	IniRead, textCmd20, %configFile%, fastReply, textCmd20, %A_Space%
+	qTravelList:="Убежище|/hideout`n---`n«Суверен»|/boat`nКингсмарш|/kingsmarch`nРазбойничья гавань|/heist`nМонастырь хранителей|/monastery`nЗверинец|/menagerie`nЗапретное Святилище|/sanctum`nЛагерь у Шахты|/delve`nУбежище гильдии|/guild"
+	If !FileExist(configFolder "\qTravel.fmenu")
+		FileAppend, %qTravelList%, %configFolder%\qTravel.fmenu, UTF-8
+	If (textCmd20="") {
+		IniWrite, <configFolder>\qTravel.fmenu, %configFile%, fastReply, textCmd20
+		IniWrite, !F5, %configFile%, fastReply, hotkeyCmd20
 	}
 }
 
