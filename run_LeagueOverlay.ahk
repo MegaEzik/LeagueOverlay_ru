@@ -597,7 +597,7 @@ showStartUI(SpecialText="", LogoPath="", BGColor="", TColor="000000"){
 				,"Удаляем Зеркало Каландры из вашего фильтра предметов"
 				,"Удаляем Волшебную кровь из вашего фильтра предметов"
 				,"Усугубляем проблему с C-States в 3.21.2"
-				,"-4 к интеллекту и +30 к билду Антона"
+				;,"-4 к интеллекту и +30 к билду Антона"
 				,"Поддержи " githubUser " <3"]
 	
 	Random, randomNum, 1, initMsgs.MaxIndex()
@@ -635,7 +635,7 @@ showStartUI(SpecialText="", LogoPath="", BGColor="", TColor="000000"){
 
 	Gui, StartUI:Font, s12 c%BGColor% bold
 	
-	Gui, StartUI:Add, Text, x5 y2 h20 w490 +Center BackgroundTrans, %prjName% %verScript% | AHK %A_AhkVersion%
+	Gui, StartUI:Add, Text, x5 y2 h20 w490 +Center BackgroundTrans, %prjName% %verScript%
 	
 	;Gui, StartUI:Add, Text, x-5 y+2 w510 h1 0x12
 	
@@ -954,7 +954,7 @@ showSettings(){
 	Gui, Settings:Add, Text, x+6 w237 c7F3208, %helptext2%
 	
 	Gui, Settings:-MinimizeBox -MaximizeBox
-	Gui, Settings:Show, w500 h455, %prjName% %verScript% | AHK %A_AhkVersion% - Информация и настройки ;Отобразить окно настроек
+	Gui, Settings:Show, w500 h455, %prjName% %verScript% - Информация и настройки ;Отобразить окно настроек
 }
 
 ;Сохранить Настройки
