@@ -76,7 +76,7 @@ addWinList()
 checkRequirementsAndArgs()
 
 ;Установка иконки и описания в области уведомлений
-Menu, Tray, Tip, %prjName% %verScript% | AHK %A_AhkVersion%
+Menu, Tray, Tip, %prjName% %verScript%
 If FileExist("Data\imgs\icon.png")
 	Menu, Tray, Icon, Data\imgs\icon.png
 	
@@ -538,9 +538,13 @@ showLicense(){
 
 clearPoECacheUI(){
 	global
-
-	IniRead, PoECacheMain, %A_MyDocuments%\My Games\Path of Exile\production_Config.ini, GENERAL, cache_directory, %A_AppData%\Path of Exile\
-	IniRead, PoE2CacheMain, %A_MyDocuments%\My Games\Path of Exile 2\poe2_production_Config.ini, GENERAL, cache_directory, %A_AppData%\Path of Exile 2\
+	
+	AppDataLocal:=RegExReplace(A_AppData, "Roaming$", "Local")
+	;SplitPath, A_AppData,, AppDataLocal
+	;AppDataLocal.="\Local"
+	
+	IniRead, PoECacheMain, %A_MyDocuments%\My Games\Path of Exile\production_Config.ini, GENERAL, cache_directory, %AppDataLocal%\Path of Exile\
+	IniRead, PoE2CacheMain, %A_MyDocuments%\My Games\Path of Exile 2\poe2_production_Config.ini, GENERAL, cache_directory, %AppDataLocal%\Path of Exile 2\
 	
 	Gui, PoECacheUI:Destroy
 	
@@ -570,7 +574,7 @@ clearPoECache(){
 	
 	SplashTextOn, 400, 20, %prjName%, Очистка кэша PoE, пожалуйста подождите...
 	
-	FileRemoveDir, %A_AppData%\Path of Exile\Minimap, 1
+	FileRemoveDir, %AppDataLocal%\Path of Exile\Minimap, 1
 	
 	If ClearPoECacheMain
 		FileRemoveDir, %PoECacheMain%, 1
@@ -658,7 +662,7 @@ showStartUI(SpecialText="", LogoPath="", BGColor="", TColor="000000"){
 
 ;Закрыть окно запуска
 closeStartUI(){
-	Menu, Tray, Tip, %prjName% %verScript% | AHK %A_AhkVersion%
+	Menu, Tray, Tip, %prjName% %verScript%
 	Globals.Set("vProgress", 100)
 	suip(100)
 	sleep 150
