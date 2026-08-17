@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=260626.02
+version=260626.04
 */
 
 ;Ниже функционал нужный для тестирования функции "Меню предмета"
@@ -35,8 +35,9 @@ ItemMenu_Show(ItemMode=True, AutoShow=True){
 		iClass:=Globals.Get("IDCL_Class")
 		iRarity:=Globals.Get("IDCL_Rarity")
 		
-		If (iName!="") && (iName!="Undefined Name")
-			iName:=IDCL_ConvertName(iName, ItemData)
+		iEnName:=IDCL_ConvertName(iName, ItemData)
+		If (iEnName!="") && (iEnName!="Undefined Name")
+			iName:=iEnName
 		
 		ItemDataSplit:=StrSplit(ItemData, "`n")
 	}
