@@ -1,7 +1,7 @@
 ﻿
 /*
 [info]
-version=260626.03
+version=260626.05
 */
 
 ;Инициализация и создание меню разработчика
@@ -14,7 +14,7 @@ devPreInit(){
 	
 	;devSpecialUpdater()
 	
-	devPoE2EA()
+	;devPoE2EA()
 	devQuickTravel()
 	
 	If RegExMatch(args, "i)/Lab")
@@ -39,6 +39,7 @@ devPostInit(){
 	Sleep 100
 }
 
+/*
 devPoE2EA(){
 	IniRead, verPreset, %configFolder%\Presets\PoE2\PresetConfig.ini, Configuration, version, 241205
 	;msgbox, %verPreset%
@@ -58,6 +59,7 @@ devPoE2EA(){
 		;ReStart()
 	}
 }
+*/
 
 devQuickTravel(){
 	IniRead, textCmd20, %configFile%, fastReply, textCmd20, %A_Space%

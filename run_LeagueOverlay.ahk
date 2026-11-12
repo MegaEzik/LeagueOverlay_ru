@@ -176,7 +176,7 @@ checkRequirementsAndArgs() {
 	}
 	;Запуск gdi+
 	If !pToken:=Gdip_Startup()
-		TrayTip, %prjName%, Ошибка инициализации GDI+!
+		MsgBox, 0x1010, %prjName%, Ошибка инициализации GDI+!
 	OnExit, Exit
 }
 
@@ -220,10 +220,15 @@ migrateConfig() {
 				FileMove, %configFolder%\MyFiles\MyMenu.fmenu, %configFolder%\cmds.txt, 1
 				FileDelete, %configFolder%\windows.list
 			}
-			If (verconfig<250131)
-				FileRemoveDir, %configFolder%\Presets\PoE2EA, 1
 			If (verconfig<250606.2)
 				IniWrite, 0, %configFile%, settings, updateLib
+			If (verConfig<260626.05) {
+				IniRead, preset2, %configFile%, settings, preset2, %A_Space%
+				If RegExMatch(preset2, "i)^\*PoE2")
+					IniWrite, PoE2, %configFile%, settings, preset2
+				FileRemoveDir, %configFolder%\Presets\PoE2EA, 1
+				FileRemoveDir, %configFolder%\Presets\PoE2, 1
+			}
 		}
 		
 		showSettings()
@@ -375,6 +380,7 @@ myFilesMenuCreate(expandMenu=true){
 textFileWindow(Title, FilePath="", ReadOnlyStatus=true, contentDefault=""){
 	global
 	tfwFilePath:=FilePath
+	Globals.Set("tfwLast", tfwFilePath)
 	Gui, tfwGui:Destroy
 	
 	tfwTitle:=prjName
@@ -415,8 +421,10 @@ textFileWindow(Title, FilePath="", ReadOnlyStatus=true, contentDefault=""){
 		Menu, tfwMenuBar, Add, Сохранить `tCtrl+S, tfwSave
 		If FileExist(tfwFilePath)
 			Menu, tfwMenuBar, Add, Удалить `tCtrl+Del, tfwDelFile
-		If (tfwFilePath!="")
+		If (tfwFilePath!="") {
+			Menu, tfwMenuBar, Add, Открыть папку, tfwOpenFolder
 			Menu, tfwMenuBar, Add, Размер шрифта, :tfwFontMenu
+		}
 		Menu, tfwMenuBar, Add, Закрыть `tEsc, tfwClose
 		Gui, tfwGui:Menu, tfwMenuBar
 		Gui, tfwGui:Add, Edit, x0 y0 w1000 h640 vtfwContentFile, %tfwContentFile%
@@ -460,11 +468,20 @@ tfwSave(){
 		Globals.Set("tfwContent", tfwContentFile)
 		Return
 	}
-	Globals.Set("tfwLast", tfwFilePath)
+	
 	FileDelete, %tfwFilePath%
 	sleep 50
 	FileAppend, %tfwContentFile%, %tfwFilePath%, UTF-8
 	Gui, tfwGui:Destroy
+}
+
+;Открыть папку файла
+tfwOpenFolder(){
+	tfwFilePath:=Globals.Get("tfwLast")
+	SplitPath, tfwFilePath,, tfwFileDir
+	Run, explorer "%tfwFileDir%"
+	sleep 100
+	Gui, tfwGui:Minimize 
 }
 
 ;Изменить размер шрифта
@@ -600,7 +617,7 @@ showStartUI(SpecialText="", LogoPath="", BGColor="", TColor="000000"){
 				,"Нанимаем NPC 'Борис Бритва'"
 				,"Удаляем Зеркало Каландры из вашего фильтра предметов"
 				,"Удаляем Волшебную кровь из вашего фильтра предметов"
-				,"Усугубляем проблему с C-States в 3.21.2"
+				;,"Усугубляем проблему с C-States в 3.21.2"
 				;,"-4 к интеллекту и +30 к билду Антона"
 				,"Поддержи " githubUser " <3"]
 	
@@ -751,8 +768,6 @@ showSettings(){
 	IniRead, searchProvider, %configFile%, settings, searchProvider, Google
 	IniRead, forceWiki, %configFile%, settings, forceWiki, 0
 	
-	IniRead, hotkeyHeistScanner, %configFile%, hotkeys, hotkeyHeistScanner, %A_Space%
-	
 	;Настройки второй вкладки
 	IniRead, UserAgent, %configFile%, curl, user-agent, %A_Space%
 	IniRead, lr, %configFile%, curl, limit-rate, 2000
@@ -875,11 +890,6 @@ showSettings(){
 	
 	Gui, Settings:Add, Checkbox, vforceWiki x12 yp+26 w480 Checked%forceWiki%, Использовать PoEWiki.net вместо PoEDB.tw
 	
-	If FileExist(configFolder "/Scripts/HeistScanner.ahk"){
-		Gui, Settings:Add, Text, x12 yp+22 w385, Сканер витрин Кражи(HeistScanner):
-		Gui, Settings:Add, Hotkey, vhotkeyHeistScanner x+2 yp-2 w90 h17, %hotkeyHeistScanner%
-	}
-	
 	Gui, Settings:Tab, 2 ;Вторая вкладка
 	
 	Gui, Settings:Add, Text, x12 y80 w120, cURL | User-Agent:
@@ -990,8 +1000,6 @@ saveSettings(){
 	IniWrite, %league%, %configFile%, settings, league
 	IniWrite, %searchProvider%, %configFile%, settings, searchProvider
 	IniWrite, %forceWiki%, %configFile%, settings, forceWiki
-	
-	IniWrite, %hotkeyHeistScanner%, %configFile%, hotkeys, hotkeyHeistScanner
 	
 	;Настройки второй вкладки
 	IniWrite, %UserAgent%, %configFile%, curl, user-agent
