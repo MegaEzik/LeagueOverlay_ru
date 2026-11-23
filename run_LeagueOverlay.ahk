@@ -754,7 +754,7 @@ showSettings(){
 	IniRead, startArgs, %configFile%, settings, startArgs, %A_Space%
 	oldStartArgs:=startArgs
 	IniRead, preset1, %configFile%, settings, preset1, PoE
-	IniRead, preset2, %configFile%, settings, preset2, %A_Space%
+	IniRead, preset2, %configFile%, settings, preset2, PoE2
 	IniRead, preset3, %configFile%, settings, preset3, %A_Space%
 	IniRead, preset4, %configFile%, settings, preset4, %A_Space%
 	IniRead, preset5, %configFile%, settings, preset5, %A_Space%
